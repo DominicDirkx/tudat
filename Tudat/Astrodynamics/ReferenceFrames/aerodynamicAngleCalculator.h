@@ -119,6 +119,9 @@ public:
         angleUpdateFunction_( angleUpdateFunction ),
         currentBodyAngleTime_( TUDAT_NAN ){ }
 
+    //! Destructor
+    ~AerodynamicAngleCalculator( ){ }
+
     //! Function to get the current rotation from the global (propagation/inertial) to the local (body-fixed) frame.
     /*!
      * Function to get the current rotation from the global (propagation/inertial) to the local (body-fixed) frame.

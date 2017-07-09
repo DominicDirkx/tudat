@@ -1067,6 +1067,10 @@ private:
 
 typedef std::unordered_map< std::string, boost::shared_ptr< Body > > NamedBodyMap;
 
+void emptyBodyMemory( const boost::shared_ptr< Body > body );
+
+void emptyBodyMapMemory( const NamedBodyMap& bodyMap );
+
 } // namespace simulation_setup
 
 } // namespace tudat

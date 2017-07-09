@@ -258,6 +258,11 @@ public:
                 coefficientD_ * secondDerivativeOfCurve_[ lowerEntry_ + 1 ];
     }
 
+    void clearDerivedInterpolator( )
+    {
+        secondDerivativeOfCurve_.clear( );
+    }
+
 protected:
 
 private:

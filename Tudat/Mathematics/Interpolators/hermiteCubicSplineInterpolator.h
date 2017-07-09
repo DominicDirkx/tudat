@@ -142,6 +142,17 @@ public:
         return targetValue;
     }
 
+    void clearDerivedInterpolator( )
+    {
+        derivativeValues_.clear( );
+
+        for( unsigned int i = 0; i < coefficients_.size( ); i++ )
+        {
+            coefficients_[ i ].clear( );
+        }
+        coefficients_.clear( );
+    }
+
 protected:
 
     //! Compute coefficients of the splines

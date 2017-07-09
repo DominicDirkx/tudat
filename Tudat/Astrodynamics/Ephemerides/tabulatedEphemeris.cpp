@@ -135,7 +135,41 @@ bool isTabulatedEphemeris( const boost::shared_ptr< Ephemeris > ephemeris )
     return objectIsTabulated;
 }
 
-
+void clearTabulatedEphemerisContents(
+        const boost::shared_ptr< Ephemeris > ephemerisToClear )
+{
+    if( isTabulatedEphemeris( ephemerisToClear ) )
+    {
+        if( ( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, double > >( ephemerisToClear ) != NULL ) )
+        {
+             boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Matrix< double, 6, 1 > > >
+                     stateInterpolator = boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, double > >(
+                         ephemerisToClear )->getInterpolator( );
+             stateInterpolator->clearInterpolator( );
+        }
+        else if( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, double > >( ephemerisToClear ) != NULL )
+        {
+            boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Matrix< long double, 6, 1 > > >
+                    stateInterpolator = boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, double > >(
+                        ephemerisToClear )->getInterpolator( );
+            stateInterpolator->clearInterpolator( );
+        }
+        else if( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, Time > >( ephemerisToClear ) != NULL )
+        {
+            boost::shared_ptr< interpolators::OneDimensionalInterpolator< Time, Eigen::Matrix< long double, 6, 1 > > >
+                    stateInterpolator = boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< long double, Time > >(
+                        ephemerisToClear )->getInterpolator( );
+            stateInterpolator->clearInterpolator( );
+        }
+        else if( boost::dynamic_pointer_cast< TabulatedCartesianEphemeris< double, Time > >( ephemerisToClear ) != NULL )
+        {
+            boost::shared_ptr< interpolators::OneDimensionalInterpolator< Time, Eigen::Matrix< double, 6, 1 > > >
+                    stateInterpolator = boost::dynamic_pointer_cast< TabulatedCartesianEphemeris<  double, Time > >(
+                        ephemerisToClear )->getInterpolator( );
+            stateInterpolator->clearInterpolator( );
+        }
+    }
+}
 
 } // namespace ephemerides
 

@@ -385,6 +385,12 @@ boost::shared_ptr< Ephemeris > createReferencePointEphemeris(
                 referencePointEphemerisVector, referencePointRotationVector, "SSB", "ECLIPJ2000" );
 }
 
+//! Function to check whether an ephemeris is a (type of) tabulated ephemeris
+bool isCompositeEphemeris( const boost::shared_ptr< Ephemeris > ephemeris );
+
+void clearCompositeEphemerisContents(
+        const boost::shared_ptr< Ephemeris > ephemerisToClear );
+
 } // namespace ephemerides
 
 } // namespace tudat

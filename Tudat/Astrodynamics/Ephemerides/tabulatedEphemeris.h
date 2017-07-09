@@ -174,6 +174,9 @@ boost::shared_ptr< Ephemeris > createEmptyTabulatedEphemeris(
                 referenceFrameOrigin, referenceFrameOrientation );
 }
 
+void clearTabulatedEphemerisContents(
+        const boost::shared_ptr< Ephemeris > ephemerisToClear );
+
 } // namespace ephemerides
 
 } // namespace tudat

@@ -121,6 +121,19 @@ public:
         return dependentValues_;
     }
 
+    void clearInterpolator( )
+    {
+        independentValues_.clear( );
+        dependentValues_.clear( );
+
+        clearDerivedInterpolator( );
+    }
+
+    virtual void clearDerivedInterpolator( )
+    {
+
+    }
+
 protected:
 
     //! Make look-up scheme that is to be used.

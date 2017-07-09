@@ -306,6 +306,26 @@ public:
         return interpolatedValue;
     }
 
+    void clearDerivedInterpolator( )
+    {
+        for( unsigned int i = 0; i < denominators.size( ); i++ )
+        {
+            denominators[ i ].clear( );
+        }
+        denominators.clear( );
+        independentVariableDifferenceCache.clear( );
+
+        if( beginInterpolator_ != NULL )
+        {
+            beginInterpolator_->clearInterpolator( );
+        }
+
+        if( endInterpolator_ != NULL )
+        {
+            endInterpolator_->clearInterpolator( );
+        }
+    }
+
 
 protected:
 

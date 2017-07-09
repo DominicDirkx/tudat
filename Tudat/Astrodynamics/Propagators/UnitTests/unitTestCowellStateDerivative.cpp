@@ -482,6 +482,8 @@ void testCowellPropagationOfKeplerOrbit( )
             currentTime += 10000.0;
         }
     }
+
+    emptyBodyMapMemory( bodyMap );
 }
 BOOST_AUTO_TEST_CASE( testCowellPopagatorKeplerCompare )
 {

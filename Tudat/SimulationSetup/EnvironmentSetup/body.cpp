@@ -8,6 +8,7 @@
  *    http://tudat.tudelft.nl/LICENSE.
  */
 
+#include "Tudat/Astrodynamics/Ephemerides/tabulatedEphemeris.h"
 #include "Tudat/SimulationSetup/EnvironmentSetup/body.h"
 
 namespace tudat
@@ -75,6 +76,23 @@ void Body::setTemplatedState( const Eigen::Matrix< long double, 6, 1 >& state )
     setLongState( state );
 }
 
+void emptyBodyMemory( const boost::shared_ptr< Body > body )
+{
+    boost::shared_ptr< ephemerides::Ephemeris > bodyEphemeris = body->getEphemeris( );
+    if( ephemerides::isTabulatedEphemeris( bodyEphemeris ) )
+    {
+        ephemerides::clearTabulatedEphemerisContents( bodyEphemeris );
+    }
+}
+
+void emptyBodyMapMemory( const NamedBodyMap& bodyMap )
+{
+    for( NamedBodyMap::const_iterator bodyMapIterator = bodyMap.begin( ); bodyMapIterator != bodyMap.end( );
+         bodyMapIterator++ )
+    {
+        emptyBodyMemory( bodyMapIterator->second );
+    }
+}
 
 } // namespace simulation_setup
 

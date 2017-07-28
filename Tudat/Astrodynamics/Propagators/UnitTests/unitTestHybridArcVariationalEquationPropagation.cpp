@@ -301,11 +301,113 @@ executeHybridArcMarsAndOrbiterSensitivitySimulation(
                 results.first.push_back( variationalEquations.getStateTransitionMatrixInterface( )->
                                          getCombinedStateTransitionAndSensitivityMatrix( testEpoch ) );
                 results.second.push_back( hybridArcPropagatorSettings->getMultiArcPropagatorSettings( )->getInitialStateList( ).at( arc ) );
+
+
             }
             else
             {
                 results.second.push_back( testStates );
             }
+        }
+
+        if( propagateVariationalEquations )
+        {
+
+            for( unsigned test = 0; test < 3; test++ )
+            {
+                std::cout<<" ========================= TESTING: "<<test<<std::endl;
+                if( test == 1 )
+                {
+                    variationalEquations.resetParameterEstimate(
+                                parametersToEstimate->template getFullParameterValues< double >( ) );
+                }
+
+                if( test == 2 )
+                {
+                    variationalEquations.resetParameterEstimate(
+                                0.9999 * parametersToEstimate->template getFullParameterValues< double >( ) );
+                }
+
+                Eigen::VectorXd originalParameterVector = parametersToEstimate->template getFullParameterValues< double >( );
+                Eigen::VectorXd originalInitialState = hybridArcPropagatorSettings->getInitialStates( );
+
+                Eigen::VectorXd singleArcParameterVector = variationalEquations.getSingleArcParametersToEstimate( )->
+                        template getFullParameterValues< double >( );
+                Eigen::VectorXd originalSingleArcInitialState = variationalEquations.getOriginalPropagatorSettings( )->
+                        getSingleArcPropagatorSettings( )->template getInitialStates( );
+                Eigen::VectorXd singleArcInitialState = variationalEquations.getPropagatorSettings( )->
+                        getSingleArcPropagatorSettings( )->template getInitialStates( );
+
+                Eigen::VectorXd originalMultiArcParameterVector = variationalEquations.getOriginalMultiArcParametersToEstimate( )->
+                        template getFullParameterValues< double >( );
+                Eigen::VectorXd multiArcParameterVector = variationalEquations.getMultiArcParametersToEstimate( )->
+                        template getFullParameterValues< double >( );
+                Eigen::VectorXd originalMultiArcInitialState = variationalEquations.getOriginalPropagatorSettings( )->
+                        getMultiArcPropagatorSettings( )->template getInitialStates( );
+                Eigen::VectorXd multiArcInitialState = variationalEquations.getPropagatorSettings( )->
+                        getMultiArcPropagatorSettings( )->template getInitialStates( );
+
+
+                BOOST_CHECK_EQUAL( originalInitialState.rows( ), originalParameterVector.rows( ) - 2 );
+                for( unsigned int i = 0; i < originalInitialState.rows( ); i++ )
+                {
+                    BOOST_CHECK_EQUAL( originalParameterVector( i ), originalInitialState( i ) );
+                }
+
+                //std::cout<<"Difference parameter vector: "<<( originalParameterVector.segment( 0, originalInitialState.rows( ) ) -
+                //                                             originalInitialState ).transpose( )<<std::endl;
+
+                BOOST_CHECK_EQUAL( originalSingleArcInitialState.rows( ), singleArcParameterVector.rows( ) - 2 );
+                BOOST_CHECK_EQUAL( singleArcInitialState.rows( ), singleArcParameterVector.rows( ) - 2 );
+                for( unsigned int i = 0; i < originalSingleArcInitialState.rows( ); i++ )
+                {
+                    BOOST_CHECK_EQUAL( originalSingleArcInitialState( i ), singleArcInitialState( i ) );
+                    BOOST_CHECK_EQUAL( singleArcInitialState( i ), singleArcParameterVector( i ) );
+
+                }
+
+                BOOST_CHECK_EQUAL( originalMultiArcParameterVector.rows( ) - 2, originalMultiArcInitialState.rows( ) );
+                for( unsigned int i = 0; i < originalMultiArcInitialState.rows( ); i++ )
+                {
+                    BOOST_CHECK_EQUAL( originalMultiArcParameterVector( i ), originalMultiArcInitialState( i ) );
+                }
+
+                //std::cout<<"Difference parameter vector: "<<( originalMultiArcParameterVector.segment( 0, originalMultiArcInitialState.rows( ) ) -
+                //                                              originalMultiArcInitialState ).transpose( )<<std::endl;
+
+                BOOST_CHECK_EQUAL( multiArcParameterVector.rows( ) - 2, multiArcInitialState.rows( ) );
+                for( unsigned int i = 0; i < multiArcInitialState.rows( ); i++ )
+                {
+                    if( i < 6 && i > 6 * numberOfIntegrationArcs )
+                    {
+                        BOOST_CHECK_EQUAL( multiArcParameterVector( i  ), multiArcInitialState( i ) );
+                    }
+                }
+
+                for( unsigned int i = 0; i < 6; i++ )
+                {
+                    BOOST_CHECK_EQUAL( originalParameterVector( i ), multiArcParameterVector( i ) );
+                }
+                std::cout<<"Parameter difference "<<originalParameterVector.segment( 0, 6 ).transpose( )<<std::endl;
+                std::cout<<"Parameter difference "<<multiArcParameterVector.segment( 0, 6 ).transpose( )<<std::endl;
+                std::cout<<"Parameter difference "<<( originalParameterVector - multiArcParameterVector ).segment( 0, 6 ).transpose( )<<std::endl;
+
+                for( unsigned int i = 0; i < numberOfIntegrationArcs; i++ )
+                {
+                    for( unsigned int j = 0; j < 6; j++ )
+                    {
+                        BOOST_CHECK_EQUAL( originalParameterVector( i * 6 + j + 6 ), originalMultiArcInitialState( i * 6 + j ) );
+                        BOOST_CHECK_EQUAL( originalParameterVector( i * 6 + j + 6 ), multiArcInitialState( i * 12 + j + 6 ) );
+                    }
+                }
+
+                //            std::cout<<"Original par. "<<originalParameterVector.transpose( )<<std::endl;
+                //            std::cout<<"Original mult. "<<originalMultiArcInitialState.transpose( )<<std::endl;
+
+                //            std::cout<<"Extended multi-arc. "<<multiArcInitialState.transpose( )<<std::endl;
+            }
+
+
         }
     }
     return results;
@@ -496,7 +598,6 @@ BOOST_AUTO_TEST_CASE( testMarsAndOrbiterHybridArcVariationalEquationCalculation 
                                 manualPartial.at( arc ).block( 6, 13, 6, 1 ), 5.0E-5 );
 
                 }
-
             }
         }
     }

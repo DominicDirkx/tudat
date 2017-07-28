@@ -753,7 +753,8 @@ protected:
             integrateAndEstimateOrbit_ = false;
         }
 
-        if( boost::dynamic_pointer_cast< propagators::MultiArcPropagatorSettings< ObservationScalarType > >( propagatorSettings ) != NULL )
+        if( boost::dynamic_pointer_cast< propagators::MultiArcPropagatorSettings< ObservationScalarType > >(
+                    propagatorSettings ) != NULL )
         {
             dynamicsIsMultiArc_ = true;
 
@@ -767,7 +768,8 @@ protected:
                             boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ), 0, 1 );
             }
         }
-        else
+        else if( boost::dynamic_pointer_cast< propagators::SingleArcPropagatorSettings< ObservationScalarType > >(
+                     propagatorSettings ) != NULL )
         {
             dynamicsIsMultiArc_ = false;
 
@@ -777,6 +779,20 @@ protected:
                         < ObservationScalarType, TimeType > >(
                             bodyMap, integratorSettings, propagatorSettings, parametersToEstimate_, 1,
                             boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ), 0, 1 );
+            }
+        }
+        else if( boost::dynamic_pointer_cast< propagators::HybridArcPropagatorSettings< ObservationScalarType > >(
+                     propagatorSettings ) != NULL )
+        {
+            dynamicsIsMultiArc_ = false;
+
+            if( integrateAndEstimateOrbit_ )
+            {
+                variationalEquationsSolver_ = boost::make_shared< propagators::HybridArcVariationalEquationsSolver
+                        < ObservationScalarType, TimeType > >(
+                            bodyMap, integratorSettings, propagatorSettings, parametersToEstimate_,
+                            estimatable_parameters::getMultiArcStateEstimationArcStartTimes(
+                                                        parametersToEstimate_ ), 1, 0, 1 );
             }
         }
 

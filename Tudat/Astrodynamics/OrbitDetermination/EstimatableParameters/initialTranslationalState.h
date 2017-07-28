@@ -360,7 +360,7 @@ std::vector< double > getMultiArcStateEstimationArcStartTimes(
         }
         else
         {
-            throw std::runtime_error( "Error when getting arc times from estimated parameters, soingle arc dynamics found" );
+            throw std::runtime_error( "Error when getting arc times from estimated parameters, single arc dynamics found" );
         }
     }
 

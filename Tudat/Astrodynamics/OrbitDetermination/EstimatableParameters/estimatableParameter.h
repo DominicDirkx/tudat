@@ -317,6 +317,11 @@ public:
         return estimatedParameterSetSize_;
     }
 
+    int getNonDynamicalEstimatedParameterSetSize( )
+    {
+        return estimatedParameterSetSize_ - initialDynamicalStateParameterSize_;
+    }
+
     //! Function to return the total number of initial state values that are estimated.
     /*!
      *  Function to return the total number of initial state values that are estimated.
@@ -389,6 +394,125 @@ public:
 
         return parameterValues;
     }
+
+    template< typename ParameterScalar >
+    Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 > getParameterValuesWithSingleArcInitialStatesOnly( )
+    {
+        Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >  parameterValues =
+                Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >::Zero(
+                    totalParameterSetSize_ - initialDynamicalMultiArcStateParameterSize_ );
+
+        int currentStartIndex = 0;
+
+        // Retrieve initial state parameter values.
+        for( unsigned int i = 0; i < estimateSingleArcInitialStateParameters_.size( ); i++ )
+        {
+            parameterValues.segment( currentStartIndex, estimateSingleArcInitialStateParameters_[ i ]->getParameterSize( ) ) =
+                    estimateSingleArcInitialStateParameters_[ i ]->getParameterValue( ).template cast< ParameterScalar >( );
+            currentStartIndex += estimateSingleArcInitialStateParameters_[ i ]->getParameterSize( );
+        }
+
+        // Retrieve double parameter values.
+        for( unsigned int i = 0; i < estimatedDoubleParameters_.size( ); i++ )
+        {
+            parameterValues( currentStartIndex ) = static_cast< ParameterScalar >(
+                        estimatedDoubleParameters_[ i ]->getParameterValue( ) );
+            currentStartIndex++;
+        }
+
+        // Retrieve vector parameter values.
+        for( unsigned int i = 0; i < estimatedVectorParameters_.size( ); i++ )
+        {
+            parameterValues.segment( currentStartIndex, estimatedVectorParameters_[ i ]->getParameterSize( ) ) =
+                    estimatedVectorParameters_[ i ]->getParameterValue( ).template cast< ParameterScalar >( );
+            currentStartIndex += estimatedVectorParameters_[ i ]->getParameterSize( );
+        }
+
+        return parameterValues;
+    }
+
+    template< typename ParameterScalar >
+    Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 > getParameterValuesWithMultiArcInitialStatesOnly( )
+    {
+        Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >  parameterValues =
+                Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >::Zero(
+                    totalParameterSetSize_ - initialDynamicalSingleArcStateParameterSize_ );
+
+        int currentStartIndex = 0;
+
+        // Retrieve initial state parameter values.
+        for( unsigned int i = 0; i < estimateMultiArcInitialStateParameters_.size( ); i++ )
+        {
+            parameterValues.segment( currentStartIndex, estimateMultiArcInitialStateParameters_[ i ]->getParameterSize( ) ) =
+                    estimateMultiArcInitialStateParameters_[ i ]->getParameterValue( ).template cast< ParameterScalar >( );
+            currentStartIndex += estimateMultiArcInitialStateParameters_[ i ]->getParameterSize( );
+        }
+
+        // Retrieve double parameter values.
+        for( unsigned int i = 0; i < estimatedDoubleParameters_.size( ); i++ )
+        {
+            parameterValues( currentStartIndex ) = static_cast< ParameterScalar >(
+                        estimatedDoubleParameters_[ i ]->getParameterValue( ) );
+            currentStartIndex++;
+        }
+
+        // Retrieve vector parameter values.
+        for( unsigned int i = 0; i < estimatedVectorParameters_.size( ); i++ )
+        {
+            parameterValues.segment( currentStartIndex, estimatedVectorParameters_[ i ]->getParameterSize( ) ) =
+                    estimatedVectorParameters_[ i ]->getParameterValue( ).template cast< ParameterScalar >( );
+            currentStartIndex += estimatedVectorParameters_[ i ]->getParameterSize( );
+        }
+
+        return parameterValues;
+    }
+
+    template< typename ParameterScalar >
+    Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 > getParameterValuesWithoutInitialStates( )
+    {
+        Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >  parameterValues =
+                Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >::Zero(
+                    estimatedParameterSetSize_  - initialDynamicalStateParameterSize_ );
+
+        int currentStartIndex = 0;
+
+        // Retrieve double parameter values.
+        for( unsigned int i = 0; i < estimatedDoubleParameters_.size( ); i++ )
+        {
+            parameterValues( currentStartIndex ) = static_cast< ParameterScalar >(
+                        estimatedDoubleParameters_[ i ]->getParameterValue( ) );
+            currentStartIndex++;
+        }
+
+        // Retrieve vector parameter values.
+        for( unsigned int i = 0; i < estimatedVectorParameters_.size( ); i++ )
+        {
+            parameterValues.segment( currentStartIndex, estimatedVectorParameters_[ i ]->getParameterSize( ) ) =
+                    estimatedVectorParameters_[ i ]->getParameterValue( ).template cast< ParameterScalar >( );
+            currentStartIndex += estimatedVectorParameters_[ i ]->getParameterSize( );
+        }
+
+        return parameterValues;
+    }
+
+    template< typename ParameterScalar >
+    Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 > getInitialStateParameterValues( )
+    {
+        Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >  parameterValues =
+                Eigen::Matrix< ParameterScalar, Eigen::Dynamic, 1 >::Zero( initialDynamicalStateParameterSize_ );
+
+        int currentStartIndex = 0;
+
+        // Retrieve initial state parameter values.
+        for( unsigned int i = 0; i < estimateInitialStateParameters_.size( ); i++ )
+        {
+            parameterValues.segment( currentStartIndex, estimateInitialStateParameters_[ i ]->getParameterSize( ) ) =
+                    estimateInitialStateParameters_[ i ]->getParameterValue( ).template cast< ParameterScalar >( );
+            currentStartIndex += estimateInitialStateParameters_[ i ]->getParameterSize( );
+        }
+        return parameterValues;
+    }
+
 
     //! Function to reset all parameter values.
     /*!

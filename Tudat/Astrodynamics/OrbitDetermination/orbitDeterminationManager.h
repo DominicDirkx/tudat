@@ -514,10 +514,12 @@ public:
             calculateObservationMatrixAndResiduals(
                         podInput->getObservationsAndTimes( ), parameterVectorSize, totalNumberOfObservations, residualsAndPartials );
 
+            std::cout<<"Test A"<<std::endl;
             Eigen::VectorXd transformationData = normalizeObservationMatrix( residualsAndPartials.second );
 
             Eigen::MatrixXd normalizedInverseAprioriCovarianceMatrix = Eigen::MatrixXd::Zero(
                         numberOfEstimatedParameters, numberOfEstimatedParameters );
+            std::cout<<"Test B"<<std::endl;
 
             Eigen::MatrixXd inverseAPrioriCovariance = podInput->getInverseOfAprioriCovariance( );
             for( int j = 0; j < numberOfEstimatedParameters; j++ )
@@ -528,6 +530,7 @@ public:
                             ( transformationData( j ) * transformationData( k ) );
                 }
             }
+            std::cout<<"Test C"<<std::endl;
 
             // Perform least squares calculation for correction to parameter vector.
             std::pair< Eigen::VectorXd, Eigen::MatrixXd > leastSquaresOutput =
@@ -535,9 +538,12 @@ public:
                         residualsAndPartials.second.block( 0, 0, residualsAndPartials.second.rows( ), numberOfEstimatedParameters ),
                         residualsAndPartials.first, getConcatenatedWeightsVector( podInput->getWeightsMatrixDiagonals( ) ),
                         normalizedInverseAprioriCovarianceMatrix );
+            std::cout<<"Test D"<<std::endl;
+
             ParameterVectorType parameterAddition =
                     ( leastSquaresOutput.first.cwiseQuotient( transformationData.segment( 0, numberOfEstimatedParameters ) ) ).
                     template cast< ObservationScalarType >( );
+            std::cout<<"Test E"<<std::endl;
 
             if( numberOfIterations == 0 && saveResidualsFromFirstIteration )
             {

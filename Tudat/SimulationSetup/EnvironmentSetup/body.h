@@ -327,15 +327,16 @@ public:
     template< typename StateScalarType = double, typename TimeType = double >
     Eigen::Matrix< StateScalarType, 6, 1 > getStateInBaseFrameFromEphemeris( const TimeType time )
     {
-       setStateFromEphemeris< StateScalarType, TimeType >( time );
-       if( sizeof( StateScalarType ) == 8 )
-       {
-           return currentState_.template cast< StateScalarType >( );
-       }
-       else
-       {
-           return currentLongState_.template cast< StateScalarType >( );
-       }
+        std::cout<<"Setting state in body "<<time<<std::endl;
+        setStateFromEphemeris< StateScalarType, TimeType >( time );
+        if( sizeof( StateScalarType ) == 8 )
+        {
+            return currentState_.template cast< StateScalarType >( );
+        }
+        else
+        {
+            return currentLongState_.template cast< StateScalarType >( );
+        }
 
     }
 
@@ -433,7 +434,7 @@ public:
         else
         {
             throw std::runtime_error(
-                   "Error, no rotationalEphemeris_ found in Body::setCurrentRotationToLocalFrameDerivativeFromEphemeris" );
+                        "Error, no rotationalEphemeris_ found in Body::setCurrentRotationToLocalFrameDerivativeFromEphemeris" );
         }
     }
 
@@ -596,7 +597,7 @@ public:
         }
 
         currentMass_ = gravityFieldModel_->getGravitationalParameter( )
-                       / physical_constants::GRAVITATIONAL_CONSTANT;
+                / physical_constants::GRAVITATIONAL_CONSTANT;
         bodyMassFunction_ = boost::lambda::constant( currentMass_ );
     }
 
@@ -732,7 +733,7 @@ public:
     void setRadiationPressureInterface(
             const std::string& radiatingBody,
             const boost::shared_ptr< electro_magnetism::RadiationPressureInterface >
-                radiationPressureInterface )
+            radiationPressureInterface )
     {
         radiationPressureInterfaces_[ radiatingBody ] = radiationPressureInterface;
     }
@@ -744,7 +745,7 @@ public:
      */
     void setGravityFieldVariationSet(
             const boost::shared_ptr< gravitation::GravityFieldVariationsSet >
-                gravityFieldVariationSet )
+            gravityFieldVariationSet )
     {
         gravityFieldVariationSet_ = gravityFieldVariationSet;
     }
@@ -852,9 +853,9 @@ public:
      *  \return Object describing requested variation in the gravity field of this body.
      */
     std::pair< bool, boost::shared_ptr< gravitation::GravityFieldVariations > >
-            getGravityFieldVariation(
-                const gravitation::BodyDeformationTypes& deformationType,
-                const std::string identifier = "" )
+    getGravityFieldVariation(
+            const gravitation::BodyDeformationTypes& deformationType,
+            const std::string identifier = "" )
     {
         return gravityFieldVariationSet_->getGravityFieldVariation( deformationType, identifier );
     }
@@ -1101,11 +1102,11 @@ private:
 
     //! List of radiation pressure models for the body, with the sources bodies as key
     std::map< std::string, boost::shared_ptr< electro_magnetism::RadiationPressureInterface > >
-            radiationPressureInterfaces_;
+    radiationPressureInterfaces_;
 
     //! Predefined iterator for efficiency purposes.
     std::map< std::string,
-              boost::shared_ptr< electro_magnetism::RadiationPressureInterface > >::iterator
+    boost::shared_ptr< electro_magnetism::RadiationPressureInterface > >::iterator
     radiationPressureIterator_;
 
     //! List of ground station objects on Body

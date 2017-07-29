@@ -358,10 +358,12 @@ std::vector< double > getMultiArcStateEstimationArcStartTimes(
             }
 
         }
-        else
-        {
-            throw std::runtime_error( "Error when getting arc times from estimated parameters, single arc dynamics found" );
-        }
+
+    }
+
+    if( arcStartTimes.size( ) == 0 )
+    {
+        throw std::runtime_error( "Error when getting arc times from estimated parameters, multi arc dynamics found" );
     }
 
     return arcStartTimes;

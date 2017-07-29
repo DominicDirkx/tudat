@@ -20,7 +20,7 @@ namespace tudat
 {
 namespace unit_tests
 {
-BOOST_AUTO_TEST_SUITE( test_clock_parameter_estimation )
+BOOST_AUTO_TEST_SUITE( test_multi_parameter_estimation )
 
 //Using declarations.
 using namespace tudat::observation_models;
@@ -197,7 +197,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
 
     TimeType observationTime;
-    int numberOfObservationsPerArc = 5000;
+    int numberOfObservationsPerArc = 5;
     double timeBuffer = 9000.0;
 
 

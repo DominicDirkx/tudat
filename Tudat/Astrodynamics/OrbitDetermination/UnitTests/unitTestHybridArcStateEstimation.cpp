@@ -1,4 +1,4 @@
-//#define BOOST_TEST_MAIN
+#define BOOST_TEST_MAIN
 
 #include <string>
 #include <thread>
@@ -16,11 +16,11 @@
 #include "Tudat/SimulationSetup/EnvironmentSetup/createGroundStations.h"
 
 
-//namespace tudat
-//{
-//namespace unit_tests
-//{
-//BOOST_AUTO_TEST_SUITE( test_hybrid_arc_estimation )
+namespace tudat
+{
+namespace unit_tests
+{
+BOOST_AUTO_TEST_SUITE( test_hybrid_arc_estimation )
 
 //Using declarations.
 using namespace tudat::observation_models;
@@ -35,7 +35,6 @@ using namespace tudat::ephemerides;
 using namespace tudat::propagators;
 using namespace tudat::basic_astrodynamics;
 using namespace tudat::unit_conversions;
-using namespace tudat;
 
 template< typename ObservationScalarType = double , typename TimeType = double , typename StateScalarType  = double >
 Eigen::VectorXd  executeParameterEstimation(
@@ -59,7 +58,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
     // Specify initial time
     double initialEphemerisTime = 1.0E7;
-    double finalEphemerisTime = initialEphemerisTime + 5.0 * 86400.0;
+    double finalEphemerisTime = initialEphemerisTime + 10.0 * 86400.0;
     double maximumTimeStep = 3600.0;
     double buffer = 5.0 * maximumTimeStep;
 
@@ -147,7 +146,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
     // Creater arc times
 
-    double arcDuration = 1.1 * 86400.0;
+    double arcDuration = 2.1 * 86400.0;
     double arcOverlap  = 3600.0;
 
     std::vector< double > integrationArcStarts, integrationArcEnds;
@@ -311,12 +310,24 @@ Eigen::VectorXd  executeParameterEstimation(
 
     for( unsigned int i = 0; i < ( truthParameters.rows( ) - 2 ) / 6; i++ )
     {
-        initialParameterEstimate[ 0 + 6 * i ] += 1.0E0;
-        initialParameterEstimate[ 1 + 6 * i ] += 1.0E0;
-        initialParameterEstimate[ 2 + 6 * i ] += 1.0E0;
-        initialParameterEstimate[ 3 + 6 * i ] += 1.0E-5;
-        initialParameterEstimate[ 4 + 6 * i ] += 1.0E-5;
-        initialParameterEstimate[ 5 + 6 * i ] += 1.0E-5;
+        if( i == 0 )
+        {
+            initialParameterEstimate[ 0 + 6 * i ] += 1.0E6;
+            initialParameterEstimate[ 1 + 6 * i ] += 1.0E6;
+            initialParameterEstimate[ 2 + 6 * i ] += 1.0E6;
+            initialParameterEstimate[ 3 + 6 * i ] += 1.0E0;
+            initialParameterEstimate[ 4 + 6 * i ] += 1.0E0;
+            initialParameterEstimate[ 5 + 6 * i ] += 1.0E0;
+        }
+        else
+        {
+            initialParameterEstimate[ 0 + 6 * i ] += 1.0E0;
+            initialParameterEstimate[ 1 + 6 * i ] += 1.0E0;
+            initialParameterEstimate[ 2 + 6 * i ] += 1.0E0;
+            initialParameterEstimate[ 3 + 6 * i ] += 1.0E-5;
+            initialParameterEstimate[ 4 + 6 * i ] += 1.0E-5;
+            initialParameterEstimate[ 5 + 6 * i ] += 1.0E-5;
+        }
     }
     for( unsigned int i = truthParameters.rows( ) - 2; i < initialParameterEstimate.rows( ); i++ )
     {
@@ -335,34 +346,43 @@ Eigen::VectorXd  executeParameterEstimation(
 }
 
 
-int main( )//BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
+BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
 {
     // Execute test for linked arcs and separate arcs.
-    for( unsigned int testCase = 0; testCase < 1; testCase++ )
+    for( unsigned int testCase = 0; testCase < 2; testCase++ )
     {
         Eigen::VectorXd parameterError = executeParameterEstimation< double, double, double >(
                     testCase );
-        int numberOfEstimatedArcs = ( parameterError.rows( ) - 3 ) / 6;
+        int numberOfEstimatedArcs = ( parameterError.rows( ) - 8 ) / 6;
 
-        std::cout<<parameterError.transpose( )<<std::endl;
-//        for( int i = 0; i < numberOfEstimatedArcs; i++ )
-//        {
-//            for( unsigned int j = 0; j < 3; j++ )
-//            {
-//                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j ) ), 1E-4 );
-//                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j + 3 ) ), 1.0E-10  );
-//            }
-//        }
+        std::cout<<"Final parameter error: "<<std::endl<<parameterError.transpose( )<<std::endl;
 
-//        BOOST_CHECK_SMALL( std::fabs( parameterError( parameterError.rows( ) - 3 ) ), 1.0E-20 );
-//        BOOST_CHECK_SMALL( std::fabs( parameterError( parameterError.rows( ) - 2 ) ), 1.0E-12 );
-//        BOOST_CHECK_SMALL( std::fabs( parameterError( parameterError.rows( ) - 1 ) ), 1.0E-12 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 0 ) ), 0.5 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 1 ) ), 0.5 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 2 ) ), 10.0 );
+
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 3 ) ), 5E-6 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 4 ) ), 5E-6 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 5 ) ), 4E-4 );
+
+
+        for( int i = 1; i <= numberOfEstimatedArcs; i++ )
+        {
+            for( unsigned int j = 0; j < 3; j++ )
+            {
+                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j ) ), 5E-4 );
+                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j + 3 ) ), 5.0E-7  );
+            }
+        }
+
+        BOOST_CHECK_SMALL( std::fabs( parameterError( parameterError.rows( ) - 2 ) ), 1.0E10 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( parameterError.rows( ) - 1 ) ), 1.0E2 );
     }
 
 }
 
-//BOOST_AUTO_TEST_SUITE_END( )
+BOOST_AUTO_TEST_SUITE_END( )
 
-//}
+}
 
-//}
+}

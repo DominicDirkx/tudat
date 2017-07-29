@@ -920,7 +920,8 @@ boost::shared_ptr< MultiArcPropagatorSettings< StateScalarType > > getExtendedMu
         throw std::runtime_error( "Error when making multi-arc propagator settings from single arc. Input not recognized." );
     }
 
-    return boost::make_shared< MultiArcPropagatorSettings< StateScalarType > >( constituentSingleArcSettings );
+    return boost::make_shared< MultiArcPropagatorSettings< StateScalarType > >(
+                constituentSingleArcSettings );
 }
 
 //! Function to retrieve the state size for a list of propagator settings.

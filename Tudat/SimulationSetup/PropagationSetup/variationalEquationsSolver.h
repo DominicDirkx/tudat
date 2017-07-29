@@ -1036,6 +1036,7 @@ public:
     void integrateVariationalAndDynamicalEquations(
             const VectorType& concatenatedInitialStates, const bool integrateEquationsConcurrently )
     {
+
         std::vector< VectorType > splitInitialState;
 
         int currentIndex = 0;
@@ -1165,12 +1166,12 @@ public:
                         equationsOfMotionNumericalSolutions, resetMultiArcDynamicsAfterPropagation_ );
             equationsOfMotionNumericalSolutions.clear( );
 
-//            if( updateInitialStates )
-//            {
-//                propagatorSettings_->resetInitialStatesList( arcInitialStates );
-//                setPropagatorSettingsMultiArcStatesInEstimatedDynamicalParameters(
-//                            parametersToEstimate_, propagatorSettings_ );
-//            }
+            //            if( updateInitialStates )
+            //            {
+            //                propagatorSettings_->resetInitialStatesList( arcInitialStates );
+            //                setPropagatorSettingsMultiArcStatesInEstimatedDynamicalParameters(
+            //                            parametersToEstimate_, propagatorSettings_ );
+            //            }
         }
         else
         {
@@ -1274,7 +1275,6 @@ public:
         {
             this->integrateDynamicalEquationsOfMotionOnly( propagatorSettings_->getInitialStates( ) );
         }
-        std::cout<<"New parameter in multi-arc: "<<parametersToEstimate_->template getFullParameterValues< double >( ).segment( 0, 6 ).transpose( )<<std::endl;
     }
 
     //! Function to return the numerical solution history of integrated variational equations, per arc.
@@ -1434,28 +1434,24 @@ public:
         }
 
         // Get input size of single-arc and input multi-arc
-        singleArcDynamicsSize_ = originalPropagatorSettings_->getSingleArcPropagatorSettings( )->getStateSize( );
-        originalMultiArcDynamicsSize_ = originalPropagatorSettings_->getMultiArcPropagatorSettings( )->getStateSize( );
-        originalMultiArcDynamicsSingleArcSize_ = originalPropagatorSettings_->getMultiArcPropagatorSettings( )->getStateSize( ) /
+        singleArcPropagatorSettings_ = originalPropagatorSettings_->getSingleArcPropagatorSettings( );
+        singleArcDynamicsSize_ = singleArcPropagatorSettings_->getStateSize( );
+
+        originalMultiArcPropagatorSettings_ = originalPropagatorSettings_->getMultiArcPropagatorSettings( );
+        originalMultiArcDynamicsSize_ = originalMultiArcPropagatorSettings_->getStateSize( );
+        originalMultiArcDynamicsSingleArcSize_ = originalMultiArcPropagatorSettings_->getStateSize( ) /
                 arcStartTimes.size( );
 
-        // Create propagator settings with the single arc settings included (at the beginning) in each arc
-        boost::shared_ptr< MultiArcPropagatorSettings< StateScalarType > > extendedMultiArcSettings =
-                getExtendedMultiPropagatorSettings(
-                    originalPropagatorSettings_->getSingleArcPropagatorSettings( ),
-                    originalPropagatorSettings_->getMultiArcPropagatorSettings( ),
-                    arcStartTimes.size( ) );
-        multiArcDynamicsSize_ = extendedMultiArcSettings->getStateSize( );
-        multiArcDynamicsSingleArcSize_ = extendedMultiArcSettings->getStateSize( ) / arcStartTimes_.size( );
-        propagatorSettings_ = boost::make_shared< HybridArcPropagatorSettings< StateScalarType> >(
-                    originalPropagatorSettings_->getSingleArcPropagatorSettings( ), extendedMultiArcSettings );
+        // Retrieve and set original single and multi-arc parameter set
+        singleArcParametersToEstimate_ = createEstimatableParameterSetArcSubSet( parametersToEstimate_, true );
+        originalMultiArcParametersToEstimate_ = createEstimatableParameterSetArcSubSet( parametersToEstimate_, false );
 
         // Update estimated parameter vector to extended multi-arc settings
         setExtendedMultiArcParameters( arcStartTimes );
 
         // Create multi-arc solver with original parameter set
         originalMultiArcSolver_ = boost::make_shared< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > >(
-                    bodyMap, integratorSettings, originalPropagatorSettings_->getMultiArcPropagatorSettings( ),
+                    bodyMap, integratorSettings, originalMultiArcPropagatorSettings_,
                     originalMultiArcParametersToEstimate_, arcStartTimes, integrateDynamicalAndVariationalEquationsConcurrently,
                     boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ),
                     false, false, false );
@@ -1463,28 +1459,29 @@ public:
         // Create variational equations solvers for single- and multi-arc
         integratorSettings->initialTime_ = arcStartTimes.at( 0 );
         singleArcSolver_ = boost::make_shared< SingleArcVariationalEquationsSolver< StateScalarType, TimeType > >(
-                    bodyMap, integratorSettings, propagatorSettings_->getSingleArcPropagatorSettings( ),
+                    bodyMap, integratorSettings, singleArcPropagatorSettings_,
                     singleArcParametersToEstimate_, integrateDynamicalAndVariationalEquationsConcurrently,
                     boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ),
                     false, false );
-        multiArcSolver_ = boost::make_shared< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > >(
-                    bodyMap, integratorSettings, extendedMultiArcSettings,
-                    multiArcParametersToEstimate_, arcStartTimes, integrateDynamicalAndVariationalEquationsConcurrently,
+        extendedMultiArcSolver_ = boost::make_shared< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > >(
+                    bodyMap, integratorSettings, extendedMultiArcPropagatorSettings_,
+                    extendedMultiArcParametersToEstimate_, arcStartTimes, integrateDynamicalAndVariationalEquationsConcurrently,
                     boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ),
                     false, false, false );
 
-        // Create function to retrieve single-arc initial states for extended multi-arc
-        boost::shared_ptr< TranslationalStatePropagatorSettings< StateScalarType > > singleArcPropagationSettings =
+        boost::shared_ptr< TranslationalStatePropagatorSettings< StateScalarType > > singleArcTranslationalDynamicsSettings =
                 boost::dynamic_pointer_cast< TranslationalStatePropagatorSettings< StateScalarType > >(
-                    propagatorSettings_->getSingleArcPropagatorSettings( ) );
-        if( singleArcPropagationSettings == NULL )
+                    singleArcPropagatorSettings_ );
+        if( singleArcTranslationalDynamicsSettings == NULL )
         {
-            throw std::runtime_error( "Error when making HybridArcVariationalEquationsSolver, input single arc is not translational" );
+            throw std::runtime_error( "Error in HybridArcVariationalEquationsSolver, only translational single-arc dynamics supported" );
         }
-        initialStatesFromSingleArcPropagation_ = boost::bind(
+
+        // Create function to retrieve single-arc initial states for extended multi-arc
+        initialStatesFromSingleArcPropagationFunction_ = boost::bind(
                     &getInitialStatesOfBodiesFromFrameManager< TimeType, StateScalarType >,
-                    singleArcPropagationSettings->bodiesToIntegrate_,
-                    singleArcPropagationSettings->centralBodies_,
+                    singleArcTranslationalDynamicsSettings->bodiesToIntegrate_,
+                    singleArcTranslationalDynamicsSettings->centralBodies_,
                     bodyMap, _1, createFrameManager( bodyMap ) );
 
         // Propagate dynamical equations if requested
@@ -1492,11 +1489,11 @@ public:
         {
             if( integrateDynamicalAndVariationalEquationsConcurrently )
             {
-                integrateVariationalAndDynamicalEquations( propagatorSettings_->getInitialStates( ) , 1 );
+                integrateVariationalAndDynamicalEquations( getConcatenatedSingleArcAndExtendedMultiArcInitialStates( ), 1 );
             }
             else
             {
-                integrateVariationalAndDynamicalEquations( propagatorSettings_->getInitialStates( ), 0 );
+                integrateVariationalAndDynamicalEquations( getConcatenatedSingleArcAndExtendedMultiArcInitialStates( ), 0 );
             }
         }
     }
@@ -1507,35 +1504,32 @@ public:
     void integrateVariationalAndDynamicalEquations(
             const VectorType& initialStateEstimate, const bool integrateEquationsConcurrently )
     {
-
         // Reset initial time and propagate multi-arc equations
         integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
         singleArcSolver_->integrateVariationalAndDynamicalEquations(
                     initialStateEstimate.block( 0, 0, singleArcDynamicsSize_, 1 ),
                     integrateEquationsConcurrently );
 
-
         // Extract single arc state to update multi-arc initial states
         integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
-        resetMultiArcInitialStatesFromSingleArcPropagation(
-                    initialStateEstimate.block( singleArcDynamicsSize_, 0, multiArcDynamicsSize_, 1 ) );
+        resetMultiArcInitialStates(
+                    initialStateEstimate.block( singleArcDynamicsSize_, 0, extendedMultiArcDynamicsSize_, 1 ) );
 
         // Reset initial time and propagate single-arc equations
         integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
-        multiArcSolver_->integrateVariationalAndDynamicalEquations(
-                    propagatorSettings_->getMultiArcPropagatorSettings( )->getInitialStates( ),
+        extendedMultiArcSolver_->integrateVariationalAndDynamicalEquations(
+                    extendedMultiArcPropagatorSettings_->getInitialStates( ),
                     integrateEquationsConcurrently );
-
-        copyExtendedMultiArcInitialStatesToOriginalSettins( );
 
         // Extract multi-arc solution of dynamics, and remove the single arc bodies from the map.
         std::vector< std::map< TimeType, VectorType > > numericalMultiArcSolution  =
-                multiArcSolver_->getDynamicsSimulator( )->getEquationsOfMotionNumericalSolution( );
+                extendedMultiArcSolver_->getDynamicsSimulator( )->getEquationsOfMotionNumericalSolution( );
         removeSingleArcBodiesFromMultiArcSolultion( numericalMultiArcSolution );
 
         // Reset original multi-arc bodies' dynamics
         originalMultiArcSolver_->getDynamicsSimulator( )->manuallySetAndProcessRawNumericalEquationsOfMotionSolution(
-                   numericalMultiArcSolution, true );
+                    numericalMultiArcSolution, true );
+
 
         // Create state transition matrix if not yet created.
         if( stateTransitionInterface_ == NULL )
@@ -1547,7 +1541,7 @@ public:
             }
 
             if( boost::dynamic_pointer_cast< MultiArcCombinedStateTransitionAndSensitivityMatrixInterface >(
-                        multiArcSolver_->getStateTransitionMatrixInterface( ) ) == NULL )
+                        extendedMultiArcSolver_->getStateTransitionMatrixInterface( ) ) == NULL )
             {
                 throw std::runtime_error( "Error when making hybrid state transition/sensitivity interface, multi-arc input is NULL" );
             }
@@ -1556,8 +1550,11 @@ public:
                         boost::dynamic_pointer_cast< SingleArcCombinedStateTransitionAndSensitivityMatrixInterface >(
                             singleArcSolver_->getStateTransitionMatrixInterface( ) ),
                         boost::dynamic_pointer_cast< MultiArcCombinedStateTransitionAndSensitivityMatrixInterface >(
-                            multiArcSolver_->getStateTransitionMatrixInterface( ) ) );
+                            extendedMultiArcSolver_->getStateTransitionMatrixInterface( ) ) );
         }
+
+        harmonizeMultiArcPropagatorSettings( );
+        harmonizeParametersWithPropagatorSettings( );
     }
 
 
@@ -1571,24 +1568,26 @@ public:
 
         // Extract single arc state to update multi-arc initial states
         integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
-        resetMultiArcInitialStatesFromSingleArcPropagation(
-                    initialStateEstimate.block( singleArcDynamicsSize_, 0, multiArcDynamicsSize_, 1 ) );
+        resetMultiArcInitialStates(
+                    initialStateEstimate.block( singleArcDynamicsSize_, 0, extendedMultiArcDynamicsSize_, 1 ) );
 
         // Reset initial time and propagate single-arc equations
         integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
-        multiArcSolver_->integrateDynamicalEquationsOfMotionOnly(
-                    propagatorSettings_->getMultiArcPropagatorSettings( )->getInitialStates( ) );
+        extendedMultiArcSolver_->integrateDynamicalEquationsOfMotionOnly(
+                    extendedMultiArcPropagatorSettings_->getInitialStates( ) );
 
-        copyExtendedMultiArcInitialStatesToOriginalSettins( );
 
         // Extract multi-arc solution of dynamics, and remove the single arc bodies from the map.
         std::vector< std::map< TimeType, VectorType > > numericalMultiArcSolution  =
-                multiArcSolver_->getDynamicsSimulator( )->getEquationsOfMotionNumericalSolution( );
+                extendedMultiArcSolver_->getDynamicsSimulator( )->getEquationsOfMotionNumericalSolution( );
         removeSingleArcBodiesFromMultiArcSolultion( numericalMultiArcSolution );
 
         // Reset original multi-arc bodies' dynamics
         originalMultiArcSolver_->getDynamicsSimulator( )->manuallySetAndProcessRawNumericalEquationsOfMotionSolution(
-                   numericalMultiArcSolution, true );
+                    numericalMultiArcSolution, true );
+
+        harmonizeMultiArcPropagatorSettings( );
+        harmonizeParametersWithPropagatorSettings( );
 
     }
 
@@ -1607,21 +1606,23 @@ public:
         parametersToEstimate_->resetParameterValues( newParameterEstimate );
 
         singleArcSolver_->resetParameterEstimate(
-                    parametersToEstimate_->template getParameterValuesWithSingleArcInitialStatesOnly< StateScalarType >( ), false, false );
+                    parametersToEstimate_->template getParameterValuesWithSingleArcInitialStatesOnly< StateScalarType >( ),
+                    false, false );
         originalMultiArcSolver_->resetParameterEstimate(
-                    parametersToEstimate_->template getParameterValuesWithMultiArcInitialStatesOnly< StateScalarType >( ), false, false );
+                    parametersToEstimate_->template getParameterValuesWithMultiArcInitialStatesOnly< StateScalarType >( ),
+                    false, false );
 
 
         std::vector< boost::shared_ptr< EstimatableParameter< VectorType > > >
-            originalDynamicalParameters = parametersToEstimate_->getEstimatedInitialStateParameters( );
+                originalDynamicalParameters = parametersToEstimate_->getEstimatedInitialStateParameters( );
         std::vector< boost::shared_ptr< EstimatableParameter< VectorType > > >
-            extendedDynamicalParameters = multiArcParametersToEstimate_->getEstimatedInitialStateParameters( );
+                extendedDynamicalParameters = extendedMultiArcParametersToEstimate_->getEstimatedInitialStateParameters( );
 
         int currentExtendedIndex = 0;
         int currentOriginalIndex = 0;
 
         VectorType extendedStateParameterEstimate = VectorType::Zero(
-                    multiArcParametersToEstimate_->getParameterSetSize( ) );
+                    extendedMultiArcParametersToEstimate_->getParameterSetSize( ) );
         for( unsigned int i = 0; i < originalDynamicalParameters.size( ); i++ )
         {
             int originalSize = originalDynamicalParameters.at( i )->getParameterSize( );
@@ -1637,29 +1638,20 @@ public:
                     currentExtendedIndex, parametersToEstimate_->getNonDynamicalEstimatedParameterSetSize( ) ) =
                 parametersToEstimate_->template getParameterValuesWithoutInitialStates< StateScalarType >( );
 
-        multiArcSolver_->resetParameterEstimate(
+        extendedMultiArcSolver_->resetParameterEstimate(
                     extendedStateParameterEstimate, false, false );
         std::cout<<"New multi-arc "<<extendedStateParameterEstimate.transpose( ).segment( 0, 6 )<<std::endl;
-        std::cout<<"New multi-arc "<<parametersToEstimate_->template getFullParameterValues< double >( ).segment( 0, 6 ).transpose( )<<std::endl;
-        std::cout<<"New prop. "<<propagatorSettings_->getInitialStates( ).segment( 0, 6 ).transpose( )<<std::endl;
 
         if( areVariationalEquationsToBeIntegrated )
         {
-            this->integrateVariationalAndDynamicalEquations( propagatorSettings_->getInitialStates( ), 1 );
+            this->integrateVariationalAndDynamicalEquations( getConcatenatedSingleArcAndExtendedMultiArcInitialStates( ), 1 );
         }
         else if( areEquationsOfMotionToBeIntegrated )
         {
-            this->integrateDynamicalEquationsOfMotionOnly( propagatorSettings_->getInitialStates( ) );
+            this->integrateDynamicalEquationsOfMotionOnly( getConcatenatedSingleArcAndExtendedMultiArcInitialStates( ) );
         }
-        std::cout<<"New parameter in hybrid-arc: "<<parametersToEstimate_->template getFullParameterValues< double >( ).segment( 0, 6 ).transpose( )<<std::endl;
-        std::cout<<"New prop in hybrid-arc: "<<propagatorSettings_->getInitialStates( ).segment( 0, 6 ).transpose( )<<std::endl;
 
 
-    }
-
-    boost::shared_ptr< HybridArcPropagatorSettings< StateScalarType > > getPropagatorSettings( )
-    {
-        return propagatorSettings_;
     }
 
     //! Estimated parameter set with single-arc dynamical parameters only
@@ -1677,7 +1669,7 @@ public:
     //! Estimated parameter set with extended multi-arc dynamical parameters only
     boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > getMultiArcParametersToEstimate( )
     {
-        return multiArcParametersToEstimate_;
+        return extendedMultiArcParametersToEstimate_;
     }
 
     boost::shared_ptr< HybridArcPropagatorSettings< StateScalarType > > getOriginalPropagatorSettings( )
@@ -1685,22 +1677,36 @@ public:
         return originalPropagatorSettings_;
     }
 
+
+    VectorType getConcatenatedSingleArcAndExtendedMultiArcInitialStates( )
+    {
+        VectorType concatenatedInitialStates = VectorType::Zero(
+                    singleArcDynamicsSize_ + extendedMultiArcDynamicsSize_ );
+        concatenatedInitialStates.segment( 0, singleArcDynamicsSize_ ) = singleArcPropagatorSettings_->getInitialStates( );
+        concatenatedInitialStates.segment( singleArcDynamicsSize_, extendedMultiArcDynamicsSize_ ) =
+                extendedMultiArcPropagatorSettings_->getInitialStates( );
+        return concatenatedInitialStates;
+    }
+
+
 protected:
 
     void setExtendedMultiArcParameters( const std::vector< double >& arcStartTimes )
     {
-        // Retrieve and set original single and multi-arc parameter set
-        singleArcParametersToEstimate_ = createEstimatableParameterSetArcSubSet( parametersToEstimate_, true );
-        originalMultiArcParametersToEstimate_ = createEstimatableParameterSetArcSubSet( parametersToEstimate_, false );
 
+        // Create propagator settings with the single arc settings included (at the beginning) in each arc
+        extendedMultiArcPropagatorSettings_ = getExtendedMultiPropagatorSettings(
+                    singleArcPropagatorSettings_, originalMultiArcPropagatorSettings_, arcStartTimes.size( ) );
+        extendedMultiArcDynamicsSize_ = extendedMultiArcPropagatorSettings_->getStateSize( );
+        extendedMultiArcDynamicsSingleArcSize_ = extendedMultiArcPropagatorSettings_->getStateSize( ) / arcStartTimes_.size( );
+
+        // Get multi-arc parameters associated with estimated single-arc parameters
         std::vector< boost::shared_ptr< estimatable_parameters::EstimatableParameter<
                 VectorType > > >
                 singleArcParameters = parametersToEstimate_->getEstimatedSingleArcInitialStateParameters( );
         std::vector< boost::shared_ptr< estimatable_parameters::EstimatableParameter<
                 VectorType > > >
                 originalMultiArcParameters = parametersToEstimate_->getEstimatedMultiArcInitialStateParameters( );
-
-        // Get multi-arc parameters associated with estimated single-arc parameters
         std::vector< boost::shared_ptr< estimatable_parameters::EstimatableParameter<
                 VectorType > > > extendedMultiArcParameters;
         for( unsigned int i = 0; i < singleArcParameters.size( ); i++ )
@@ -1716,33 +1722,64 @@ protected:
         }
 
         // Create multi-arc parameter set with single-arc parameters extended into multi-arc
-        multiArcParametersToEstimate_ = boost::make_shared< estimatable_parameters::EstimatableParameterSet< StateScalarType > >(
+        extendedMultiArcParametersToEstimate_ = boost::make_shared< estimatable_parameters::EstimatableParameterSet< StateScalarType > >(
                     parametersToEstimate_->getEstimatedDoubleParameters( ),
                     parametersToEstimate_->getEstimatedVectorParameters( ),
                     extendedMultiArcParameters );
     }
 
-    void resetMultiArcInitialStatesFromSingleArcPropagation(
+    void resetMultiArcInitialStates(
             const VectorType& manualMultiArcStates )
     {
-        // Retrieve full multi-arc initial states, with single-arc bodies not (correctly) set
-        std::vector< VectorType > arcInitialStates = propagatorSettings_->getMultiArcPropagatorSettings( )->getInitialStateList( );
+
+        // Retrieve extended multi-arc initial states, with single-arc bodies not (correctly) set
+        std::vector< VectorType > extendedArcInitialStates = extendedMultiArcPropagatorSettings_->getInitialStateList( );
+        std::vector< VectorType > originalArcInitialStates = originalMultiArcPropagatorSettings_->getInitialStateList( );
 
         // Retrieve single-arc states from ephemerides
         int currentArcSize = 0;
-        for( unsigned int i = 0; i < arcInitialStates.size( ); i++ )
+        for( unsigned int i = 0; i < extendedArcInitialStates.size( ); i++ )
         {
-            currentArcSize = arcInitialStates[ i ].rows( );
-            arcInitialStates[ i ].segment( 0, singleArcDynamicsSize_ ) =
-                    initialStatesFromSingleArcPropagation_( arcStartTimes_.at( i ) );
+            currentArcSize = extendedArcInitialStates[ i ].rows( );
+            extendedArcInitialStates[ i ].segment( 0, singleArcDynamicsSize_ ) =
+                    initialStatesFromSingleArcPropagationFunction_( arcStartTimes_.at( i ) );
 
-            arcInitialStates[ i ].segment( singleArcDynamicsSize_, currentArcSize - singleArcDynamicsSize_ ) =
+            extendedArcInitialStates[ i ].segment( singleArcDynamicsSize_, currentArcSize - singleArcDynamicsSize_ ) =
                     manualMultiArcStates.segment( i * currentArcSize + singleArcDynamicsSize_, currentArcSize - singleArcDynamicsSize_ );
+
+            originalArcInitialStates[ i ] = manualMultiArcStates.segment( i * currentArcSize + singleArcDynamicsSize_, currentArcSize - singleArcDynamicsSize_ );
         }
 
-        // Reset initial multi-arc states in propagator settings and estimated parameters
-        propagatorSettings_->getMultiArcPropagatorSettings( )->resetInitialStatesList( arcInitialStates );
-        propagatorSettings_->setInitialStatesFromConstituents( );
+        // Reset extended initial multi-arc states in propagator settings and estimated parameters
+        extendedMultiArcPropagatorSettings_->resetInitialStatesList( extendedArcInitialStates );
+        originalMultiArcPropagatorSettings_->resetInitialStatesList( originalArcInitialStates );
+
+        originalPropagatorSettings_->setInitialStatesFromConstituents( );
+    }
+
+    void harmonizeMultiArcPropagatorSettings( )
+    {
+        std::vector< VectorType > extendedArcInitialStates = extendedMultiArcPropagatorSettings_->getInitialStateList( );
+        std::vector< VectorType > originalArcInitialStates = originalMultiArcPropagatorSettings_->getInitialStateList( );
+
+        for( unsigned int i = 0; i < originalArcInitialStates.size( ); i++ )
+        {
+            originalArcInitialStates[ i ].segment( 0, originalMultiArcDynamicsSingleArcSize_ ) =
+                   extendedArcInitialStates[ i ].segment(
+                        singleArcDynamicsSize_, originalMultiArcDynamicsSingleArcSize_ ) ;
+        }
+        originalMultiArcPropagatorSettings_->resetInitialStatesList( originalArcInitialStates );
+
+    }
+
+    void harmonizeParametersWithPropagatorSettings( )
+    {
+//        setPropagatorSettingStatesInEstimatableParameters(
+//                   singleArcPropagatorSettings_,  singleArcParametersToEstimate_ );
+//        setPropagatorSettingStatesInEstimatableParameters(
+//                   originalMultiArcPropagatorSettings_,  originalMultiArcParametersToEstimate_ );
+//        setPropagatorSettingStatesInEstimatableParameters(
+//                   extendedMultiArcPropagatorSettings_,  extendedMultiArcParametersToEstimate_ );
     }
 
     void removeSingleArcBodiesFromMultiArcSolultion(
@@ -1761,31 +1798,39 @@ protected:
         }
     }
 
-    void copyExtendedMultiArcInitialStatesToOriginalSettins( )
-    {
-        std::vector< VectorType > extendedMultiArcInitialStates =
-                propagatorSettings_->getMultiArcPropagatorSettings( )->getInitialStateList( );
-        std::vector< VectorType > originalMultiArcInitialStates =
-                originalPropagatorSettings_->getMultiArcPropagatorSettings( )->getInitialStateList( );
-        for( unsigned int i = 0; i < extendedMultiArcInitialStates.size( ); i++ )
-        {
-            originalMultiArcInitialStates[ i ] = extendedMultiArcInitialStates.at( i ).segment(
-                        singleArcDynamicsSize_, originalMultiArcDynamicsSingleArcSize_ );
-        }
-
-        originalPropagatorSettings_->getMultiArcPropagatorSettings( )->resetInitialStatesList( originalMultiArcInitialStates );
-        originalPropagatorSettings_->setInitialStatesFromConstituents( );
-    }
 
     boost::shared_ptr< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > > originalMultiArcSolver_;
 
     boost::shared_ptr< SingleArcVariationalEquationsSolver< StateScalarType, TimeType > > singleArcSolver_;
 
-    boost::shared_ptr< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > > multiArcSolver_;
+    boost::shared_ptr< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > > extendedMultiArcSolver_;
+
+
+
+    //! Estimated parameter set with single-arc dynamical parameters only
+    boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > singleArcParametersToEstimate_ ;
+
+    //! Estimated parameter set with original multi-arc dynamical parameters only
+    boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > originalMultiArcParametersToEstimate_;
+
+    //! Estimated parameter set with extended multi-arc dynamical parameters only
+    boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > extendedMultiArcParametersToEstimate_ ;
+
+
 
     boost::shared_ptr< HybridArcPropagatorSettings< StateScalarType > > originalPropagatorSettings_;
 
-    boost::shared_ptr< HybridArcPropagatorSettings< StateScalarType > > propagatorSettings_;
+    boost::shared_ptr< SingleArcPropagatorSettings< StateScalarType > > singleArcPropagatorSettings_;
+
+    boost::shared_ptr< MultiArcPropagatorSettings< StateScalarType > > originalMultiArcPropagatorSettings_;
+
+    boost::shared_ptr< MultiArcPropagatorSettings< StateScalarType > > extendedMultiArcPropagatorSettings_;
+
+
+
+
+
+
 
     boost::shared_ptr< numerical_integrators::IntegratorSettings< TimeType > > integratorSettings_;
 
@@ -1799,19 +1844,11 @@ protected:
     int originalMultiArcDynamicsSize_;
 
     //! Size of single arc of extended estimated multi-arc dynamical parameters
-    int multiArcDynamicsSize_;
+    int extendedMultiArcDynamicsSize_;
 
     //! Total size of extended estimated multi-arc dynamical parameters
-    int multiArcDynamicsSingleArcSize_;
+    int extendedMultiArcDynamicsSingleArcSize_;
 
-    //! Estimated parameter set with single-arc dynamical parameters only
-    boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > singleArcParametersToEstimate_ ;
-
-    //! Estimated parameter set with original multi-arc dynamical parameters only
-    boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > originalMultiArcParametersToEstimate_;
-
-    //! Estimated parameter set with extended multi-arc dynamical parameters only
-    boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > multiArcParametersToEstimate_ ;
 
     std::vector< double > arcStartTimes_;
 
@@ -1820,7 +1857,7 @@ protected:
      *  Function that retrieves the single-arc bodies' initial states as a function of time, is used to update the multi-arc
      *  initial states after the single-arc propagation
      */
-    boost::function< VectorType( const double ) >initialStatesFromSingleArcPropagation_;
+    boost::function< VectorType( const double ) >initialStatesFromSingleArcPropagationFunction_;
 
 };
 

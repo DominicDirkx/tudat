@@ -74,8 +74,11 @@ public:
      */
     virtual void resetInitialStates( const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& initialBodyStates )
     {
+        if( stateSize_ != initialBodyStates.rows( ) )
+        {
+            throw std::runtime_error( "Error when resetting initial states of propagator settings, sizes are inconsistent" );
+        }
         initialStates_ = initialBodyStates;
-        stateSize_ = initialStates_.rows( );
     }
 
     //! Get total size of the propagated state.
@@ -348,9 +351,9 @@ public:
      */
     void resetInitialStates( const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& initialBodyStates )
     {
-        if( this->stateSize_ != this->initialStates_.rows( ) )
+        if( this->stateSize_ != initialBodyStates.rows( ) )
         {
-            std::cerr<<"Warning when resetting multi-arc initial states, size is incomparible with original size."<<std::endl;
+            throw std::runtime_error( "Error when resetting initial states of propagator settings, sizes are inconsistent" );
         }
 
         this->initialStates_ = initialBodyStates;

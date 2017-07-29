@@ -610,7 +610,7 @@ public:
     void integrateVariationalAndDynamicalEquations(
             const VectorType& initialStateEstimate, const bool integrateEquationsConcurrently )
     {
-        std::cout<<"Initiall single arc state "<<initialStateEstimate.transpose( )<<std::endl;
+        //std::cout<<"Initiall single arc state "<<initialStateEstimate.transpose( )<<std::endl;
 
         variationalEquationsSolution_[ 0 ].clear( );
         variationalEquationsSolution_[ 1 ].clear( );
@@ -721,7 +721,7 @@ public:
         // Reset values of parameters.
         parametersToEstimate_->template resetParameterValues< StateScalarType >( newParameterEstimate );
         propagatorSettings_->resetInitialStates(
-                    estimatable_parameters::getInitialStateVectorOfBodiesToEstimate( parametersToEstimate_ ) );
+                    estimatable_parameters::getInitialStateVectorOfBodiesToEstimate( parametersToEstimate_, true, false ) );
 
         dynamicsStateDerivative_->template updateStateDerivativeModelSettings(
                     propagatorSettings_->getInitialStates( ) );
@@ -1034,11 +1034,11 @@ public:
      *  parametersToEstimate_), concatenated for all arcs.
      *  \param integrateEquationsConcurrently Variable determining whether the equations of motion are to be
      *  propagated concurrently with variational equations of motion (if true), or before variational equations (if false).
-     */
+         */
     void integrateVariationalAndDynamicalEquations(
             const VectorType& concatenatedInitialStates, const bool integrateEquationsConcurrently )
     {
-        std::cout<<"Initiall multi arc state "<<concatenatedInitialStates.transpose( )<<std::endl;
+        //std::cout<<"Initiall multi arc state "<<concatenatedInitialStates.transpose( )<<std::endl;
 
         std::vector< VectorType > splitInitialState;
 
@@ -1239,7 +1239,6 @@ public:
 
         if( updateInitialStates )
         {
-            std::cerr<<" =================== WARNING, UPDSTE MAY NOT BE NEEDE "<<std::endl;
             propagatorSettings_->resetInitialStatesList( arcInitialStates );
             setPropagatorSettingsMultiArcStatesInEstimatedDynamicalParameters(
                         parametersToEstimate_, propagatorSettings_ );
@@ -1266,8 +1265,7 @@ public:
         // Reset values of parameters.
         parametersToEstimate_->template resetParameterValues< StateScalarType >( newParameterEstimate );
         propagatorSettings_->resetInitialStates(
-                    estimatable_parameters::getInitialStateVectorOfBodiesToEstimate( parametersToEstimate_ ) );
-
+                    estimatable_parameters::getInitialStateVectorOfBodiesToEstimate( parametersToEstimate_, false, true ) );
 
         // Check if re-integration of variational equations is requested
         if( areVariationalEquationsToBeIntegrated )
@@ -1508,7 +1506,7 @@ public:
     void integrateVariationalAndDynamicalEquations(
             const VectorType& initialStateEstimate, const bool integrateEquationsConcurrently )
     {
-        std::cout<<"Initiall hybrid arc state "<<initialStateEstimate.transpose( )<<std::endl;
+        //std::cout<<"Initiall hybrid arc state "<<initialStateEstimate.transpose( )<<std::endl;
         // Reset initial time and propagate multi-arc equations
         integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
         singleArcSolver_->integrateVariationalAndDynamicalEquations(
@@ -1597,7 +1595,7 @@ public:
                                  const bool areVariationalEquationsToBeIntegrated = true,
                                  const bool areEquationsOfMotionToBeIntegrated = true )
     {
-        std::cout<<"New parameter estimate "<<newParameterEstimate.transpose( )<<std::endl;
+        //std::cout<<"New parameter estimate "<<newParameterEstimate.transpose( )<<std::endl;
         using namespace estimatable_parameters;
 
         if( newParameterEstimate.rows( ) != parametersToEstimate_->getParameterSetSize( ) )
@@ -1639,6 +1637,8 @@ public:
         extendedStateParameterEstimate.segment(
                     currentExtendedIndex, parametersToEstimate_->getNonDynamicalEstimatedParameterSetSize( ) ) =
                 parametersToEstimate_->template getParameterValuesWithoutInitialStates< StateScalarType >( );
+
+        //std::cout<<"Multi-arc reset: "<<extendedStateParameterEstimate.transpose( )<<std::endl;
 
         extendedMultiArcSolver_->resetParameterEstimate(
                     extendedStateParameterEstimate, false, false );
@@ -1700,9 +1700,9 @@ public:
         concatenatedInitialStates.segment( 0, singleArcDynamicsSize_ ) = singleArcPropagatorSettings_->getInitialStates( );
         concatenatedInitialStates.segment( singleArcDynamicsSize_, extendedMultiArcDynamicsSize_ ) =
                 extendedMultiArcPropagatorSettings_->getInitialStates( );
-        std::cout<<"Concatenate: "<<std::endl<<
-                   singleArcPropagatorSettings_->getInitialStates( ).transpose( )<<std::endl<<
-                   extendedMultiArcPropagatorSettings_->getInitialStates( ).transpose( )<<std::endl<<std::endl;
+//        std::cout<<"Concatenate: "<<std::endl<<
+//                   singleArcPropagatorSettings_->getInitialStates( ).transpose( )<<std::endl<<
+//                   extendedMultiArcPropagatorSettings_->getInitialStates( ).transpose( )<<std::endl<<std::endl;
         return concatenatedInitialStates;
     }
 

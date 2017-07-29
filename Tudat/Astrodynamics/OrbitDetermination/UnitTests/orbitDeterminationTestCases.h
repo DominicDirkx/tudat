@@ -137,7 +137,7 @@ std::pair< boost::shared_ptr< PodOutput< StateScalarType > >, Eigen::VectorXd > 
     boost::shared_ptr< TranslationalStatePropagatorSettings< StateScalarType > > propagatorSettings =
             boost::make_shared< TranslationalStatePropagatorSettings< StateScalarType > >
             ( centralBodies, accelerationModelMap, bodiesToIntegrate,
-              getInitialStateVectorOfBodiesToEstimate( parametersToEstimate ),
+              getInitialStateVectorOfBodiesToEstimate( parametersToEstimate, true, false ),
               TimeType( finalEphemerisTime + 4.0 * maximumTimeStep ),
               cowell, boost::shared_ptr< DependentVariableSaveSettings >( ), 600.0 );
 

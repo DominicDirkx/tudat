@@ -267,9 +267,6 @@ public:
         StateType transmitterState =
                 stateFunctionOfTransmittingBody_( transmissionTime );
 
-        std::cout<<"Transmitter "<<transmitterState.transpose( )<<std::endl;
-        std::cout<<"Receiver "<<receiverState.transpose( )<<std::endl;
-
         // Set initial light-time correction.
         setTotalLightTimeCorrection(
                     transmitterState, receiverState, transmissionTime, receptionTime );
@@ -307,9 +304,6 @@ public:
             {
                 receptionTime = time;
                 transmissionTime = time - previousLightTimeCalculation;
-
-                std::cout<<"Input time "<<time<<" "<<transmissionTime<<std::endl;
-
                 transmitterState = ( stateFunctionOfTransmittingBody_( transmissionTime ) );
             }
             else

@@ -767,7 +767,7 @@ void printEstimatableParameterEntries(
     {
         std::cout<<parameterIterator->first<<", "<<parameterIterator->second->getParameterDescription( )<<std::endl;
     }
-     std::cout<<std::endl;
+    std::cout<<std::endl;
 }
 
 //! Function to get the list of names of bodies for which initial translational dynamical state is estimated.
@@ -883,7 +883,7 @@ getListOfInitialDynamicalStateParametersEstimate(
     for( unsigned int i = 0; i < initialDynamicalParameters.size( ); i++ )
     {
         if( ( initialDynamicalParameters.at( i )->getParameterName( ).first == initial_body_state ) ||
-            ( initialDynamicalParameters.at( i )->getParameterName( ).first == arc_wise_initial_body_state ) )
+                ( initialDynamicalParameters.at( i )->getParameterName( ).first == arc_wise_initial_body_state ) )
         {
             initialDynamicalStateParametersEstimate[ propagators::transational_state ].push_back(
                         initialDynamicalParameters.at( i )->getParameterName( ).second );
@@ -902,32 +902,93 @@ getListOfInitialDynamicalStateParametersEstimate(
  */
 template< typename InitialStateParameterType = double >
 Eigen::Matrix< InitialStateParameterType, Eigen::Dynamic, 1 > getInitialStateVectorOfBodiesToEstimate(
-        const boost::shared_ptr< EstimatableParameterSet< InitialStateParameterType > > estimatableParameters )
+        const boost::shared_ptr< EstimatableParameterSet< InitialStateParameterType > > estimatableParameters,
+        const bool acceptSingleArc = true,
+        const bool acceptMultiArc = true )
 {
-    // Retrieve initial dynamical parameters.
-    std::vector< boost::shared_ptr< EstimatableParameter<
-            Eigen::Matrix< InitialStateParameterType, Eigen::Dynamic, 1 > > > > initialDynamicalParameters =
-            estimatableParameters->getEstimatedInitialStateParameters( );
+    Eigen::Matrix< InitialStateParameterType, Eigen::Dynamic,  1 > initialStateVector;
 
-    // Initialize state vector.
-    Eigen::Matrix< InitialStateParameterType, Eigen::Dynamic, 1 > initialStateVector =
-            Eigen::Matrix< InitialStateParameterType, Eigen::Dynamic, 1 >::Zero(
-                estimatableParameters->getInitialDynamicalStateParameterSize( ), 1 );
-
-    int vectorSize = 0;
-    // Iterate over list of bodies of which the partials of the accelerations acting on them are required.
-    for( unsigned int i = 0; i < initialDynamicalParameters.size( ); i++ )
+    int initialStateSize = 0;
+    if( acceptSingleArc )
     {
-        if( isParameterDynamicalPropertyInitialState( initialDynamicalParameters.at( i )->getParameterName( ).first ) )
-        {
-            int currentParameterSize = initialDynamicalParameters.at( i )->getParameterSize( );
-            initialStateVector.block( vectorSize, 0, currentParameterSize, 1 ) = initialDynamicalParameters.at( i )->getParameterValue( );
+        initialStateSize += estimatableParameters->getInitialDynamicalSingleArcStateParameterSize( );
+    }
 
-            vectorSize += currentParameterSize;
+    if( acceptMultiArc )
+    {
+        initialStateSize += estimatableParameters->getInitialDynamicalMultiArcStateParameterSize( );
+    }
+
+    initialStateVector.setZero( initialStateSize );
+
+    int currentIndex = 0;
+    // Retrieve initial dynamical parameters.
+    if( acceptSingleArc )
+    {
+        std::vector< boost::shared_ptr< EstimatableParameter<
+                Eigen::Matrix< InitialStateParameterType, Eigen::Dynamic, 1 > > > > initialSingleArcDynamicalParameters =
+                estimatableParameters->getEstimatedSingleArcInitialStateParameters( );
+
+        for( unsigned int i = 0; i < initialSingleArcDynamicalParameters.size( ); i++ )
+        {
+            if( initialSingleArcDynamicalParameters.at( i )->getParameterName( ).first != initial_body_state )
+            {
+                std::cerr<<"Warning when geting initial states from parameter set, parameter is not translational"<<std::endl;
+            }
+            int currentParameterSize = initialSingleArcDynamicalParameters.at( i )->getParameterSize( );
+            initialStateVector.block( currentIndex, 0, currentParameterSize, 1 ) =
+                    initialSingleArcDynamicalParameters.at( i )->getParameterValue( );
+
+            currentIndex += currentParameterSize;
         }
     }
 
-    return initialStateVector.block( 0, 0, vectorSize, 1 );
+    if( acceptMultiArc )
+    {
+
+        std::vector< boost::shared_ptr< EstimatableParameter<
+                Eigen::Matrix< InitialStateParameterType, Eigen::Dynamic, 1 > > > > initialMultiArcDynamicalParameters =
+                estimatableParameters->getEstimatedMultiArcInitialStateParameters( );
+        int multiArcStartIndex = currentIndex;
+        int numberOfMultiArcBodies = initialMultiArcDynamicalParameters.size( );
+        int numberOfArcs = 0;
+        int singleArcSize = 0;
+        if( initialMultiArcDynamicalParameters.size( ) > 0 )
+        {
+            numberOfArcs = initialMultiArcDynamicalParameters.at( 0 )->getParameterSize( ) / 6;
+            singleArcSize = 6 * initialMultiArcDynamicalParameters.size( );
+        }
+
+        for( int i = 0; i < numberOfMultiArcBodies; i++ )
+        {
+            if( initialMultiArcDynamicalParameters.at( i )->getParameterName( ).first != arc_wise_initial_body_state )
+            {
+                std::cerr<<"Warning when geting initial states from parameter set, multi-arc parameter is not translational"<<std::endl;
+            }
+
+            if( initialMultiArcDynamicalParameters.at( i )->getParameterSize( ) / 6 != numberOfArcs )
+            {
+                throw std::runtime_error(
+                            "Error when geting initial states from parameter set, multi-arc input is inconsistent" );
+            }
+
+            for( int j = 0; j < numberOfArcs; j++ )
+            {
+                if( multiArcStartIndex + 6 * i + singleArcSize * j + 6 > initialStateVector.rows( ) )
+                {
+                    throw std::runtime_error(
+                                "Error when geting initial states from parameter set, multi-arc state is out of bounds" );
+                }
+                initialStateVector.segment( multiArcStartIndex + 6 * i + singleArcSize * j, 6 ) =
+                        initialMultiArcDynamicalParameters.at( i )->getParameterValue( ).segment(
+                            6 * j, 6 );
+            }
+        }
+    }
+
+
+
+    return initialStateVector;
 }
 
 } // namespace estimatable_parameters

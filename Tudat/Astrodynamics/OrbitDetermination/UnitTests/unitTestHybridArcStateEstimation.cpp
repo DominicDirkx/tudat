@@ -147,8 +147,8 @@ Eigen::VectorXd  executeParameterEstimation(
 
     // Creater arc times
 
-    double arcDuration = 0.5 * 86400.0;
-    double arcOverlap  = 5.0E3;
+    double arcDuration = 1.1 * 86400.0;
+    double arcOverlap  = 3600.0;
 
     std::vector< double > integrationArcStarts, integrationArcEnds;
     std::vector< double > integrationArcLimits;
@@ -264,20 +264,17 @@ Eigen::VectorXd  executeParameterEstimation(
                 bodyMap, parametersToEstimate,
                 observationSettingsMap, integratorSettings, propagatorSettings );
 
-    std::cout<<"A "<<std::endl;
     Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > initialParameterEstimate =
             parametersToEstimate->template getFullParameterValues< StateScalarType >( );
 
-    std::cout<<"B "<<std::endl;
 
     TimeType observationTime;
-    int numberOfObservationsPerArc = 5;
+    int numberOfObservationsPerArc = 5000;
     double timeBuffer = 9000.0;
 
 
     std::vector< TimeType > initialObservationTimes;
     initialObservationTimes.resize( numberOfObservationsPerArc * integrationArcStarts.size( ) );
-    std::cout<<"C "<<std::endl;
 
     for( unsigned int i = 0; i < integrationArcLimits.size( ) - 1; i++ )
     {
@@ -291,20 +288,16 @@ Eigen::VectorXd  executeParameterEstimation(
         }
     }
 
-    std::cout<<"D "<<std::endl;
-
     std::map< ObservableType, std::map< LinkEnds, std::pair< std::vector< TimeType >, LinkEndType > > > measurementSimulationInput;
     std::map< LinkEnds, std::pair< std::vector< TimeType >, LinkEndType > > singleObservableSimulationInput;
 
 
-//    singleObservableSimulationInput[ linkEnds2[ 0 ] ] = std::make_pair( initialObservationTimes, receiver );
-//    measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
-//    singleObservableSimulationInput[ linkEnds2[ 1 ] ] = std::make_pair( initialObservationTimes, receiver );
-//    measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
+    singleObservableSimulationInput[ linkEnds2[ 0 ] ] = std::make_pair( initialObservationTimes, receiver );
+    measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
+    singleObservableSimulationInput[ linkEnds2[ 1 ] ] = std::make_pair( initialObservationTimes, receiver );
+    measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
     singleObservableSimulationInput[ linkEnds2[ 2 ] ] = std::make_pair( initialObservationTimes, receiver );
     measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
-
-    std::cout<<"E"<<std::endl;
 
 
     typedef Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > ObservationVectorType;
@@ -313,8 +306,6 @@ Eigen::VectorXd  executeParameterEstimation(
 
     PodInputDataType observationsAndTimes = simulateObservations< ObservationScalarType, TimeType >(
                 measurementSimulationInput, orbitDeterminationManager.getObservationSimulators( )  );
-
-    std::cout<<"F "<<std::endl;
 
     Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > truthParameters = initialParameterEstimate;
 
@@ -334,16 +325,11 @@ Eigen::VectorXd  executeParameterEstimation(
 
     parametersToEstimate->resetParameterValues( initialParameterEstimate );
 
-    std::cout<<"G "<<std::endl;
-
     boost::shared_ptr< PodInput< ObservationScalarType, TimeType > > podInput =
             boost::make_shared< PodInput< ObservationScalarType, TimeType > >(
                 observationsAndTimes, ( initialParameterEstimate ).rows( ) );
-    std::cout<<"H "<<std::endl;
-
     boost::shared_ptr< PodOutput< StateScalarType > > podOutput = orbitDeterminationManager.estimateParameters(
                 podInput );
-    std::cout<<"I "<<std::endl;
 
     return ( podOutput->parameterEstimate_ - truthParameters ).template cast< double >( );
 }
@@ -352,7 +338,7 @@ Eigen::VectorXd  executeParameterEstimation(
 int main( )//BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
 {
     // Execute test for linked arcs and separate arcs.
-    for( unsigned int testCase = 0; testCase < 2; testCase++ )
+    for( unsigned int testCase = 0; testCase < 1; testCase++ )
     {
         Eigen::VectorXd parameterError = executeParameterEstimation< double, double, double >(
                     testCase );

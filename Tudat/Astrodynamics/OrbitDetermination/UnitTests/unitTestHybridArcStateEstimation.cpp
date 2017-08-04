@@ -74,6 +74,12 @@ Eigen::VectorXd  executeParameterEstimation(
                                             std::map< double, boost::shared_ptr< Ephemeris > >( ),
                                             "Mars", "ECLIPJ2000" ) );
 
+    bodyMap[ "Orbiter2" ] = boost::make_shared< Body >( );
+    bodyMap[ "Orbiter2" ]->setConstantBodyMass( 5.0E3 );
+    bodyMap[ "Orbiter2" ]->setEphemeris( boost::make_shared< MultiArcEphemeris >(
+                                            std::map< double, boost::shared_ptr< Ephemeris > >( ),
+                                            "Mars", "ECLIPJ2000" ) );
+
     double referenceAreaRadiation = 4.0;
     double radiationPressureCoefficient = 1.2;
     std::vector< std::string > occultingBodies;
@@ -87,6 +93,9 @@ Eigen::VectorXd  executeParameterEstimation(
                 "Sun", createRadiationPressureInterface(
                     orbiterRadiationPressureSettings, "Orbiter", bodyMap ) );
 
+    bodyMap[ "Orbiter2" ]->setRadiationPressureInterface(
+                "Sun", createRadiationPressureInterface(
+                    orbiterRadiationPressureSettings, "Orbiter2", bodyMap ) );
 
     // Finalize body creation.
     setGlobalFrameBodyEphemerides( bodyMap, "SSB", "ECLIPJ2000" );
@@ -141,6 +150,9 @@ Eigen::VectorXd  executeParameterEstimation(
     multiArcBodiesToIntegrate.push_back( "Orbiter" );
     multiArcCentralBodies.push_back( "Mars" );
 
+    multiArcBodiesToIntegrate.push_back( "Orbiter2" );
+    multiArcCentralBodies.push_back( "Mars" );
+
     AccelerationMap multiArcAccelerationModelMap = createAccelerationModelsMap(
                 bodyMap, multiArcAccelerationMap, multiArcBodiesToIntegrate, multiArcCentralBodies );
 
@@ -173,7 +185,11 @@ Eigen::VectorXd  executeParameterEstimation(
     // Create list of multi-arc initial states
     unsigned int numberOfIntegrationArcs = integrationArcStarts.size( );
     std::vector< Eigen::VectorXd > multiArcSystemInitialStates;
+    Eigen::VectorXd orbiterInitialStates = Eigen::VectorXd( 6 * numberOfIntegrationArcs );
+    Eigen::VectorXd orbiter2InitialStates = Eigen::VectorXd( 6 * numberOfIntegrationArcs );
+
     multiArcSystemInitialStates.resize( numberOfIntegrationArcs );
+
 
     // Define (quasi-arbitrary) arc initial states
     double marsGravitationalParameter =  bodyMap.at( "Mars" )->getGravityFieldModel( )->getGravitationalParameter( );
@@ -191,9 +207,20 @@ Eigen::VectorXd  executeParameterEstimation(
         orbiterInitialStateInKeplerianElements( trueAnomalyIndex ) = convertDegreesToRadians( 139.87 + j * 10.0 );
 
         // Convert state from Keplerian elements to Cartesian elements.
-        multiArcSystemInitialStates[ j ]  = convertKeplerianToCartesianElements(
+        orbiterInitialStates.segment( j * 6, 6 ) = convertKeplerianToCartesianElements(
                     orbiterInitialStateInKeplerianElements,
                     marsGravitationalParameter );
+
+        orbiterInitialStateInKeplerianElements( longitudeOfAscendingNodeIndex )
+                = convertDegreesToRadians( 113.4 + j );
+        orbiter2InitialStates.segment( j * 6, 6 ) = convertKeplerianToCartesianElements(
+                    orbiterInitialStateInKeplerianElements,
+                    marsGravitationalParameter );
+
+        multiArcSystemInitialStates[ j ] = Eigen::VectorXd::Zero( 12 );
+        multiArcSystemInitialStates[ j ].segment( 0, 6 ) = orbiterInitialStates.segment( j * 6, 6 );
+        multiArcSystemInitialStates[ j ].segment( 6, 6 ) = orbiter2InitialStates.segment( j * 6, 6 );
+
     }
 
 
@@ -216,7 +243,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
     boost::shared_ptr< IntegratorSettings< > > integratorSettings =
             boost::make_shared< IntegratorSettings< > >
-            ( rungeKutta4, initialEphemerisTime, 60.0 );
+            ( rungeKutta4, initialEphemerisTime, 30.0 );
 
 
 
@@ -227,8 +254,12 @@ Eigen::VectorXd  executeParameterEstimation(
                     singleArcBodiesToIntegrate.at( 0 ), singleArcInitialStates, singleArcCentralBodies.at( 0 ) ) );
     parameterNames.push_back(
                 boost::make_shared< ArcWiseInitialTranslationalStateEstimatableParameterSettings< StateScalarType > >(
-                    multiArcBodiesToIntegrate.at( 0 ), multiArcPropagatorSettings->getInitialStates( ),
+                    multiArcBodiesToIntegrate.at( 0 ), orbiterInitialStates,
                     integrationArcStarts, multiArcCentralBodies.at( 0 ) ) );
+    parameterNames.push_back(
+                boost::make_shared< ArcWiseInitialTranslationalStateEstimatableParameterSettings< StateScalarType > >(
+                    multiArcBodiesToIntegrate.at( 1 ), orbiter2InitialStates,
+                    integrationArcStarts, multiArcCentralBodies.at( 1 ) ) );
     parameterNames.push_back( boost::make_shared< EstimatableParameterSettings >( "Sun", gravitational_parameter ) );
     parameterNames.push_back( boost::make_shared< EstimatableParameterSettings >( "Mars", gravitational_parameter ) );
 
@@ -238,7 +269,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
     // Define links in simulation.
     std::vector< LinkEnds > linkEnds2;
-    linkEnds2.resize( 3 );
+    linkEnds2.resize( 4 );
     linkEnds2[ 0 ][ transmitter ] = grazStation;
     linkEnds2[ 0 ][ receiver ] = mslStation;
 
@@ -248,6 +279,9 @@ Eigen::VectorXd  executeParameterEstimation(
     linkEnds2[ 2 ][ transmitter ] = std::make_pair( "Orbiter", "" );
     linkEnds2[ 2 ][ receiver ] = mslStation;
 
+    linkEnds2[ 3 ][ transmitter ] = std::make_pair( "Orbiter2", "" );
+    linkEnds2[ 3 ][ receiver ] = mslStation;
+
     observation_models::ObservationSettingsMap observationSettingsMap;
     observationSettingsMap.insert( std::make_pair( linkEnds2[ 0 ], boost::make_shared< ObservationSettings >(
                                        one_way_range ) ) );
@@ -255,7 +289,8 @@ Eigen::VectorXd  executeParameterEstimation(
                                        one_way_range ) ) );
     observationSettingsMap.insert( std::make_pair( linkEnds2[ 2 ], boost::make_shared< ObservationSettings >(
                                        one_way_range ) ) );
-
+    observationSettingsMap.insert( std::make_pair( linkEnds2[ 3 ], boost::make_shared< ObservationSettings >(
+                                       one_way_range ) ) );
 
     // Create orbit determination object.
     OrbitDeterminationManager< ObservationScalarType, TimeType > orbitDeterminationManager =
@@ -297,7 +332,8 @@ Eigen::VectorXd  executeParameterEstimation(
     measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
     singleObservableSimulationInput[ linkEnds2[ 2 ] ] = std::make_pair( initialObservationTimes, receiver );
     measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
-
+    singleObservableSimulationInput[ linkEnds2[ 3 ] ] = std::make_pair( initialObservationTimes, receiver );
+    measurementSimulationInput[ one_way_range ] = singleObservableSimulationInput;
 
     typedef Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > ObservationVectorType;
     typedef std::map< LinkEnds, std::pair< ObservationVectorType, std::pair< std::vector< TimeType >, LinkEndType > > > SingleObservablePodInputType;
@@ -357,9 +393,9 @@ BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
 
         std::cout<<"Final parameter error: "<<std::endl<<parameterError.transpose( )<<std::endl;
 
-        BOOST_CHECK_SMALL( std::fabs( parameterError( 0 ) ), 0.5 );
-        BOOST_CHECK_SMALL( std::fabs( parameterError( 1 ) ), 0.5 );
-        BOOST_CHECK_SMALL( std::fabs( parameterError( 2 ) ), 10.0 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 0 ) ), 1.0 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 1 ) ), 1.0 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( 2 ) ), 25.0 );
 
         BOOST_CHECK_SMALL( std::fabs( parameterError( 3 ) ), 5E-6 );
         BOOST_CHECK_SMALL( std::fabs( parameterError( 4 ) ), 5E-6 );
@@ -370,8 +406,8 @@ BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
         {
             for( unsigned int j = 0; j < 3; j++ )
             {
-                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j ) ), 5E-4 );
-                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j + 3 ) ), 5.0E-7  );
+                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j ) ), 5E-3 );
+                BOOST_CHECK_SMALL( std::fabs( parameterError( i * 6 + j + 3 ) ), 5.0E-6  );
             }
         }
 

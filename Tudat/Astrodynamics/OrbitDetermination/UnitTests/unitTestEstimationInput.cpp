@@ -170,6 +170,35 @@ BOOST_AUTO_TEST_CASE( test_CovarianceAsFunctionOfTime )
     }
 }
 
+
+//! Test whether the covariance is correctly computed as a function of time
+BOOST_AUTO_TEST_CASE( test_MultiArcCovarianceAsFunctionOfTime )
+{
+    using namespace tudat;
+    using namespace tudat::unit_tests;
+
+    std::pair< boost::shared_ptr< PodOutput< double > >, boost::shared_ptr< PodInput< double, double > > > podData;
+    std::vector< double > integrationArcLimits;
+
+    executeMultiArcParameterEstimation< double, double, double >( podData, false, integrationArcLimits );
+
+    double timeStep = ( integrationArcLimits.at( 1 ) - integrationArcLimits.at( 0 ) ) / 2.0;
+
+
+    std::map< double, Eigen::MatrixXd > covarianceHistory = simulation_setup::calculateCovarianceMatrixAsFunctionOfTime(
+                podData.second, podData.first, timeStep, true );
+
+    for( std::map< double, Eigen::MatrixXd >::const_iterator covarianceIterator = covarianceHistory.begin( );
+         covarianceIterator != covarianceHistory.end( ); covarianceIterator++ )
+    {
+        std::cout<<std::setprecision( 4 )<<covarianceIterator->first<<std::endl<<covarianceIterator->second<<std::endl<<std::endl<<
+                   covarianceIterator->second - covarianceIterator->second.transpose( )<<std::endl<<std::endl<<std::endl;
+    }
+
+    std::cout<<std::endl<<podData.first->getUnnormalizedCovarianceMatrix( )<<std::endl;
+
+}
+
 BOOST_AUTO_TEST_SUITE_END( )
 
 }

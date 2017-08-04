@@ -70,6 +70,18 @@ Eigen::MatrixXd multiplyInformationMatrixByDiagonalWeightMatrix(
         const Eigen::MatrixXd& informationMatrix,
         const Eigen::VectorXd& diagonalOfWeightMatrix );
 
+Eigen::MatrixXd calculateInverseOfUpdatedCovarianceMatrixWithoutSignatureFreeParameters(
+        const Eigen::MatrixXd& informationMatrix,
+        const Eigen::VectorXd& diagonalOfWeightMatrix,
+        const Eigen::MatrixXd& inverseOfAPrioriCovarianceMatrix,
+        std::vector< int >& removedIndices );
+
+Eigen::MatrixXd calculateUpdatedCovarianceMatrixWithoutSignatureFreeParameters(
+        const Eigen::MatrixXd& informationMatrix,
+        const Eigen::VectorXd& diagonalOfWeightMatrix,
+        const Eigen::MatrixXd& inverseOfAPrioriCovarianceMatrix,
+        const double valueForSignatureFreeEntries = 0.0 );
+
 //! Function to compute inverse of covariance matrix at current iteration, including influence of a priori information
 /*!
  * Function to compute inverse of covariance matrix at current iteration, including influence of a priori information

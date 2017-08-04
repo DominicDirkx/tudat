@@ -179,7 +179,8 @@ std::map< TimeType, Eigen::MatrixXd > calculateCovarianceMatrixAsFunctionOfTime(
         const Eigen::VectorXd& normalizationFactors,
         const double outputTimeStep,
         const Eigen::VectorXd& diagonalOfWeightMatrix,
-        const Eigen::MatrixXd& normalizedInverseAPrioriCovariance )
+        const Eigen::MatrixXd& normalizedInverseAPrioriCovariance,
+        const bool removeSignatureFreeEntries = false )
 {
     // Check consistency of input data
     if( normalizedInverseAPrioriCovariance.cols( ) != normalizedInverseAPrioriCovariance.rows( ) )
@@ -225,6 +226,14 @@ std::map< TimeType, Eigen::MatrixXd > calculateCovarianceMatrixAsFunctionOfTime(
     // Create matrix to unnormalize parameters.
     Eigen::MatrixXd unnormalizationMatrix = normalizationFactors.asDiagonal( );
 
+    for( unsigned int i = 0; i < normalizationFactors.rows( ); i++ )
+    {
+        if( normalizationFactors( i ) == 0.0 )
+        {
+            unnormalizationMatrix( i, i ) = 1.0;
+        }
+    }
+
     // Declare return map.
     std::map< TimeType, Eigen::MatrixXd > covarianceMatrixHistory;
 
@@ -236,6 +245,7 @@ std::map< TimeType, Eigen::MatrixXd > calculateCovarianceMatrixAsFunctionOfTime(
     // Loop over matrix at given time interval.
     while( currentTime < orderedTimeVector[ orderedTimeVector.size( ) - 1 ] )
     {
+        std::cout<<"Calculating covariance at time "<<currentTime<<std::endl;
         // Increment time (no covariance computed for t=t0)
         currentTime += outputTimeStep;
 
@@ -264,10 +274,24 @@ std::map< TimeType, Eigen::MatrixXd > calculateCovarianceMatrixAsFunctionOfTime(
                     0, 0, currentIndex + 1, timeOrderedMatrixOutput.first.cols( ) );
 
         // Create inverse of covariance matrix
-        currentInverseNormalizedCovarianceMatrix = linear_algebra::calculateInverseOfUpdatedCovarianceMatrix(
-                    currentInformationMatrix, timeOrderedDiagonalOfWeightMatrix.segment( 0, currentIndex + 1 ), normalizedInverseAPrioriCovariance );
-        covarianceMatrixHistory[ orderedTimeVector.at( currentIndex ) ] = unnormalizationMatrix.inverse( ) *
-                currentInverseNormalizedCovarianceMatrix.inverse( ) * unnormalizationMatrix.inverse( );
+        if( !removeSignatureFreeEntries )
+        {
+            currentInverseNormalizedCovarianceMatrix = linear_algebra::calculateInverseOfUpdatedCovarianceMatrix(
+                        currentInformationMatrix, timeOrderedDiagonalOfWeightMatrix.segment( 0, currentIndex + 1 ),
+                        normalizedInverseAPrioriCovariance );
+            covarianceMatrixHistory[ orderedTimeVector.at( currentIndex ) ] = unnormalizationMatrix.inverse( ) *
+                    currentInverseNormalizedCovarianceMatrix.inverse( ) * unnormalizationMatrix.inverse( );
+        }
+        else
+        {
+            //std::cout<<"Calculating: "<<currentInformationMatrix.rows( )<<" "<<currentInformationMatrix.cols( )<<" "<<
+            //           timeOrderedDiagonalOfWeightMatrix.rows( )<<" "<<timeOrderedDiagonalOfWeightMatrix.cols( )<<std::endl;
+            covarianceMatrixHistory[ orderedTimeVector.at( currentIndex ) ] = unnormalizationMatrix.inverse( ) *
+                    linear_algebra::calculateUpdatedCovarianceMatrixWithoutSignatureFreeParameters(
+                        currentInformationMatrix, timeOrderedDiagonalOfWeightMatrix.segment( 0, currentIndex + 1 ),
+                        normalizedInverseAPrioriCovariance ) * unnormalizationMatrix.inverse( );
+
+        }
     }
 
 
@@ -287,12 +311,14 @@ template< typename ObservationScalarType = double, typename TimeType = double, t
 std::map< TimeType, Eigen::MatrixXd >  calculateCovarianceMatrixAsFunctionOfTime(
         const boost::shared_ptr< PodInput< ObservationScalarType, TimeType > >& podInputData,
         const boost::shared_ptr< PodOutput< ParameterScalarType > >& podOutputData,
-        const double outputTimeStep )
+        const double outputTimeStep,
+        const bool removeSignatureFreeEntries = false )
 {
     return calculateCovarianceMatrixAsFunctionOfTime< ObservationScalarType, TimeType >(
                 podInputData->getObservationsAndTimes( ), podOutputData->normalizedInformationMatrix_,
                 podOutputData->informationMatrixTransformationDiagonal_, outputTimeStep,
-                podOutputData->weightsMatrixDiagonal_, podInputData->getInverseOfAprioriCovariance( ) );
+                podOutputData->weightsMatrixDiagonal_, podInputData->getInverseOfAprioriCovariance( ),
+                removeSignatureFreeEntries );
 }
 
 }

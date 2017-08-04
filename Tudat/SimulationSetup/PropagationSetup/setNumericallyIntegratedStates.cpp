@@ -75,7 +75,7 @@ boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Mat
 createStateInterpolator( const std::map< double, Eigen::Matrix< double, 6, 1 > >& stateMap )
 {
     return boost::make_shared<
-        interpolators::LagrangeInterpolator< double, Eigen::Matrix< double, 6, 1 > > >( stateMap, 6 );
+        interpolators::LagrangeInterpolator< double, Eigen::Matrix< double, 6, 1 > > >( stateMap, 8 );
 }
 
 //! Function to create an interpolator for the new translational state of a body.
@@ -85,7 +85,7 @@ createStateInterpolator( const std::map< double, Eigen::Matrix< long double, 6, 
 {
     return boost::make_shared<
         interpolators::LagrangeInterpolator< double,
-                                             Eigen::Matrix< long double, 6, 1 > > >( stateMap, 6 );
+                                             Eigen::Matrix< long double, 6, 1 > > >( stateMap, 8 );
 }
 
 //! Function to create an interpolator for the new translational state of a body.
@@ -95,7 +95,7 @@ createStateInterpolator( const std::map< Time, Eigen::Matrix< long double, 6, 1 
 {
     return boost::make_shared<
         interpolators::LagrangeInterpolator<
-            Time, Eigen::Matrix< long double, 6, 1 >, long double > >( stateMap, 6 );
+            Time, Eigen::Matrix< long double, 6, 1 >, long double > >( stateMap, 8 );
 }
 
 
@@ -106,7 +106,7 @@ createStateInterpolator( const std::map< Time, Eigen::Matrix< double, 6, 1 > >& 
 {
     return boost::make_shared<
         interpolators::LagrangeInterpolator<
-            Time, Eigen::Matrix< double, 6, 1 >, long double > >( stateMap, 6 );
+            Time, Eigen::Matrix< double, 6, 1 >, long double > >( stateMap, 8 );
 }
 
 
@@ -114,28 +114,28 @@ template< >
 boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Matrix< double, 7, 1 > > >
 createRotationalStateInterpolator( const std::map< double, Eigen::Matrix< double, 7, 1 > >& stateMap )
 {
-    return boost::make_shared< interpolators::LagrangeInterpolator< double, Eigen::Matrix< double, 7, 1 > > >( stateMap, 6 );
+    return boost::make_shared< interpolators::LagrangeInterpolator< double, Eigen::Matrix< double, 7, 1 > > >( stateMap, 8 );
 }
 
 template< >
 boost::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Matrix< long double, 7, 1 > > >
 createRotationalStateInterpolator( const std::map< double, Eigen::Matrix< long double, 7, 1 > >& stateMap )
 {
-    return boost::make_shared< interpolators::LagrangeInterpolator< double, Eigen::Matrix< long double, 7, 1 > > >( stateMap, 6 );
+    return boost::make_shared< interpolators::LagrangeInterpolator< double, Eigen::Matrix< long double, 7, 1 > > >( stateMap, 8 );
 }
 
 template< >
 boost::shared_ptr< interpolators::OneDimensionalInterpolator< Time, Eigen::Matrix< double, 7, 1 > > >
 createRotationalStateInterpolator( const std::map< Time, Eigen::Matrix< double, 7, 1 > >& stateMap )
 {
-    return boost::make_shared< interpolators::LagrangeInterpolator< Time, Eigen::Matrix< double, 7, 1 >, long double > >( stateMap, 6 );
+    return boost::make_shared< interpolators::LagrangeInterpolator< Time, Eigen::Matrix< double, 7, 1 >, long double > >( stateMap, 8 );
 }
 
 template< >
 boost::shared_ptr< interpolators::OneDimensionalInterpolator< Time, Eigen::Matrix< long double, 7, 1 > > >
 createRotationalStateInterpolator( const std::map< Time, Eigen::Matrix< long double, 7, 1 > >& stateMap )
 {
-    return boost::make_shared< interpolators::LagrangeInterpolator< Time, Eigen::Matrix< long double, 7, 1 >, long double > >( stateMap, 6 );
+    return boost::make_shared< interpolators::LagrangeInterpolator< Time, Eigen::Matrix< long double, 7, 1 >, long double > >( stateMap, 8 );
 }
 
 

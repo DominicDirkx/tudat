@@ -78,6 +78,12 @@ std::string getParameterTypeString( const EstimatebleParametersEnum parameterTyp
     case ppn_parameter_gamma:
         parameterDescription = " PPN parameter beta ";
         break;
+    case rotation_model_component_perturbation_amplitude:
+        parameterDescription = " Rotation model perturbation periodic amplitude ";
+        break;
+    case rotation_model_polynomial_compoment:
+        parameterDescription = " Rotation model perturbation polynomial amplitude ";
+        break;
     default:
         std::string errorMessage = "Error when getting parameter string, did not recognize parameter " +
                 boost::lexical_cast< std::string >( parameterType );
@@ -150,12 +156,18 @@ bool isDoubleParameter( const EstimatebleParametersEnum parameterType )
     case equivalence_principle_lpi_violation_parameter:
         isDoubleParameter = true;
         break;
-   case full_degree_tidal_love_number:
+    case full_degree_tidal_love_number:
         isDoubleParameter = false;
         break;
     case single_degree_variable_tidal_love_number:
-         isDoubleParameter = false;
-         break;
+        isDoubleParameter = false;
+        break;
+    case rotation_model_component_perturbation_amplitude:
+        isDoubleParameter = false;
+        break;
+    case rotation_model_polynomial_compoment:
+        isDoubleParameter = false;
+        break;
     default:
         throw std::runtime_error( "Error, parameter type " + boost::lexical_cast< std::string >( parameterType ) +
                                   " not found when getting parameter type" );
@@ -173,6 +185,12 @@ bool isParameterRotationMatrixProperty( const EstimatebleParametersEnum paramete
         flag = true;
         break;
     case rotation_pole_position:
+        flag = true;
+        break;
+    case rotation_model_component_perturbation_amplitude:
+        flag = true;
+        break;
+    case rotation_model_polynomial_compoment:
         flag = true;
         break;
     default:

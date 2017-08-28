@@ -34,7 +34,8 @@ namespace simulation_setup
 enum RotationModelType
 {
     simple_rotation_model,
-    spice_rotation_model
+    spice_rotation_model,
+    direct_rotation_variation_model
 };
 
 //! Class for providing settings for rotation model.
@@ -165,6 +166,47 @@ private:
     //! Rotation rate of body about its local z-axis.
     double rotationRate_;
 };
+
+class DirectRotationVariationSettings: public RotationModelSettings
+{
+public:
+    DirectRotationVariationSettings( const std::vector< double > rightAscensionPolynomialTerms,
+                                     const std::vector< double > declinationPolynomialTerms,
+                                     const std::vector< double > primeMeridianPolynomialTerms,
+                                     const std::map< double, std::pair< double, double > > rightAscensionLibrations,
+                                     const std::map< double, std::pair< double, double > > declinationLibrations,
+                                     const std::map< double, std::pair< double, double > > primeMeridianLibrations,
+                                     const Eigen::Matrix3d fromIntermediateFrameToBaseFrame,
+                                     std::string originalFrame,
+                                     std::string targetFrame ):
+        RotationModelSettings( direct_rotation_variation_model, originalFrame, targetFrame ),
+        rightAscensionPolynomialTerms_( rightAscensionPolynomialTerms ), declinationPolynomialTerms_( declinationPolynomialTerms ),
+        primeMeridianPolynomialTerms_( primeMeridianPolynomialTerms) , rightAscensionLibrations_( rightAscensionLibrations ),
+        declinationLibrations_( declinationLibrations ), primeMeridianLibrations_( primeMeridianLibrations ),
+        fromIntermediateFrameToBaseFrame_( fromIntermediateFrameToBaseFrame ){ }
+
+
+    std::vector< double > getRightAscensionPolynomialTerms( ){ return rightAscensionPolynomialTerms_; }
+    std::vector< double > getDeclinationPolynomialTerms_( ){ return declinationPolynomialTerms_; }
+    std::vector< double > getPrimeMeridianPolynomialTerms( ){ return primeMeridianPolynomialTerms_; }
+    std::map< double, std::pair< double, double > > getRightAscensionLibrations( ){ return rightAscensionLibrations_; }
+    std::map< double, std::pair< double, double > > getDeclinationLibrations( ){ return declinationLibrations_; }
+    std::map< double, std::pair< double, double > > getPrimeMeridianLibrations( ){ return primeMeridianLibrations_; }
+
+    Eigen::Matrix3d getFromIntermediateFrameToBaseFrame( ){ return fromIntermediateFrameToBaseFrame_; }
+
+private:
+
+    std::vector< double > rightAscensionPolynomialTerms_;
+    std::vector< double > declinationPolynomialTerms_;
+    std::vector< double > primeMeridianPolynomialTerms_;
+    std::map< double, std::pair< double, double > > rightAscensionLibrations_;
+    std::map< double, std::pair< double, double > > declinationLibrations_;
+    std::map< double, std::pair< double, double > > primeMeridianLibrations_;
+
+    Eigen::Matrix3d fromIntermediateFrameToBaseFrame_;
+};
+
 
 //! Function to create a rotation model.
 /*!

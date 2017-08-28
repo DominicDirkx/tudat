@@ -12,6 +12,7 @@
 #define TUDAT_ESTIMATABLEPARAMETERSETTINGS_H
 
 #include "Tudat/Astrodynamics/BasicAstrodynamics/empiricalAcceleration.h"
+#include "Tudat/Astrodynamics/Ephemerides/directlyPerturbedRotationModel.h"
 #include "Tudat/Astrodynamics/ObservationModels/observableTypes.h"
 #include "Tudat/Astrodynamics/ObservationModels/linkTypeDefs.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/estimatableParameter.h"
@@ -467,6 +468,34 @@ public:
     //! True if the complex Love number is estimated, false if only teh real part is considered
     bool useComplexValue_;
 
+};
+
+class RotationModelPeriodicVariationAmplitudeSettings: public EstimatableParameterSettings
+{
+public:
+    RotationModelPeriodicVariationAmplitudeSettings( const std::string associatedBody,
+                                                     const PerturbedRotationModelComponents componentType,
+                                                     const std::vector< double > periods ):
+        EstimatableParameterSettings( associatedBody, rotation_model_component_perturbation_amplitude, "" ),
+        associatedBody_( associatedBody ), componentType_( componentType ), periods_( periods ){ }
+
+    std::string associatedBody_;
+    PerturbedRotationModelComponents componentType_;
+    std::vector< double > periods_;
+};
+
+class RotationModelPolynomialVariationSettings: public EstimatableParameterSettings
+{
+public:
+    RotationModelPolynomialVariationSettings( const std::string associatedBody,
+                                              const PerturbedRotationModelComponents componentType,
+                                              const std::vector< int > powers ):
+        EstimatableParameterSettings( associatedBody, rotation_model_polynomial_compoment, "" ),
+        associatedBody_( associatedBody ), componentType_( componentType ), powers_( powers ){ }
+
+    std::string associatedBody_;
+    PerturbedRotationModelComponents componentType_;
+    std::vector< int > powers_;
 };
 
 } // namespace estimatable_parameters

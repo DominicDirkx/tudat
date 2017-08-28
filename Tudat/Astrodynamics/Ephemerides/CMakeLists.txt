@@ -23,6 +23,7 @@ set(EPHEMERIDES_SOURCES
   "${SRCROOT}${EPHEMERIDESDIR}/tabulatedEphemeris.cpp"
   "${SRCROOT}${EPHEMERIDESDIR}/frameManager.cpp"
   "${SRCROOT}${EPHEMERIDESDIR}/compositeEphemeris.cpp"
+  "${SRCROOT}${EPHEMERIDESDIR}/directlyPerturbedRotationModel.cpp"
 )
 
 # Set the header files.
@@ -45,6 +46,7 @@ set(EPHEMERIDES_HEADERS
   "${SRCROOT}${EPHEMERIDESDIR}/multiArcEphemeris.h"
   "${SRCROOT}${EPHEMERIDESDIR}/tabulatedRotationalEphemeris.h"
   "${SRCROOT}${EPHEMERIDESDIR}/constantRotationalEphemeris.h"
+  "${SRCROOT}${EPHEMERIDESDIR}/directlyPerturbedRotationModel.h"
 )
 
 # Add static libraries.
@@ -94,3 +96,8 @@ endif()
 add_executable(test_KeplerEphemeris "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestKeplerEphemeris.cpp")
 setup_custom_test_program(test_KeplerEphemeris "${SRCROOT}${EPHEMERIDESDIR}")
 target_link_libraries(test_KeplerEphemeris tudat_ephemerides tudat_reference_frames tudat_input_output tudat_basic_astrodynamics tudat_basic_mathematics ${Boost_LIBRARIES})
+
+add_executable(test_DirectlyPerturbedRotationModel "${SRCROOT}${EPHEMERIDESDIR}/UnitTests/unitTestDirectlyPerturbedRotationalEphemeris.cpp")
+setup_custom_test_program(test_DirectlyPerturbedRotationModel "${SRCROOT}${EPHEMERIDESDIR}")
+target_link_libraries(test_DirectlyPerturbedRotationModel ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
+

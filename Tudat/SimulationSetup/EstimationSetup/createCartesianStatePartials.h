@@ -24,13 +24,15 @@
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/initialTranslationalState.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/ObservationPartials/rotationMatrixPartial.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/ObservationPartials/positionPartials.h"
-
+#include "Tudat/Astrodynamics/OrbitDetermination/ObservationPartials/directPerturbedRotationModelPartials.h"
 
 namespace tudat
 {
 
 namespace observation_partials
 {
+
+extern std::map< std::string, boost::shared_ptr< DirectPerturbedRotationModelPartialManager > > periodicRotationVariationManagers;
 
 //! Function to return partial(s) of position of reference point w.r.t state of a single body.
 /*!

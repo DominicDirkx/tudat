@@ -22,6 +22,8 @@
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/ppnParameters.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/equivalencePrincipleViolationParameter.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/tidalLoveNumber.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/rotationModelPeriodicVariationAmplitudes.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/rotationModelPolynomialVariations.h"
 #include "Tudat/Astrodynamics/Relativity/metric.h"
 #include "Tudat/SimulationSetup/EstimationSetup/createEstimatableParameters.h"
 
@@ -650,6 +652,42 @@ boost::shared_ptr< EstimatableParameter< Eigen::VectorXd > > createVectorParamet
                                     "Error, expected BasicSolidBodyTideGravityFieldVariations for variable tidal love number" );
                     }
                 }
+            }
+            break;
+        }
+        case rotation_model_component_perturbation_amplitude:
+        {
+            boost::shared_ptr< RotationModelPeriodicVariationAmplitudeSettings > rotationModelVariationSettings =
+                    boost::dynamic_pointer_cast< RotationModelPeriodicVariationAmplitudeSettings >( vectorParameterName );
+            if( rotationModelVariationSettings == NULL )
+            {
+                std::cerr<<"Error, expected moon libration parameter settings "<<std::endl;
+            }
+            else
+            {
+                boost::shared_ptr< DirectlyPerturbedRotationModel > rotationModel =
+                        boost::dynamic_pointer_cast< DirectlyPerturbedRotationModel >( currentBody->getRotationalEphemeris( ) );
+                vectorParameterToEstimate = boost::make_shared< RotationModelPeriodicVariationAmplitudes >(
+                            rotationModel, rotationModelVariationSettings->periods_, rotationModelVariationSettings->componentType_,
+                            currentBodyName );
+            }
+            break;
+        }
+        case rotation_model_polynomial_compoment:
+        {
+            boost::shared_ptr< RotationModelPolynomialVariationSettings > rotationModelVariationSettings =
+                    boost::dynamic_pointer_cast< RotationModelPolynomialVariationSettings >( vectorParameterName );
+            if( rotationModelVariationSettings == NULL )
+            {
+                std::cerr<<"Error, expected moon libration polynomial parameter settings "<<std::endl;
+            }
+            else
+            {
+                boost::shared_ptr< DirectlyPerturbedRotationModel > rotationModel =
+                        boost::dynamic_pointer_cast< DirectlyPerturbedRotationModel >( currentBody->getRotationalEphemeris( ) );
+                vectorParameterToEstimate = boost::make_shared< RotationModelPolynomialVariations >(
+                            rotationModel, rotationModelVariationSettings->powers_, rotationModelVariationSettings->componentType_,
+                            currentBodyName );
             }
             break;
         }

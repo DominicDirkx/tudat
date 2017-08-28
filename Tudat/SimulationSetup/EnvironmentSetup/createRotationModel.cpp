@@ -12,6 +12,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "Tudat/Astrodynamics/Ephemerides/simpleRotationalEphemeris.h"
+#include "Tudat/Astrodynamics/Ephemerides/directlyPerturbedRotationModel.h"
 #if USE_CSPICE
 #include "Tudat/External/SpiceInterface/spiceRotationalEphemeris.h"
 #endif
@@ -68,11 +69,37 @@ boost::shared_ptr< ephemerides::RotationalEphemeris > createRotationModel(
         break;
     }
     #endif
+    case direct_rotation_variation_model:
+    {
+        boost::shared_ptr< DirectRotationVariationSettings > directVariationRotationModelSettings =
+                boost::dynamic_pointer_cast< DirectRotationVariationSettings >( rotationModelSettings );
+        if( directVariationRotationModelSettings == NULL )
+        {
+            throw std::runtime_error(
+                        "Error, expected directly perturbed rotation model settings for " + body );
+        }
+        else
+        {
+            rotationalEphemeris = boost::make_shared< DirectlyPerturbedRotationModel >(
+                        directVariationRotationModelSettings->getRightAscensionPolynomialTerms( ),
+                        directVariationRotationModelSettings->getDeclinationPolynomialTerms_( ),
+                        directVariationRotationModelSettings->getPrimeMeridianPolynomialTerms( ),
+                        directVariationRotationModelSettings->getRightAscensionLibrations( ),
+                        directVariationRotationModelSettings->getDeclinationLibrations( ),
+                        directVariationRotationModelSettings->getPrimeMeridianLibrations( ),
+                        directVariationRotationModelSettings->getFromIntermediateFrameToBaseFrame( ),
+                        directVariationRotationModelSettings->getOriginalFrame( ),
+                        directVariationRotationModelSettings->getTargetFrame( ) );
+        }
+
+        break;
+    }
     default:
         throw std::runtime_error(
                  "Error, did not recognize rotation model settings type " +
                   boost::lexical_cast< std::string >( rotationModelSettings->getRotationType( ) ) );
     }
+
 
     return rotationalEphemeris;
 }

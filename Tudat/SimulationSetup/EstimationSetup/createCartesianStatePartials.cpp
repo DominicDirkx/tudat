@@ -9,6 +9,9 @@
  */
 
 #include "Tudat/Astrodynamics/Ephemerides/simpleRotationalEphemeris.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/rotationModelPeriodicVariationAmplitudes.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/rotationModelPolynomialVariations.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/ObservationPartials/directPerturbedRotationModelPartials.h"
 #include "Tudat/SimulationSetup/EstimationSetup/createCartesianStatePartials.h"
 
 
@@ -17,6 +20,9 @@ namespace tudat
 
 namespace observation_partials
 {
+
+std::map< std::string, boost::shared_ptr< DirectPerturbedRotationModelPartialManager > > periodicRotationVariationManagers;
+
 
 //! Function to return partial(s) of position of ground station(s) w.r.t. state of a single body.
 std::map< observation_models::LinkEndType, boost::shared_ptr< CartesianStatePartial > > createCartesianStatePartialsWrtBodyState(
@@ -293,7 +299,88 @@ boost::shared_ptr< RotationMatrixPartial > createRotationMatrixPartialsWrtParame
         rotationMatrixPartial = boost::make_shared< RotationMatrixPartialWrtPoleOrientation >(
                     boost::dynamic_pointer_cast< SimpleRotationalEphemeris>( currentBody->getRotationalEphemeris( ) ) );
         break;
+    case estimatable_parameters::rotation_model_component_perturbation_amplitude:
+    {
+        boost::shared_ptr< DirectlyPerturbedRotationModel > rotationModel =
+                boost::dynamic_pointer_cast< DirectlyPerturbedRotationModel >(
+                    bodyMap.at( parameterToEstimate->getParameterName( ).second.first )->getRotationalEphemeris( ) );
+        if( rotationModel == NULL )
+        {
+            std::cerr<<"Error when making rotation periodic variation partial of "<<parameterToEstimate->getParameterName( ).second.first<<
+                       " no correct rotation model found."<<std::endl;
+        }
+        else
+        {
 
+            if( periodicRotationVariationManagers.count( parameterToEstimate->getParameterName( ).second.first ) == 0 )
+            {
+                periodicRotationVariationManagers[ parameterToEstimate->getParameterName( ).second.first ] =
+                        boost::make_shared< DirectPerturbedRotationModelPartialManager >( rotationModel );
+            }
+
+            // Check if current paramteter identifier and object are consistent.
+            if( boost::dynamic_pointer_cast< estimatable_parameters::RotationModelPeriodicVariationAmplitudes >(
+                        parameterToEstimate ) == NULL )
+            {
+                std::cerr<<"Error when making rotation periodic variation partial of "<<parameterToEstimate->getParameterName( ).second.first<<
+                           " incompatible input."<<std::endl;
+            }
+            else
+            {
+                // Create rotation matrix partial object
+                boost::shared_ptr< estimatable_parameters::RotationModelPeriodicVariationAmplitudes > rotationVariationAmplitudes =
+                        boost::dynamic_pointer_cast< estimatable_parameters::RotationModelPeriodicVariationAmplitudes >(
+                            parameterToEstimate );
+                rotationMatrixPartial = boost::make_shared< RotationMatrixPartialWrtPeriodicRotationVariation >(
+                            periodicRotationVariationManagers.at( parameterToEstimate->getParameterName( ).second.first ),
+                            rotationVariationAmplitudes->getComponentPeriods( ),
+                            rotationVariationAmplitudes->getComponentType( ) );
+            }
+        }
+        break;
+
+    }
+    case estimatable_parameters::rotation_model_polynomial_compoment:
+    {
+        boost::shared_ptr< DirectlyPerturbedRotationModel > rotationModel =
+                boost::dynamic_pointer_cast< DirectlyPerturbedRotationModel >(
+                    bodyMap.at( parameterToEstimate->getParameterName( ).second.first )->getRotationalEphemeris( ) );
+        if( rotationModel == NULL )
+        {
+            std::cerr<<"Error when making rotation polynomial variation partial of "<<parameterToEstimate->getParameterName( ).second.first<<
+                       " no correct rotation model found."<<std::endl;
+        }
+        else
+        {
+
+            if( periodicRotationVariationManagers.count( parameterToEstimate->getParameterName( ).second.first ) == 0 )
+            {
+                periodicRotationVariationManagers[ parameterToEstimate->getParameterName( ).second.first ] =
+                        boost::make_shared< DirectPerturbedRotationModelPartialManager >( rotationModel );
+            }
+
+            // Check if current paramteter identifier and object are consistent.
+            if( boost::dynamic_pointer_cast< estimatable_parameters::RotationModelPolynomialVariations >(
+                        parameterToEstimate ) == NULL )
+            {
+                std::cerr<<"Error when making rotation polynomial variation partial of "<<parameterToEstimate->getParameterName( ).second.first<<
+                           " incompatible input."<<std::endl;
+            }
+            else
+            {
+                // Create rotation matrix partial object
+                boost::shared_ptr< estimatable_parameters::RotationModelPolynomialVariations > rotationVariationAmplitudes =
+                        boost::dynamic_pointer_cast< estimatable_parameters::RotationModelPolynomialVariations >(
+                            parameterToEstimate );
+                rotationMatrixPartial = boost::make_shared< RotationMatrixPartialWrtPolynimialRotationVariation >(
+                            periodicRotationVariationManagers.at( parameterToEstimate->getParameterName( ).second.first ),
+                            rotationVariationAmplitudes->getComponentPowers( ),
+                            rotationVariationAmplitudes->getComponentType( ) );
+            }
+        }
+        break;
+
+    }
     default:
         std::string errorMessage = "Warning, rotation matrix partial not implemented for parameter " +
                 boost::lexical_cast< std::string >( parameterToEstimate->getParameterName( ).first );

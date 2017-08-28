@@ -53,7 +53,9 @@ enum EstimatebleParametersEnum
     empirical_acceleration_coefficients,
     arc_wise_empirical_acceleration_coefficients,
     full_degree_tidal_love_number,
-    single_degree_variable_tidal_love_number
+    single_degree_variable_tidal_love_number,
+    rotation_model_component_perturbation_amplitude,
+    rotation_model_polynomial_compoment
 };
 
 std::string getParameterTypeString( const EstimatebleParametersEnum parameterType );

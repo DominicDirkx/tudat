@@ -20,6 +20,7 @@ set(AERODYNAMICS_SOURCES
   "${SRCROOT}${AERODYNAMICSDIR}/customAerodynamicCoefficientInterface.cpp"
   "${SRCROOT}${AERODYNAMICSDIR}/flightConditions.cpp"
   "${SRCROOT}${AERODYNAMICSDIR}/trimOrientation.cpp"
+  "${SRCROOT}${AERODYNAMICSDIR}/rarefiedFlowSimpleGeometryDrag.cpp"
   "${SRCROOT}${AERODYNAMICSDIR}/equilibriumWallTemperature.cpp"
 )
 
@@ -44,6 +45,7 @@ set(AERODYNAMICS_HEADERS
   "${SRCROOT}${AERODYNAMICSDIR}/UnitTests/testApolloCapsuleCoefficients.h"
   "${SRCROOT}${AERODYNAMICSDIR}/flightConditions.cpp"
   "${SRCROOT}${AERODYNAMICSDIR}/aerodynamicGuidance.h"
+  "${SRCROOT}${AERODYNAMICSDIR}/rarefiedFlowSimpleGeometryDrag.h"
   "${SRCROOT}${AERODYNAMICSDIR}/equilibriumWallTemperature.h"
 )
 
@@ -101,4 +103,8 @@ if(USE_NRLMSISE00)
     add_executable(test_NRLMSISE00Atmosphere "${SRCROOT}${AERODYNAMICSDIR}/UnitTests/unitTestNRLMSISE00Atmosphere.cpp")
     setup_custom_test_program(test_NRLMSISE00Atmosphere "${SRCROOT}${AERODYNAMICSDIR}")
     target_link_libraries(test_NRLMSISE00Atmosphere tudat_aerodynamics tudat_interpolators tudat_basic_mathematics nrlmsise00 tudat_input_output tudat_basic_astrodynamics ${Boost_LIBRARIES})
+
+    add_executable(test_SimpleShapeRarefiedFlowCoefficients "${SRCROOT}${AERODYNAMICSDIR}/UnitTests/unitTestSimpleGeometryRarefiedFlowAerodynamics.cpp")
+    setup_custom_test_program(test_SimpleShapeRarefiedFlowCoefficients "${SRCROOT}${AERODYNAMICSDIR}")
+    target_link_libraries(test_SimpleShapeRarefiedFlowCoefficients ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
 endif( )

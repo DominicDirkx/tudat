@@ -1,0 +1,6 @@
+number | x |  | o
+number | y |  | o
+number | z |  | o
+number | vx |  | o
+number | vy |  | o
+number | vz |  | o

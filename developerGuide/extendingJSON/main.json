@@ -1,0 +1,68 @@
+{
+  "initialEpoch": 0,
+  "finalEpoch": 3600,
+  "spice": {
+    "useStandardKernels": true
+  },
+  "bodies": {
+    "Earth": {
+      "useDefaultSettings": true,
+      "ephemeris": {
+        "type": "constant",
+        "constantState": [0, 0, 0, 0, 0, 0]
+      }
+    },
+    "asterix": {
+      "initialState": {
+        "type": "keplerian",
+        "semiMajorAxis": 7.5E+6,
+        "eccentricity": 0.1,
+        "inclination": 1.4888
+      }
+    }
+  },
+  "propagators": [
+    {
+      "integratedStateType": "translational",
+      "bodiesToPropagate": ["asterix"],
+      "centralBodies": ["Earth"],
+      "accelerations": {
+        "asterix": {
+          "Earth": [
+            {
+              "type": "pointMassGravity"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "integrator": {
+    "type": "rungeKutta4",
+    "stepSize": 10
+  },
+  "export": [
+    {
+      "file": "@path(epochs.txt)",
+      "variables": [
+        {
+          "type": "independent"
+        }
+      ],
+      "epochsInFirstColumn": false
+    },
+    {
+      "file": "@path(states.txt)",
+      "variables": [
+        {
+          "type": "state"
+        }
+      ],
+      "epochsInFirstColumn": false
+    }
+  ],
+  "options": {
+    "defaultValueUsedForMissingKey": "continueSilently",
+    "unusedKey": "printWarning"
+  }
+}

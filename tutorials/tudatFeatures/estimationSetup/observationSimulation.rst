@@ -3,10 +3,12 @@
 Simulating Observations
 =======================
 
+.. _creatingObservationSimulators:
+
 Creating the Observation Simulator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In Tudat, a set of observations are simulated using the :class:`ObservationSimulatorBase` class. An object of this class is used to simulate observations of a single type, for any number of :class:`LinkEnds`. The :class:`ObservationSimulatorBase` has, like many of the classes in Tudat a number of template arguments, one for the 
+In Tudat, a set of observations are simulated using the :class:`ObservationSimulatorBase` class. An object of this class is used to simulate observations of a single type, for any number of :class:`LinkEnds`. The :class:`ObservationSimulatorBase` has, like many of the classes in Tudat a number of template arguments, one for the scalar type of the observable and one for the time type. Note that the state scalar used in numerical propagation should be equal to the scalar type of the observable to make full use of the functionality. 
 
 There are two ways in which to obtain :class:`ObservationSimulatorBase` objects:
 
@@ -19,7 +21,7 @@ There are two ways in which to obtain :class:`ObservationSimulatorBase` objects:
       std::map< ObservableType, boost::shared_ptr< ObservationSimulatorBase< ObservationScalarType, TimeType > > > observationSimulators =
          orbitDeterminationManager.getObservationSimulators( );
          
-   This return the :literal:`observationSimulators` list, which contains an observation simulator for each :literal:`ObservableType` defined in your orbit determination manager.
+   This returns the :literal:`observationSimulators` list, which contains an observation simulator for each :literal:`ObservableType` defined in your orbit determination manager.
    
 * You can also create an :class:`ObservationSimulatorBase` directly, without using an :literal:`OrbitDeterminationManager` object.    
    
@@ -43,9 +45,9 @@ In either case, this provides you with an object of type :literal:`ObservationSi
 Observation Simulation Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The times at which observations are simulated may be defined directly by the user, or they may depend on some scheduling algorithm, which is then used to determine the observation times. The final observation times are determined by a combination of :class:`ObservationSimulationTimeSettings` objects and :literal:`ObservationViabilitySettings` objects. The former allows you to define observation times directly, or an observation schedule algorithm. The latter defines constraints that must be met for an observation to be possible. The viability settigns are discussed ON THIS PAGE.
+The times at which observations are simulated may be defined directly by the user, or they may depend on some scheduling algorithm, which is then used to determine the observation times. The final observation times are determined by a combination of :class:`ObservationSimulationTimeSettings` objects and :literal:`ObservationViabilitySettings` objects. The former allows you to define observation times directly, or an observation schedule algorithm. The latter defines constraints that must be met for an observation to be possible. The viability settigns are discussed on the page :ref:`observationViability`.
 
-Each type of observation settings is defined by a dedicated derived class of :class:`ObservationSimulationTimeSettings`. This class has a :literal:`TimeType` argument, which is discussed in more detail ON THIS PAGE. The following classes are presently available:
+Each type of observation settings is defined by a dedicated derived class of :class:`ObservationSimulationTimeSettings`. This class has a :literal:`TimeType` argument, which is discussed in more detail :ref:`tudatTemplatingStateTime`. The following classes are presently available:
 
 .. class:: TabulatedObservationSimulationTimeSettings
 
@@ -68,14 +70,16 @@ Each type of observation settings is defined by a dedicated derived class of :cl
 
       A :literal:`std::vector< TimeType >` variable, containing the list of times at which observations are to be simulated.
 
+.. _observationViability:
+
 Observation Viability Setttings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In many cases, you will not have the list of observation times *a priori*. Instead, the observation times could be a function of the states of the link ends, and depend on a number of constraints that must be satisfied for an observation to be possible. The constraints defined in Tudat are listed in the :literal:`ObservationViabilityType` enum, which can take the following values: 
 
 * :literal:`minimum_elevation_angle`: Minimum elevation angle at a ground station: target must be at least a certain elevation above the horizon.
-* :literal:`body_avoidance_angle`: Body occultation: the link must not be obscured by a given third body.  For instance: the Moon occulting a link between Earth and Mars.
-* :literal:`body_occultation`: Body avoidance angle: the line-of-sight vector from a link end to a given third body must have an angle w.r.t. the line-of-sight between link ends that is sufficiently large. This constraint is typically used to prevent the Sun from being to close to the field-of-view of the telescope(s).
+* :literal:`body_avoidance_angle`: Body avoidance angle: the line-of-sight vector from a link end to a given third body must have an angle w.r.t. the line-of-sight between link ends that is sufficiently large. This constraint is typically used to prevent the Sun from being too close to the field-of-view of the telescope(s).
+* :literal:`body_occultation`: Body occultation: the link must not be obscured by a given third body.  For instance: the Moon occulting a link between Earth and Mars.
 
 In Tudat, such constraints are defined by objects of the :literal:`ObservationViabilitySettings` class.
 
@@ -140,16 +144,16 @@ As is the case for many other Tudat functionalities, the actual objects that per
 
 Where :literal:`PerObservableObservationViabilityCalculatorList` is a typedef for :literal:`std::map< ObservableType, std::map< LinkEnds, std::vector< boost::shared_ptr< ObservationViabilityCalculator > > > >`, which is a list of viability calculators for each set of link ends and observable type.      
 
-
+.. _observationNoise:
 
 Observation Noise
 ~~~~~~~~~~~~~~~~~
 
-In addition to the observation biases, discussed on THIS PAGE, which are part of the observation model and typically deterministic, stochastic noise may be added to the observations when simulating them. 
+In addition to the observation biases (see :ref:`observationBiases`), which are part of the observation model and typically deterministic, stochastic noise may be added to the observations when simulating them. 
 
-The interface for observation noise is made general, allowing both time-correlated and time-uncorrelated noise to be added: a function of type :literal:`boost::function< double( const double ) >` must be created. Here, the function input is the current time, and the output the noise value. You are free to define this function in any way you like. Refer to the documentation of :literal:`boost::function` and :literal:`boost::bind` ON THIS PAGE.
+The interface for observation noise is made general, allowing both time-correlated and time-uncorrelated noise to be added: a function of type :literal:`boost::function< double( const double ) >` must be created. Here, the function input is the current time, and the output the noise value. You are free to define this function in any way you like. Refer to the documentation of :literal:`boost::function` and :literal:`boost::bind` (see :ref:`externalBoost`).
 
-In typical basic simulation studies, time-uncorrelated white noise is used. To easily add this type of noise, you can make use of the Tudat interface to boost probability distributions/random number generation, which is defined in mroe detail ON THIS PAGE. As an example, the following will generate a function which generates which noise with a mean of 0.005 and a standard deviationof 0.003.
+In typical basic simulation studies, time-uncorrelated white noise is used. To easily add this type of noise, you can make use of the Tudat interface to boost probability distributions/random number generation (see :ref:`tudatFeaturesProbabilityDistributions`). As an example, the following will generate a function which generates which noise with a mean of 0.005 and a standard deviationof 0.003.
 
 .. code-block:: cpp
 
@@ -166,6 +170,7 @@ In typical basic simulation studies, time-uncorrelated white noise is used. To e
           
 You may use a similar approach to use any of the boost distrbutions for noise. Note that the second step, in which the :literal:`evaluateFunctionWithoutInputArgumentDependency` is called, is needed for consistency with the observation noise interface.
 
+.. _generatingObservations:
 
 Generating the observations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -174,7 +179,7 @@ Before discussing in detail how to generate simulated observations, we need to d
 
 :literal:`std::map< ObservableType, std::map< LinkEnds, std::pair< Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, LinkEndType > > > >`
 
-The first part of this type :literal:`std::map< ObservableType, std::map< LinkEnds, ... ' denotes that a separate set of observations is generated for each requested observable type and set of link ends. For each of these, the simulated data is stored in the following data type:
+The first part of this type :literal:`std::map< ObservableType, std::map< LinkEnds, ... ` denotes that a separate set of observations is generated for each requested observable type and set of link ends. For each of these, the simulated data is stored in the following data type:
 
 :literal:`std::pair< Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, LinkEndType > >`
 
@@ -235,7 +240,7 @@ Finally, when including noise on the simulated observations, we provide a number
    // Define (arbitrary) noise properties
    FullSimulatedObservationSet = simulateObservationsWithNoise( observationsToSimulate, observationSimulators, noiseFunctions, viabilityCalculatorList );
 
-Which requires an noise function defined as a :literal:`Eigen::VectorXd` as a function of time (:literal:`const double`), where we use a vector representation of the observation noise to allow noise models to be applied to multi-valued observables (e.g. angular position). However, The :literal:`noiseFunctions` may also be of one of the followi   ng:
+Which requires a noise function defined as a :literal:`Eigen::VectorXd` as a function of time (:literal:`const double`), where we use a vector representation of the observation noise to allow noise models to be applied to multi-valued observables (e.g. angular position). However, The :literal:`noiseFunctions` may also be of one of the following:
 
 * :literal:`std::map< ObservableType, std::map< LinkEnds, boost::function< double( const double ) > > >` Here the noise is defined as a single output. If the observable is multi-valued, the same function is called to generate the noise for each of the entries of the observable. Note that the function is called separately for each entry.
 * :literal:`std::map< ObservableType, boost::function< Eigen::VectorXd( const double ) > >` Here, the noise is not defineed separately for each set of :literal:`LinkEnds`, only per :literal:`ObservableType`, the same function is used for each set link ends of a given type of observable.

@@ -22,6 +22,15 @@ namespace tudat
 namespace propagators
 {
 
+//! Possible events that can trigger the termination of a propagation
+enum PropagationTerminationReason
+{
+    propagation_never_run,
+    unknown_propagation_termination_reason,
+    termination_condition_reached,
+    runtime_error_caught_in_propagation
+};
+
 //! Base class for checking whether the numerical propagation is to be stopped at current time step or not
 /*!
  *  Base class for checking whether the numerical propagation is to be stopped at current time step or not. Derived
@@ -43,9 +52,10 @@ public:
      * (Pure virtual) function to check whether the propagation should be stopped. Note that the accelerations and
      * environment must be updated (done automatically during numerical propagation) to check the stopping condition.
      * \param time Current time in propagation
+     * \param cpuTime Current CPU time in propagation
      * \return True if propagation is to be stopped, false otherwise.
      */
-    virtual bool checkStopCondition( const double time ) = 0;
+    virtual bool checkStopCondition( const double time, const double cpuTime ) = 0;
 };
 
 //! Class for stopping the propagation after a fixed amount of time (i.e. for certain independent variable value)
@@ -71,9 +81,10 @@ public:
     /*!
      * Function to check whether the propagation is to be be stopped, i.e. whether the stopTime_ has been reached or not.
      * \param time Current time in propagation
+     * \param cpuTime Current CPU time in propagation
      * \return True if propagation is to be stopped, false otherwise.
      */
-    bool checkStopCondition( const double time );
+    bool checkStopCondition( const double time, const double cpuTime );
 
     //! Time at which the propagation is to stop.
     double stopTime_;
@@ -82,6 +93,36 @@ private:
 
     //!  Boolean denoting whether propagation is forward (if true) or backwards (if false) in time.
     bool propagationDirectionIsPositive_;
+};
+
+//! Class for stopping the propagation after a fixed amount of CPU time
+class FixedCPUTimePropagationTerminationCondition: public PropagationTerminationCondition
+{
+public:
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param cpuStopTime CPU time at which the propagation is to stop.
+     */
+    FixedCPUTimePropagationTerminationCondition( const double cpuStopTime ) :
+        cpuStopTime_( cpuStopTime ) { }
+
+
+    //! Function to check whether the propagation is to be be stopped
+    /*!
+     * Function to check whether the propagation is to be be stopped, i.e. whether the stopTime_ has been reached or not.
+     * \param time Current time in propagation
+     * \param cpuTime Current CPU time in propagation
+     * \return True if propagation is to be stopped, false otherwise.
+     */
+    bool checkStopCondition( const double time, const double cpuTime );
+
+private:
+
+    //! Time at which the propagation is to stop.
+    double cpuStopTime_;
+
 };
 
 //! Class for stopping the propagation when a dependent variable reaches a given value (either upper or lower bound)
@@ -113,9 +154,11 @@ public:
     /*!
      * Function to check whether the propagation is to be be stopped, i.e. whether the given dependent variable has been
      * reached or not.
+     * \param time Current time in propagation
+     * \param cpuTime Current CPU time in propagation
      * \return True if propagation is to be stopped, false otherwise.
      */
-    bool checkStopCondition( const double time );
+    bool checkStopCondition( const double time, const double cpuTime );
 
 private:
 
@@ -156,9 +199,11 @@ public:
     /*!
      * Function to check whether the propagation is to be be stopped, i.e. one or all (depending on value of
      * fulFillSingleCondition_) of the stopping conditions are fulfilled.
+     * \param time Current time in propagation
+     * \param cpuTime Current CPU time in propagation
      * \return True if propagation is to be stopped, false otherwise.
      */
-    bool checkStopCondition( const double time );
+    bool checkStopCondition( const double time, const double cpuTime );
 
 private:
 

@@ -17,7 +17,6 @@
 #define TUDAT_RUNGE_KUTTA_VARIABLE_STEP_SIZE_INTEGRATOR_H
 
 #include <boost/bind.hpp>
-#include <boost/exception/all.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 
@@ -82,7 +81,7 @@ public:
 
     //! Exception that is thrown if the minimum step size is exceeded.
     /*!
-     * Exception thrown by RungeKuttaVariableStepSizeIntegrator<>::
+     * Exception thrown by RungeKuttaVariableStepSizeIntegrator< >::
      * computeNextStepSizeAndValidateResult() if the minimum step size is exceeded.
      */
     class MinimumStepSizeExceededError;
@@ -455,11 +454,18 @@ RungeKuttaVariableStepSizeIntegrator< IndependentVariableType, StateType, StateD
         }
 
         // Compute the state derivative.
-        currentStateDerivatives_.push_back(
-                    this->stateDerivativeFunction_(
-                        this->currentIndependentVariable_ +
-                        this->coefficients_.cCoefficients( stage ) * stepSize,
-                        intermediateState ) );
+        const IndependentVariableType time = this->currentIndependentVariable_ +
+                this->coefficients_.cCoefficients( stage ) * stepSize;
+        currentStateDerivatives_.push_back( this->stateDerivativeFunction_( time, intermediateState ) );
+
+        // Check if propagation should terminate because the propagation termination condition has been reached
+        // while computing the intermediate state.
+        // If so, return immediately the current state (not recomputed yet), which will be discarded.
+        if ( this->propagationTerminationFunction_( static_cast< double >( time ), TUDAT_NAN ) )
+        {
+            this->propagationTerminationConditionReachedDuringStep_ = true;
+            return this->currentState_;
+        }
 
         // Update the estimate.
         lowerOrderEstimate += this->coefficients_.bCoefficients( 0, stage ) * stepSize *
@@ -488,9 +494,7 @@ RungeKuttaVariableStepSizeIntegrator< IndependentVariableType, StateType, StateD
             return this->currentState_;
 
         default: // The default case will never occur because OrderEstimateToIntegrate is an enum.
-            boost::throw_exception(
-                        boost::enable_error_info(
-                            std::runtime_error( "Order estimate to integrate is invalid." ) ) );
+            throw std::runtime_error( "Order estimate to integrate is invalid." );
         }
     }
     else
@@ -539,17 +543,19 @@ RungeKuttaVariableStepSizeIntegrator< IndependentVariableType, StateType, StateD
     }
 
     // Check if minimum step size is violated and throw exception if necessary.
-    if ( std::fabs( this->stepSize_ ) < this->minimumStepSize_ )
+    if ( std::fabs( this->stepSize_ ) < std::fabs( this->minimumStepSize_ ) )
     {
-        boost::throw_exception(
-                    boost::enable_error_info(
-                        MinimumStepSizeExceededError( this->minimumStepSize_,
-                                                      std::fabs( this->stepSize_ ) ) ) );
+        throw MinimumStepSizeExceededError( std::fabs( this->minimumStepSize_ ),
+                                                      std::fabs( this->stepSize_ ) );
+    }
+    else if( std::fabs( this->stepSize_ ) > std::fabs( this->maximumStepSize_ ) )
+    {
+        this->stepSize_ = stepSize / std::fabs( stepSize ) * std::fabs( this->maximumStepSize_ );
     }
 
-    else if ( std::fabs( this->stepSize_ ) > this->maximumStepSize_ )
+    if( stepSize * this->stepSize_ < 0 )
     {
-        this->stepSize_ = this->maximumStepSize_;
+        throw std::runtime_error( "Error during step size control, step size flipped sign" );
     }
 
     // Check if computed error in state is too large and reject step if true.
@@ -610,13 +616,12 @@ RungeKuttaVariableStepSizeIntegrator< IndependentVariableType, StateType, StateD
 
 //! Exception that is thrown if the minimum step size is exceeded.
 /*!
- * Exception thrown by RungeKuttaVariableStepSizeIntegrator<>::
- * computeNextStepSizeAndValidateResult() if the minimum step size is exceeded.
+ * Exception thrown by RungeKuttaVariableStepSizeIntegrator< >::computeNextStepSizeAndValidateResult()
+ * if the minimum step size is exceeded.
  */
 template < typename IndependentVariableType, typename StateType, typename StateDerivativeType, typename TimeStepType >
 class RungeKuttaVariableStepSizeIntegrator< IndependentVariableType, StateType,
-        StateDerivativeType, TimeStepType >
-        ::MinimumStepSizeExceededError : public std::runtime_error
+        StateDerivativeType, TimeStepType >::MinimumStepSizeExceededError : public std::runtime_error
 {
 public:
 

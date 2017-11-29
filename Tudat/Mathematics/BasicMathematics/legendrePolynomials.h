@@ -31,8 +31,10 @@
 #define TUDAT_LEGENDRE_POLYNOMIALS_H
 
 #include <cstddef>
-#include <boost/bind.hpp>
 
+#include <Eigen/Core>
+
+#include <boost/bind.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
@@ -636,6 +638,18 @@ double calculateLegendreGeodesyNormalizationFactor( const int degree, const int 
 //! Predefine boost function for unnormalized Legendre polynomial.
 const LegendreCache::LegendrePolynomialFunction regularLegendrePolynomialFunction =
         boost::bind( &computeLegendrePolynomialFromCache, _1, _2, _3 );
+
+void convertUnnormalizedToGeodesyNormalizedCoefficients(
+        const Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        const Eigen::MatrixXd& unnormalizedSineCoefficients,
+        Eigen::MatrixXd& normalizedCosineCoefficients,
+        Eigen::MatrixXd& normalizedSineCoefficients );
+
+void convertGeodesyNormalizedToUnnormalizedCoefficients(
+        const Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        const Eigen::MatrixXd& unnormalizedSineCoefficients,
+        Eigen::MatrixXd& normalizedCosineCoefficients,
+        Eigen::MatrixXd& normalizedSineCoefficients );
 
 } // namespace basic_mathematics
 } // namespace tudat

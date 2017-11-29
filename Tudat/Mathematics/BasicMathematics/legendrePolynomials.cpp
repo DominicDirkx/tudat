@@ -774,5 +774,56 @@ double calculateLegendreGeodesyNormalizationFactor( const int degree, const int 
     return 1.0 / factor;
 }
 
+
+void convertUnnormalizedToGeodesyNormalizedCoefficients(
+        const Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        const Eigen::MatrixXd& unnormalizedSineCoefficients,
+        Eigen::MatrixXd& normalizedCosineCoefficients,
+        Eigen::MatrixXd& normalizedSineCoefficients )
+{
+    normalizedCosineCoefficients.setZero( unnormalizedCosineCoefficients.rows( ), unnormalizedCosineCoefficients.cols( ) );
+    normalizedSineCoefficients.setZero( unnormalizedSineCoefficients.rows( ), unnormalizedCosineCoefficients.cols( ) );
+
+    double normalizationFactor;
+
+    for( unsigned degree = 0 ; degree < unnormalizedCosineCoefficients.rows( ); degree++ )
+    {
+        for( unsigned order = 0 ; ( order < unnormalizedCosineCoefficients.cols( ) && order <= degree ); order++ )
+        {
+            normalizationFactor = calculateLegendreGeodesyNormalizationFactor( degree, order );
+            normalizedCosineCoefficients( degree, order ) = unnormalizedCosineCoefficients( degree, order ) /
+                    normalizationFactor;
+            normalizedSineCoefficients( degree, order ) = unnormalizedSineCoefficients( degree, order ) /
+                    normalizationFactor;
+        }
+
+    }
+
+}
+
+void convertGeodesyNormalizedToUnnormalizedCoefficients(
+        const Eigen::MatrixXd& normalizedCosineCoefficients,
+        const Eigen::MatrixXd& normalizedSineCoefficients,
+        Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        Eigen::MatrixXd& unnormalizedSineCoefficients )
+{
+    unnormalizedCosineCoefficients.setZero( normalizedCosineCoefficients.rows( ), normalizedCosineCoefficients.cols( ) );
+    unnormalizedSineCoefficients.setZero( normalizedSineCoefficients.rows( ), normalizedSineCoefficients.cols( ) );
+
+    double normalizationFactor;
+
+    for( unsigned degree = 0 ; degree < unnormalizedCosineCoefficients.rows( ); degree++ )
+    {
+        for( unsigned order = 0 ; ( order < unnormalizedCosineCoefficients.cols( ) && order <= degree ); order++ )
+        {
+            normalizationFactor = calculateLegendreGeodesyNormalizationFactor( degree, order );
+            unnormalizedCosineCoefficients( degree, order ) = normalizedCosineCoefficients( degree, order ) *
+                    normalizationFactor;
+            unnormalizedSineCoefficients( degree, order ) = normalizedSineCoefficients( degree, order ) *
+                    normalizationFactor;
+        }
+    }
+}
+
 } // namespace basic_mathematics
 } // namespace tudat

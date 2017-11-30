@@ -34,6 +34,8 @@ set(GRAVITATION_SOURCES
   "${SRCROOT}${GRAVITATIONDIR}/mutualSphericalHarmonicGravityModel.cpp"
   "${SRCROOT}${GRAVITATIONDIR}/secondDegreeGravitationalTorque.cpp"
   "${SRCROOT}${GRAVITATIONDIR}/directTidalDissipationAcceleration.cpp"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicAcceleration.cpp"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualForcePotential.cpp"
 )
 
 # Set the header files.
@@ -59,6 +61,8 @@ set(GRAVITATION_HEADERS
   "${SRCROOT}${GRAVITATIONDIR}/mutualSphericalHarmonicGravityModel.h"
   "${SRCROOT}${GRAVITATIONDIR}/secondDegreeGravitationalTorque.h"
   "${SRCROOT}${GRAVITATIONDIR}/directTidalDissipationAcceleration.h"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicAcceleration.h"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualForcePotential.h"
 )
 
 # Add static libraries.

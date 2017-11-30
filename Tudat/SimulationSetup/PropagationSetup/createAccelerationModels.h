@@ -24,6 +24,7 @@
 #include "Tudat/Astrodynamics/BasicAstrodynamics/empiricalAcceleration.h"
 #include "Tudat/Astrodynamics/Ephemerides/frameManager.h"
 #include "Tudat/Astrodynamics/Gravitation/directTidalDissipationAcceleration.h"
+#include "Tudat/Astrodynamics/Gravitation/mutualExtendedBodySphericalHarmonicAcceleration.h"
 
 namespace tudat
 {
@@ -268,6 +269,14 @@ createThirdBodyMutualSphericalHarmonicGravityAccelerationModel(
         const std::string& nameOfBodyExertingAcceleration,
         const std::string& nameOfCentralBody,
         const boost::shared_ptr< AccelerationSettings > accelerationSettings );
+
+boost::shared_ptr< gravitation::MutualExtendedBodySphericalHarmonicAcceleration > createMutualExtendedBodySphericalHarmonicsGravityAcceleration(
+        const boost::shared_ptr< Body > bodyUndergoingAcceleration,
+        const boost::shared_ptr< Body > bodyExertingAcceleration,
+        const std::string& nameOfBodyUndergoingAcceleration,
+        const std::string& nameOfBodyExertingAcceleration,
+        const boost::shared_ptr< AccelerationSettings > accelerationSettings,
+        const bool useCentralBodyFixedFrame );
 
 //! Function to create an aerodynamic acceleration model.
 /*!

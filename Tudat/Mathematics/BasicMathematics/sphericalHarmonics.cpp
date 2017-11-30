@@ -31,7 +31,7 @@ void SphericalHarmonicsCache::resetMaximumDegreeAndOrder( const int maximumDegre
     {
         maximumOrder_ = maximumDegree_;
     }
-    legendreCache_->resetMaximumDegreeAndOrder( maximumDegree_, maximumOrder_ );
+    sphericalHarmonicsCache_->resetMaximumDegreeAndOrder( maximumDegree_, maximumOrder_ );
 
     sinesOfLongitude_.resize( maximumOrder_ + 1 );
     cosinesOfLongitude_.resize( maximumOrder_ + 1 );

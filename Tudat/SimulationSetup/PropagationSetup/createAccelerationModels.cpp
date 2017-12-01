@@ -179,7 +179,8 @@ boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > createGravitationalAcc
     boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > accelerationModelPointer;
     if( accelerationSettings->accelerationType_ != central_gravity &&
             accelerationSettings->accelerationType_ != spherical_harmonic_gravity &&
-            accelerationSettings->accelerationType_ != mutual_spherical_harmonic_gravity )
+            accelerationSettings->accelerationType_ != mutual_spherical_harmonic_gravity &&
+            accelerationSettings->accelerationType_ != mutual_extended_body_spherical_harmonic_gravity )
     {
         throw std::runtime_error( "Error when making gravitational acceleration, type is inconsistent" );
     }

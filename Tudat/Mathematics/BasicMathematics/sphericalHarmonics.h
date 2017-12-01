@@ -398,6 +398,18 @@ Eigen::Vector3d computePotentialGradient( const Eigen::Vector3d& sphericalPositi
                                           const double legendrePolynomialDerivative,
                                           const boost::shared_ptr< SphericalHarmonicsCache > sphericalHarmonicsCache );
 
+Eigen::Vector3d computePotentialGradientWithManualRadiusRatioPower(
+        const Eigen::Vector3d& sphericalPosition,
+        const double preMultiplier,
+        const double radiusRatioPower,
+        const int degree,
+        const int order,
+        const double cosineHarmonicCoefficient,
+        const double sineHarmonicCoefficient,
+        const double legendrePolynomial,
+        const double legendrePolynomialDerivative,
+        const boost::shared_ptr< SphericalHarmonicsCache > sphericalHarmonicsCache );
+
 } // namespace basic_mathematics
 } // namespace tudat
 

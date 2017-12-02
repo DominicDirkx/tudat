@@ -13,6 +13,8 @@
 
 #include <Eigen/Core>
 
+#include <iostream>
+
 #include "Tudat/Mathematics/BasicMathematics/sphericalHarmonics.h"
 #include "Tudat/Mathematics/BasicMathematics/basicMathematicsFunctions.h"
 

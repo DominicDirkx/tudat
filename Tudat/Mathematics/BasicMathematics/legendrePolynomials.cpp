@@ -9,6 +9,7 @@
  *
  */
 
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -38,7 +39,8 @@ LegendreCache::LegendreCache( const bool useGeodesyNormalization )
         legendrePolynomialFunction_ = regularLegendrePolynomialFunction;
     }
 
-    resetMaximumDegreeAndOrder( 0, 0 );
+    resetMaximumDegreeAndOrder( 1, 1 );
+
     computeSecondDerivatives_ = 0;
 
 }

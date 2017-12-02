@@ -95,4 +95,4 @@ target_link_libraries(test_WignerDMatrices tudat_basic_mathematics ${Boost_LIBRA
 
 add_executable(test_SphericalHarmonicTransformations "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/UnitTests/unitTestSphericalHarmonicTransformation.cpp")
 setup_custom_test_program(test_SphericalHarmonicTransformations "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics")
-target_link_libraries(test_SphericalHarmonicTransformations tudat_basic_mathematics ${Boost_LIBRARIES})
+target_link_libraries(test_SphericalHarmonicTransformations ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})

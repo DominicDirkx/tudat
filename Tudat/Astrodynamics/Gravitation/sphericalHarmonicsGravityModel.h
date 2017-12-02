@@ -20,6 +20,8 @@
 #ifndef TUDAT_SPHERICAL_HARMONICS_GRAVITY_MODEL_H
 #define TUDAT_SPHERICAL_HARMONICS_GRAVITY_MODEL_H
 
+#include <iostream>
+
 #include <boost/function.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/shared_ptr.hpp>
@@ -313,6 +315,9 @@ public:
             this->updateBaseMembers( );
 
             currentInertialRelativePosition_ = this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
+
+//            std::cout<<"Position: "<<currentInertialRelativePosition_.transpose( )<<" "<<
+//                       gravitationalParameter<<" "<<equatorialRadius<<std::endl;
             currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
                         currentInertialRelativePosition_ );
 
@@ -323,6 +328,11 @@ public:
                         equatorialRadius,
                         cosineHarmonicCoefficients,
                         sineHarmonicCoefficients, sphericalHarmonicsCache_ );
+
+//            std::cout<<"Coeffs: "<<cosineHarmonicCoefficients<<std::endl<<sineHarmonicCoefficients<<std::endl;
+//            std::cout<<"Acc: "<<currentAcceleration_.transpose( )<<std::endl;
+//            std::cout<<"Rot: "<<rotationToIntegrationFrame_.toRotationMatrix( )<<std::endl;
+
         }
     }
 

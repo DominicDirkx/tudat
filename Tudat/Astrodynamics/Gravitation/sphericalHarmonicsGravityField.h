@@ -282,6 +282,11 @@ public:
         return fixedReferenceFrame_;
     }
 
+    bool areCoefficientsGeodesyNormalized( )
+    {
+        return true;
+    }
+
 protected:
 
     //! Reference radius of spherical harmonic field expansion

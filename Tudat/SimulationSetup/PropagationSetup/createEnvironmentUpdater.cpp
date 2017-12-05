@@ -272,6 +272,16 @@ createTranslationalEquationsOfMotionEnvironmentUpdaterSettings(
                     singleAccelerationUpdateNeeds[ spherical_harmonic_gravity_field_update ].push_back(
                                 acceleratedBodyIterator->first );
                     break;
+                case mutual_extended_body_spherical_harmonic_gravity:
+                    singleAccelerationUpdateNeeds[ body_rotational_state_update ].push_back(
+                                accelerationModelIterator->first );
+                    singleAccelerationUpdateNeeds[ spherical_harmonic_gravity_field_update ].push_back(
+                                accelerationModelIterator->first );
+                    singleAccelerationUpdateNeeds[ body_rotational_state_update ].push_back(
+                                acceleratedBodyIterator->first );
+                    singleAccelerationUpdateNeeds[ spherical_harmonic_gravity_field_update ].push_back(
+                                acceleratedBodyIterator->first );
+                    break;
                 case third_body_spherical_harmonic_gravity:
                 {
                     singleAccelerationUpdateNeeds[ body_rotational_state_update ].push_back(

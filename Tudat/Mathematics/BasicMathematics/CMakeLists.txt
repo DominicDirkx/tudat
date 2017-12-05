@@ -16,6 +16,9 @@ set(BASICMATHEMATICS_SOURCES
   "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/numericalDerivative.cpp"
   "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/sphericalHarmonics.cpp"
   "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/rotationAboutArbitraryAxis.cpp"
+  "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/cayleyKleinParameters.cpp"
+  "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/wignerDMatrices.cpp"
+  "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/sphericalHarmonicTransformations.cpp"
   "${SRCROOT}${BASICMATHEMATICSDIR}/basicMathematicsFunctions.cpp"
   "${SRCROOT}${BASICMATHEMATICSDIR}/coordinateConversions.cpp"
   "${SRCROOT}${BASICMATHEMATICSDIR}/linearAlgebra.cpp"
@@ -35,6 +38,9 @@ set(BASICMATHEMATICS_HEADERS
   "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/numericalDerivative.h"
   "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/sphericalHarmonics.h"
   "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/rotationAboutArbitraryAxis.h"
+  "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/cayleyKleinParameters.h"
+  "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/wignerDMatrices.h"
+  "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/sphericalHarmonicTransformations.h"
   "${SRCROOT}${BASICMATHEMATICSDIR}/basicMathematicsFunctions.h"
   "${SRCROOT}${BASICMATHEMATICSDIR}/coordinateConversions.h"
   "${SRCROOT}${BASICMATHEMATICSDIR}/linearAlgebra.h"
@@ -78,3 +84,15 @@ target_link_libraries(test_SphericalHarmonics tudat_basic_mathematics ${Boost_LI
 add_executable(test_RotationAboutArbitraryAxis "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/UnitTests/unitTestRotationAboutArbitraryAxis.cpp")
 setup_custom_test_program(test_RotationAboutArbitraryAxis "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics")
 target_link_libraries(test_RotationAboutArbitraryAxis tudat_basic_mathematics ${Boost_LIBRARIES})
+
+add_executable(test_CayleyKleinParameters "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/UnitTests/unitTestCayleyKeinParameters.cpp")
+setup_custom_test_program(test_CayleyKleinParameters "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics")
+target_link_libraries(test_CayleyKleinParameters tudat_basic_mathematics ${Boost_LIBRARIES})
+
+add_executable(test_WignerDMatrices "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/UnitTests/unitTestWignerDMatrices.cpp")
+setup_custom_test_program(test_WignerDMatrices "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics")
+target_link_libraries(test_WignerDMatrices tudat_basic_mathematics ${Boost_LIBRARIES})
+
+add_executable(test_SphericalHarmonicTransformations "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics/UnitTests/unitTestSphericalHarmonicTransformation.cpp")
+setup_custom_test_program(test_SphericalHarmonicTransformations "${SRCROOT}${MATHEMATICSDIR}/BasicMathematics")
+target_link_libraries(test_SphericalHarmonicTransformations ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})

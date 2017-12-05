@@ -43,7 +43,7 @@ public:
      */
     SphericalHarmonicsCache( const bool useGeodesyNormalization = 1 )
     {
-        legendreCache_ = boost::make_shared< LegendreCache >( useGeodesyNormalization );
+        sphericalHarmonicsCache_ = boost::make_shared< LegendreCache >( useGeodesyNormalization );
 
         currentLongitude_ = TUDAT_NAN;
         referenceRadiusRatio_ = TUDAT_NAN;
@@ -61,11 +61,10 @@ public:
      */
     SphericalHarmonicsCache( const int maximumDegree, const int maximumOrder, const bool useGeodesyNormalization = 1 )
     {
-        legendreCache_ = boost::make_shared< LegendreCache >( maximumDegree, maximumOrder, useGeodesyNormalization );
+        sphericalHarmonicsCache_ = boost::make_shared< LegendreCache >( maximumDegree, maximumOrder, useGeodesyNormalization );
 
         currentLongitude_ = TUDAT_NAN;
         referenceRadiusRatio_ = TUDAT_NAN;
-
         resetMaximumDegreeAndOrder( maximumDegree, maximumOrder );
     }
 
@@ -89,7 +88,7 @@ public:
     void update( const double radius, const double polynomialParameter,
                  const double longitude, const double referenceRadius )
     {
-        legendreCache_->update( polynomialParameter );
+        sphericalHarmonicsCache_->update( polynomialParameter );
         updateSines( longitude );
         updateRadiusPowers( referenceRadius / radius );
     }
@@ -165,7 +164,7 @@ public:
      */
     boost::shared_ptr< LegendreCache > getLegendreCache( )
     {
-        return legendreCache_;
+        return sphericalHarmonicsCache_;
     }
 
 private:
@@ -240,7 +239,7 @@ private:
     std::vector< double > referenceRadiusRatioPowers_;
 
     //! Object for caching and computing Legendre polynomials.
-    boost::shared_ptr< LegendreCache > legendreCache_;
+    boost::shared_ptr< LegendreCache > sphericalHarmonicsCache_;
 
 
 
@@ -397,6 +396,18 @@ Eigen::Vector3d computePotentialGradient( const Eigen::Vector3d& sphericalPositi
                                           const double legendrePolynomial,
                                           const double legendrePolynomialDerivative,
                                           const boost::shared_ptr< SphericalHarmonicsCache > sphericalHarmonicsCache );
+
+Eigen::Vector3d computePotentialGradientWithManualRadiusRatioPower(
+        const Eigen::Vector3d& sphericalPosition,
+        const double preMultiplier,
+        const double radiusRatioPower,
+        const int degree,
+        const int order,
+        const double cosineHarmonicCoefficient,
+        const double sineHarmonicCoefficient,
+        const double legendrePolynomial,
+        const double legendrePolynomialDerivative,
+        const boost::shared_ptr< SphericalHarmonicsCache > sphericalHarmonicsCache );
 
 } // namespace basic_mathematics
 } // namespace tudat

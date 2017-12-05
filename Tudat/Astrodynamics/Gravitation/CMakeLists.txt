@@ -34,6 +34,8 @@ set(GRAVITATION_SOURCES
   "${SRCROOT}${GRAVITATIONDIR}/mutualSphericalHarmonicGravityModel.cpp"
   "${SRCROOT}${GRAVITATIONDIR}/secondDegreeGravitationalTorque.cpp"
   "${SRCROOT}${GRAVITATIONDIR}/directTidalDissipationAcceleration.cpp"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicAcceleration.cpp"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualForcePotential.cpp"
 )
 
 # Set the header files.
@@ -59,6 +61,8 @@ set(GRAVITATION_HEADERS
   "${SRCROOT}${GRAVITATIONDIR}/mutualSphericalHarmonicGravityModel.h"
   "${SRCROOT}${GRAVITATIONDIR}/secondDegreeGravitationalTorque.h"
   "${SRCROOT}${GRAVITATIONDIR}/directTidalDissipationAcceleration.h"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicAcceleration.h"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualForcePotential.h"
 )
 
 # Add static libraries.
@@ -106,6 +110,7 @@ add_executable(test_DirectTidalDissipationAcceleration "${SRCROOT}${GRAVITATIOND
 setup_custom_test_program(test_DirectTidalDissipationAcceleration "${SRCROOT}${GRAVITATIONDIR}")
 target_link_libraries(test_DirectTidalDissipationAcceleration ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
 
+
 if(USE_CSPICE)
 add_executable(test_GravityFieldVariations "${SRCROOT}${GRAVITATIONDIR}/UnitTests/unitTestGravityFieldVariations.cpp")
 setup_custom_test_program(test_GravityFieldVariations "${SRCROOT}${GRAVITATIONDIR}")
@@ -114,4 +119,9 @@ target_link_libraries(test_GravityFieldVariations tudat_gravitation tudat_basic_
 add_executable(test_MutualSphericalHarmonicsGravityModel "${SRCROOT}${GRAVITATIONDIR}/UnitTests/unitTestMutualSphericalHarmonicAcceleration.cpp")
 setup_custom_test_program(test_MutualSphericalHarmonicsGravityModel "${SRCROOT}${GRAVITATIONDIR}")
 target_link_libraries(test_MutualSphericalHarmonicsGravityModel ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(test_MutualExtendedBodySphericalHarmonicGravity "${SRCROOT}${GRAVITATIONDIR}/UnitTests/unitTestMutualExtendedBodySphericalHarmonicAcceleration.cpp")
+setup_custom_test_program(test_MutualExtendedBodySphericalHarmonicGravity "${SRCROOT}${GRAVITATIONDIR}")
+target_link_libraries(test_MutualExtendedBodySphericalHarmonicGravity ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
+
 endif()

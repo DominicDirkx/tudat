@@ -13,6 +13,8 @@
 
 #include <Eigen/Core>
 
+#include <iostream>
+
 #include "Tudat/Mathematics/BasicMathematics/sphericalHarmonics.h"
 #include "Tudat/Mathematics/BasicMathematics/basicMathematicsFunctions.h"
 
@@ -31,7 +33,7 @@ void SphericalHarmonicsCache::resetMaximumDegreeAndOrder( const int maximumDegre
     {
         maximumOrder_ = maximumDegree_;
     }
-    legendreCache_->resetMaximumDegreeAndOrder( maximumDegree_, maximumOrder_ );
+    sphericalHarmonicsCache_->resetMaximumDegreeAndOrder( maximumDegree_, maximumOrder_ );
 
     sinesOfLongitude_.resize( maximumOrder_ + 1 );
     cosinesOfLongitude_.resize( maximumOrder_ + 1 );
@@ -107,6 +109,28 @@ Eigen::Vector3d computePotentialGradient( const Eigen::Vector3d& sphericalPositi
     return computePotentialGradient(
                 sphericalPosition( radiusIndex ),
                 sphericalHarmonicsCache->getReferenceRadiusRatioPowers( degree + 1 ),
+                sphericalHarmonicsCache->getCosineOfMultipleLongitude( order ),
+                sphericalHarmonicsCache->getSineOfMultipleLongitude( order ),
+                sphericalHarmonicsCache->getLegendreCache( )->getCurrentPolynomialParameterComplement( ),
+                preMultiplier, degree, order,
+                cosineHarmonicCoefficient, sineHarmonicCoefficient, legendrePolynomial,legendrePolynomialDerivative );
+}
+
+Eigen::Vector3d computePotentialGradientWithManualRadiusRatioPower(
+        const Eigen::Vector3d& sphericalPosition,
+        const double preMultiplier,
+        const double radiusRatioPower,
+        const int degree,
+        const int order,
+        const double cosineHarmonicCoefficient,
+        const double sineHarmonicCoefficient,
+        const double legendrePolynomial,
+        const double legendrePolynomialDerivative,
+        const boost::shared_ptr< SphericalHarmonicsCache > sphericalHarmonicsCache )
+{
+    return computePotentialGradient(
+                sphericalPosition( radiusIndex ),
+                radiusRatioPower,
                 sphericalHarmonicsCache->getCosineOfMultipleLongitude( order ),
                 sphericalHarmonicsCache->getSineOfMultipleLongitude( order ),
                 sphericalHarmonicsCache->getLegendreCache( )->getCurrentPolynomialParameterComplement( ),

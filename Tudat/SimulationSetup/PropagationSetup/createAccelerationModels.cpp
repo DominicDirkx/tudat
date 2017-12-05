@@ -87,6 +87,15 @@ boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > c
                     sumGravitationalParameters,
                     isCentralBody );
         break;
+    case mutual_extended_body_spherical_harmonic_gravity:
+        accelerationModel = createMutualExtendedBodySphericalHarmonicsGravityAcceleration(
+                    bodyUndergoingAcceleration,
+                    bodyExertingAcceleration,
+                    nameOfBodyUndergoingAcceleration,
+                    nameOfBodyExertingAcceleration,
+                    accelerationSettings,
+                    sumGravitationalParameters );
+        break;
     default:
 
         std::string errorMessage = "Error when making gravitional acceleration model, cannot parse type " +
@@ -170,7 +179,8 @@ boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > createGravitationalAcc
     boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > accelerationModelPointer;
     if( accelerationSettings->accelerationType_ != central_gravity &&
             accelerationSettings->accelerationType_ != spherical_harmonic_gravity &&
-            accelerationSettings->accelerationType_ != mutual_spherical_harmonic_gravity )
+            accelerationSettings->accelerationType_ != mutual_spherical_harmonic_gravity &&
+            accelerationSettings->accelerationType_ != mutual_extended_body_spherical_harmonic_gravity )
     {
         throw std::runtime_error( "Error when making gravitational acceleration, type is inconsistent" );
     }
@@ -649,6 +659,129 @@ createThirdBodyMutualSphericalHarmonicGravityAccelerationModel(
                                 centralBody, bodyExertingAcceleration, nameOfCentralBody,
                                 nameOfBodyExertingAcceleration, accelerationSettingsForCentralBodyAcceleration, 0, 1 ) ),
                         nameOfCentralBody );
+        }
+    }
+    return accelerationModel;
+}
+
+//! Function to create mutual two-body spherical harmonic gravity acceleration model.
+boost::shared_ptr< gravitation::MutualExtendedBodySphericalHarmonicAcceleration >
+createMutualExtendedBodySphericalHarmonicsGravityAcceleration(
+        const boost::shared_ptr< Body > bodyUndergoingAcceleration,
+        const boost::shared_ptr< Body > bodyExertingAcceleration,
+        const std::string& nameOfBodyUndergoingAcceleration,
+        const std::string& nameOfBodyExertingAcceleration,
+        const boost::shared_ptr< AccelerationSettings > accelerationSettings,
+        const bool useCentralBodyFixedFrame )
+{
+    // Declare pointer to return object
+    boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > accelerationModel;
+
+    // Dynamic cast acceleration settings to required type and check consistency.
+    boost::shared_ptr< MutualExtendedBodySphericalHarmonicAccelerationSettings > mutualSphericalHarmonicsSettings =
+            boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAccelerationSettings >( accelerationSettings );
+    if( mutualSphericalHarmonicsSettings == NULL )
+    {
+        throw std::runtime_error(
+                    "Error, expected mutual spherical harmonics acceleration settings when making acceleration model on " +
+                    nameOfBodyUndergoingAcceleration + " due to " + nameOfBodyExertingAcceleration );
+    }
+    else
+    {
+        // Get pointer to gravity fields and cast to required type.
+        boost::shared_ptr< SphericalHarmonicsGravityField > sphericalHarmonicsGravityFieldOfBodyExertingAcceleration =
+                boost::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
+                    bodyExertingAcceleration->getGravityFieldModel( ) );
+        boost::shared_ptr< SphericalHarmonicsGravityField > sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration =
+                boost::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
+                    bodyUndergoingAcceleration->getGravityFieldModel( ) );
+
+        // Check whether gravity fields are of correct type
+        if( sphericalHarmonicsGravityFieldOfBodyExertingAcceleration == NULL )
+        {
+            throw std::runtime_error(
+                        "Error " + nameOfBodyExertingAcceleration +
+                        " does not have a spherical harmonics gravity field when making mutual spherical harmonics gravity acceleration on" +
+                        nameOfBodyUndergoingAcceleration );
+        }
+        else if( sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration == NULL )
+        {
+            throw std::runtime_error(
+                        "Error " + nameOfBodyUndergoingAcceleration +
+                        " does not have a spherical harmonics gravity field when making mutual spherical harmonics gravity acceleration on" +
+                        nameOfBodyUndergoingAcceleration );
+        }
+        else
+        {
+            // Create effective gravitational parameter function
+            boost::function< double( ) > gravitationalParameterFunction;
+            if( useCentralBodyFixedFrame == false )
+            {
+                gravitationalParameterFunction =
+                        boost::bind( &SphericalHarmonicsGravityField::getGravitationalParameter,
+                                     sphericalHarmonicsGravityFieldOfBodyExertingAcceleration );
+            }
+            else
+            {
+                // Create function returning summed gravitational parameter of the two bodies.
+                boost::function< double( ) > gravitationalParameterOfBodyExertingAcceleration =
+                        boost::bind( &gravitation::GravityFieldModel::getGravitationalParameter,
+                                     sphericalHarmonicsGravityFieldOfBodyExertingAcceleration );
+                boost::function< double( ) > gravitationalParameterOfBodyUndergoingAcceleration =
+                        boost::bind( &gravitation::GravityFieldModel::getGravitationalParameter,
+                                     sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration );
+                gravitationalParameterFunction =
+                        boost::bind( &utilities::sumFunctionReturn< double >,
+                                     gravitationalParameterOfBodyExertingAcceleration,
+                                     gravitationalParameterOfBodyUndergoingAcceleration );
+            }
+
+            // Create acceleration object.
+            int maximumDegreeOfUndergoingBody = mutualSphericalHarmonicsSettings->maximumDegreeOfBody1_;
+            int maximumOrderOfUndergoingBody = mutualSphericalHarmonicsSettings->maximumDegreeOfBody1_;
+            int maximumDegreeOfExertingBody = mutualSphericalHarmonicsSettings->maximumDegreeOfBody2_;
+            int maximumOrderOfExertingBody = mutualSphericalHarmonicsSettings->maximumDegreeOfBody2_;
+            bool useNormalizedCoefficients;
+            if( sphericalHarmonicsGravityFieldOfBodyExertingAcceleration->areCoefficientsGeodesyNormalized( ) ==
+                    sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration->areCoefficientsGeodesyNormalized( )  )
+            {
+                useNormalizedCoefficients =
+                        sphericalHarmonicsGravityFieldOfBodyExertingAcceleration->areCoefficientsGeodesyNormalized( );
+            }
+            else
+            {
+                throw std::runtime_error(
+                            "Error when making mutual extended body sh acceleration, bodies use different normalizations" );
+            }
+            accelerationModel = boost::make_shared< MutualExtendedBodySphericalHarmonicAcceleration >(
+                        boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
+                        boost::bind( &Body::getPosition, bodyExertingAcceleration ),
+                        gravitationalParameterFunction,
+                        sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration->getReferenceRadius( ),
+                        sphericalHarmonicsGravityFieldOfBodyExertingAcceleration->getReferenceRadius( ),
+                        boost::bind( &SphericalHarmonicsGravityField::getCosineCoefficients,
+                                     sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration,
+                                     maximumDegreeOfUndergoingBody,
+                                     maximumOrderOfUndergoingBody ),
+                        boost::bind( &SphericalHarmonicsGravityField::getSineCoefficients,
+                                     sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration,
+                                     maximumDegreeOfUndergoingBody,
+                                     maximumOrderOfUndergoingBody ),
+                        boost::bind( &SphericalHarmonicsGravityField::getCosineCoefficients,
+                                     sphericalHarmonicsGravityFieldOfBodyExertingAcceleration,
+                                     maximumDegreeOfExertingBody,
+                                     maximumOrderOfExertingBody ),
+                        boost::bind( &SphericalHarmonicsGravityField::getSineCoefficients,
+                                     sphericalHarmonicsGravityFieldOfBodyExertingAcceleration,
+                                     maximumDegreeOfExertingBody,
+                                     maximumOrderOfExertingBody ),
+                        mutualSphericalHarmonicsSettings->coefficientCombinationsToUse_,
+                        boost::bind( &Body::getCurrentRotationToLocalFrame,
+                                     bodyUndergoingAcceleration ),
+                        boost::bind( &Body::getCurrentRotationToLocalFrame,
+                                     bodyExertingAcceleration ),
+                        useCentralBodyFixedFrame,
+                        sphericalHarmonicsGravityFieldOfBodyExertingAcceleration->areCoefficientsGeodesyNormalized( ) );
         }
     }
     return accelerationModel;
@@ -1191,6 +1324,12 @@ boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > createAccelerationMode
                     centralBody, nameOfCentralBody );
         break;
     case mutual_spherical_harmonic_gravity:
+        accelerationModelPointer = createGravitationalAccelerationModel(
+                    bodyUndergoingAcceleration, bodyExertingAcceleration, accelerationSettings,
+                    nameOfBodyUndergoingAcceleration, nameOfBodyExertingAcceleration,
+                    centralBody, nameOfCentralBody );
+        break;
+    case mutual_extended_body_spherical_harmonic_gravity:
         accelerationModelPointer = createGravitationalAccelerationModel(
                     bodyUndergoingAcceleration, bodyExertingAcceleration, accelerationSettings,
                     nameOfBodyUndergoingAcceleration, nameOfBodyExertingAcceleration,

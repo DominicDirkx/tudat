@@ -20,6 +20,8 @@
 #ifndef TUDAT_SPHERICAL_HARMONICS_GRAVITY_MODEL_H
 #define TUDAT_SPHERICAL_HARMONICS_GRAVITY_MODEL_H
 
+#include <iostream>
+
 #include <boost/function.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/shared_ptr.hpp>
@@ -311,14 +313,26 @@ public:
             sineHarmonicCoefficients = getSineHarmonicsCoefficients( );
             rotationToIntegrationFrame_ = rotationFromBodyFixedToIntegrationFrameFunction_( );
             this->updateBaseMembers( );
+
+            currentInertialRelativePosition_ = this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
+
+//            std::cout<<"Position: "<<currentInertialRelativePosition_.transpose( )<<" "<<
+//                       gravitationalParameter<<" "<<equatorialRadius<<std::endl;
+            currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
+                        currentInertialRelativePosition_ );
+
             currentAcceleration_ = rotationToIntegrationFrame_ *
                     computeGeodesyNormalizedGravitationalAccelerationSum(
-                        rotationToIntegrationFrame_.inverse( ) * (
-                            this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ),
+                        currentRelativePosition_,
                         gravitationalParameter,
                         equatorialRadius,
                         cosineHarmonicCoefficients,
                         sineHarmonicCoefficients, sphericalHarmonicsCache_ );
+
+//            std::cout<<"Coeffs: "<<cosineHarmonicCoefficients<<std::endl<<sineHarmonicCoefficients<<std::endl;
+//            std::cout<<"Acc: "<<currentAcceleration_.transpose( )<<std::endl;
+//            std::cout<<"Rot: "<<rotationToIntegrationFrame_.toRotationMatrix( )<<std::endl;
+
         }
     }
 
@@ -330,6 +344,16 @@ public:
     boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > getSphericalHarmonicsCache( )
     {
         return sphericalHarmonicsCache_;
+    }
+
+    Eigen::Vector3d getCurrentRelativePosition( )
+    {
+        return currentRelativePosition_;
+    }
+
+    Eigen::Vector3d getCurrentInertialRelativePosition( )
+    {
+        return currentInertialRelativePosition_;
     }
 
     //! Function to retrieve the spherical harmonics reference radius.
@@ -421,6 +445,10 @@ private:
 
     //! Current rotation from body-fixed frame to integration frame.
     Eigen::Quaterniond rotationToIntegrationFrame_;
+
+    Eigen::Vector3d currentRelativePosition_;
+
+    Eigen::Vector3d currentInertialRelativePosition_;
 
     //!  Spherical harmonics cache for this acceleration
     boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache_;

@@ -275,7 +275,8 @@ createSphericalHarmonicsGravityAcceleration(
         const std::string& nameOfBodyUndergoingAcceleration,
         const std::string& nameOfBodyExertingAcceleration,
         const boost::shared_ptr< AccelerationSettings > accelerationSettings,
-        const bool useCentralBodyFixedFrame )
+        const bool useCentralBodyFixedFrame,
+        const bool useDegreeZeroTerm )
 {
     // Declare pointer to return object
     boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > accelerationModel;
@@ -352,16 +353,30 @@ createSphericalHarmonicsGravityAcceleration(
                                      gravitationalParameterOfBodyUndergoingAcceleration );
             }
 
+            boost::function< Eigen::MatrixXd( ) > originalCosineCoefficientFunction =
+                    boost::bind( &SphericalHarmonicsGravityField::getCosineCoefficients,
+                                 sphericalHarmonicsGravityField,
+                                 sphericalHarmonicsSettings->maximumDegree_,
+                                 sphericalHarmonicsSettings->maximumOrder_ );
+
+            boost::function< Eigen::MatrixXd( ) > cosineCoefficientFunction;
+            if( !useDegreeZeroTerm )
+            {
+                cosineCoefficientFunction =
+                        boost::bind( &setDegreeAndOrderCoefficientToZero, originalCosineCoefficientFunction );
+            }
+            else
+            {
+                cosineCoefficientFunction = originalCosineCoefficientFunction;
+            }
+
             // Create acceleration object.
             accelerationModel =
                     boost::make_shared< SphericalHarmonicsGravitationalAccelerationModel >
                     ( boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
                       gravitationalParameterFunction,
                       sphericalHarmonicsGravityField->getReferenceRadius( ),
-                      boost::bind( &SphericalHarmonicsGravityField::getCosineCoefficients,
-                                   sphericalHarmonicsGravityField,
-                                   sphericalHarmonicsSettings->maximumDegree_,
-                                   sphericalHarmonicsSettings->maximumOrder_ ),
+                      cosineCoefficientFunction,
                       boost::bind( &SphericalHarmonicsGravityField::getSineCoefficients,
                                    sphericalHarmonicsGravityField,
                                    sphericalHarmonicsSettings->maximumDegree_,

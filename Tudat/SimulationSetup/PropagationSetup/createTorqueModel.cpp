@@ -163,7 +163,7 @@ boost::shared_ptr< gravitation::SphericalHarmonicGravitationalTorqueModel > crea
             boost::dynamic_pointer_cast< gravitation::SphericalHarmonicsGravitationalAccelerationModel >(
                  createSphericalHarmonicsGravityAcceleration(
                     bodyExertingTorque, bodyUndergoingTorque, nameOfBodyExertingTorque, nameOfBodyUndergoingTorque,
-                    sphericalHarmonicAccelerationSettings, false ) );
+                    sphericalHarmonicAccelerationSettings, false, false ) );
 
     return boost::make_shared< gravitation::SphericalHarmonicGravitationalTorqueModel >(
                 sphericalHarmonicAcceleration,

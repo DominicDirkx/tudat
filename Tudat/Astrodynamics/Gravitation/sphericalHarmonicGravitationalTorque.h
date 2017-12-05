@@ -49,14 +49,9 @@ public:
     {
         sphericalHarmonicAcceleration_->updateMembers( currentTime );
 
-        std::cout<<"Current acceleration: "<<sphericalHarmonicAcceleration_->getAcceleration( ).transpose( )<<" "<<
-                   ( sphericalHarmonicAcceleration_->getCurrentRotationToIntegrationFrame( ).inverse( ) *
-                     sphericalHarmonicAcceleration_->getAcceleration( ) ).transpose( )<<std::endl;
-
-        currentTorque_ = -perturberMassFunction_( ) *
+        currentTorque_ = perturberMassFunction_( ) *
                 ( ( sphericalHarmonicAcceleration_->getCurrentRelativePosition( ) ).cross(
-                      sphericalHarmonicAcceleration_->getCurrentRotationToIntegrationFrame( ).inverse( ) *
-                      sphericalHarmonicAcceleration_->getAcceleration( ) ) );
+                      sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ) ) );
     }
 
 protected:

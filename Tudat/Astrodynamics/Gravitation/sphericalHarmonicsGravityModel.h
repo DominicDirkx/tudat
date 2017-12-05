@@ -299,6 +299,11 @@ public:
         return currentAcceleration_;
     }
 
+    Eigen::Vector3d getAccelerationInBodyFixedFrame( )
+    {
+        return currentAccelerationInBodyFixedFrame_;
+    }
+
     //! Update class members.
     /*!
      * Updates all the base class members to their current values and also updates the class
@@ -321,13 +326,14 @@ public:
             currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
                         currentInertialRelativePosition_ );
 
-            currentAcceleration_ = rotationToIntegrationFrame_ *
+            currentAccelerationInBodyFixedFrame_ =
                     computeGeodesyNormalizedGravitationalAccelerationSum(
                         currentRelativePosition_,
                         gravitationalParameter,
                         equatorialRadius,
                         cosineHarmonicCoefficients,
                         sineHarmonicCoefficients, sphericalHarmonicsCache_ );
+            currentAcceleration_ = rotationToIntegrationFrame_ * currentAccelerationInBodyFixedFrame_;
 
 //            std::cout<<"Coeffs: "<<cosineHarmonicCoefficients<<std::endl<<sineHarmonicCoefficients<<std::endl;
 //            std::cout<<"Acc: "<<currentAcceleration_.transpose( )<<std::endl;
@@ -455,6 +461,8 @@ private:
 
     //! Current acceleration, as computed by last call to updateMembers function
     Eigen::Vector3d currentAcceleration_;
+
+    Eigen::Vector3d currentAccelerationInBodyFixedFrame_;
 
 };
 

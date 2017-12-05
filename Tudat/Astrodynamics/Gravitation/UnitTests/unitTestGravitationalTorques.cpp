@@ -95,29 +95,29 @@ BOOST_AUTO_TEST_CASE( testDegreeTwoGravitationalTorque )
         {
             double c20InertiaContribution  = cosineCoefficients( 2, 0 ) *
                     tudat::basic_mathematics::calculateLegendreGeodesyNormalizationFactor( 2, 0 ) / 3.0;
-            inertiaTensorDeviation( 0, 0 ) -= c20InertiaContribution;
-            inertiaTensorDeviation( 1, 1 ) -= c20InertiaContribution;
-            inertiaTensorDeviation( 2, 2 ) += 2.0 * c20InertiaContribution;
+            inertiaTensorDeviation( 0, 0 ) += c20InertiaContribution;
+            inertiaTensorDeviation( 1, 1 ) += c20InertiaContribution;
+            inertiaTensorDeviation( 2, 2 ) -= 2.0 * c20InertiaContribution;
 
             double c21InertiaContribution  = cosineCoefficients( 2, 1 ) *
                     tudat::basic_mathematics::calculateLegendreGeodesyNormalizationFactor( 2, 1 );
-            inertiaTensorDeviation( 0, 2 ) += c21InertiaContribution;
-            inertiaTensorDeviation( 2, 0 ) += c21InertiaContribution;
+            inertiaTensorDeviation( 0, 2 ) -= c21InertiaContribution;
+            inertiaTensorDeviation( 2, 0 ) -= c21InertiaContribution;
 
             double c22InertiaContribution  = 2.0 * cosineCoefficients( 2, 2 ) *
                     tudat::basic_mathematics::calculateLegendreGeodesyNormalizationFactor( 2, 2 );
-            inertiaTensorDeviation( 0, 0 ) += c22InertiaContribution;
-            inertiaTensorDeviation( 1, 1 ) -= c22InertiaContribution;
+            inertiaTensorDeviation( 0, 0 ) -= c22InertiaContribution;
+            inertiaTensorDeviation( 1, 1 ) += c22InertiaContribution;
 
             double s21InertiaContribution  = sineCoefficients( 2, 1 ) *
                     tudat::basic_mathematics::calculateLegendreGeodesyNormalizationFactor( 2, 1 );
-            inertiaTensorDeviation( 1, 2 ) += s21InertiaContribution;
-            inertiaTensorDeviation( 2, 1 ) += s21InertiaContribution;
+            inertiaTensorDeviation( 1, 2 ) -= s21InertiaContribution;
+            inertiaTensorDeviation( 2, 1 ) -= s21InertiaContribution;
 
             double s22InertiaContribution  = 2.0 * sineCoefficients( 2, 2 ) *
                     tudat::basic_mathematics::calculateLegendreGeodesyNormalizationFactor( 2, 2 );
-            inertiaTensorDeviation( 0, 1 ) += s22InertiaContribution;
-            inertiaTensorDeviation( 1, 0 ) += s22InertiaContribution;
+            inertiaTensorDeviation( 0, 1 ) -= s22InertiaContribution;
+            inertiaTensorDeviation( 1, 0 ) -= s22InertiaContribution;
 
             inertiaTensorDeviation *= spice_interface::getAverageRadius( "Moon" ) * spice_interface::getAverageRadius( "Moon" ) *
                     spice_interface::getBodyGravitationalParameter( "Moon" ) / physical_constants::GRAVITATIONAL_CONSTANT;
@@ -161,7 +161,7 @@ BOOST_AUTO_TEST_CASE( testDegreeTwoGravitationalTorque )
                         0.5 * ( inertiaTensorDeviation( 0, 0 ) + inertiaTensorDeviation( 1, 1 ) ) -
                         inertiaTensorDeviation( 2, 2 ) );
 
-            BOOST_CHECK_CLOSE_FRACTION( recomputedC20, -moonGravityField->getCosineCoefficients( )( 2, 0 ), 1.0E-12 );
+            BOOST_CHECK_CLOSE_FRACTION( recomputedC20, moonGravityField->getCosineCoefficients( )( 2, 0 ), 1.0E-12 );
 
 
             double recomputedC21 = -std::sqrt( 3.0 / 5.0 ) /
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE( testDegreeTwoGravitationalTorque )
                       moonGravityField->getReferenceRadius( ) / tudat::physical_constants::GRAVITATIONAL_CONSTANT ) * (
                         inertiaTensorDeviation( 0, 2 ) );
 
-            BOOST_CHECK_CLOSE_FRACTION( recomputedC21, -moonGravityField->getCosineCoefficients( )( 2, 1 ), 1.0E-12 );
+            BOOST_CHECK_CLOSE_FRACTION( recomputedC21, moonGravityField->getCosineCoefficients( )( 2, 1 ), 1.0E-12 );
 
 
             double recomputedC22 = std::sqrt( 3.0 / 20.0 ) /
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE( testDegreeTwoGravitationalTorque )
                       moonGravityField->getReferenceRadius( ) / tudat::physical_constants::GRAVITATIONAL_CONSTANT ) * (
                         inertiaTensorDeviation( 1, 1 ) - inertiaTensorDeviation( 0, 0 ) );
 
-            BOOST_CHECK_CLOSE_FRACTION( recomputedC22, -moonGravityField->getCosineCoefficients( )( 2, 2 ), 1.0E-12 );
+            BOOST_CHECK_CLOSE_FRACTION( recomputedC22, moonGravityField->getCosineCoefficients( )( 2, 2 ), 1.0E-12 );
 
 
             double recomputedS21 = -std::sqrt( 3.0 / 5.0 ) /
@@ -185,7 +185,7 @@ BOOST_AUTO_TEST_CASE( testDegreeTwoGravitationalTorque )
                       moonGravityField->getReferenceRadius( ) / tudat::physical_constants::GRAVITATIONAL_CONSTANT ) * (
                         inertiaTensorDeviation( 1, 2 ) );
 
-            BOOST_CHECK_CLOSE_FRACTION( recomputedS21, -moonGravityField->getSineCoefficients( )( 2, 1 ), 1.0E-12 );
+            BOOST_CHECK_CLOSE_FRACTION( recomputedS21, moonGravityField->getSineCoefficients( )( 2, 1 ), 1.0E-12 );
 
 
             double recomputedS22 = -std::sqrt( 12.0 / 5.0 ) /
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE( testDegreeTwoGravitationalTorque )
                       moonGravityField->getReferenceRadius( ) / tudat::physical_constants::GRAVITATIONAL_CONSTANT ) * (
                         inertiaTensorDeviation( 0, 1 ) );
 
-            BOOST_CHECK_CLOSE_FRACTION( recomputedS22, -moonGravityField->getSineCoefficients( )( 2, 2 ), 1.0E-12 );
+            BOOST_CHECK_CLOSE_FRACTION( recomputedS22, moonGravityField->getSineCoefficients( )( 2, 2 ), 1.0E-12 );
         }
 
         secondDegreeGravitationalTorque->updateMembers( evaluationTime );

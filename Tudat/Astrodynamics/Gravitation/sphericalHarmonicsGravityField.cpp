@@ -39,9 +39,9 @@ Eigen::Matrix3d getInertiaTensor(
 {
     double scalingConstant = bodyMass * referenceRadius * referenceRadius;
     Eigen::Matrix3d inertiaTensor =
-            ( Eigen::Matrix3d( )<< -c20Coefficient / 3.0 + 2.0 * c22Coefficient, 2.0 * s22Coefficient, c21Coefficient,
-              2.0 * s22Coefficient, -c20Coefficient / 3.0 - 2.0 * c22Coefficient, s21Coefficient,
-              c21Coefficient, s21Coefficient, 2.0 * c20Coefficient / 3.0 ).finished( );
+            ( Eigen::Matrix3d( )<< c20Coefficient / 3.0 - 2.0 * c22Coefficient, -2.0 * s22Coefficient, -c21Coefficient,
+              -2.0 * s22Coefficient, c20Coefficient / 3.0 + 2.0 * c22Coefficient, -s21Coefficient,
+              -c21Coefficient, -s21Coefficient, -2.0 * c20Coefficient / 3.0 ).finished( );
 
     return scalingConstant * ( inertiaTensor + Eigen::Matrix3d::Identity( ) * scaledMeanMomentOfInertia );
 }

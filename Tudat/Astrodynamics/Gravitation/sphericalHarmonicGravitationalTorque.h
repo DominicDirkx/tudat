@@ -49,7 +49,7 @@ public:
     {
         sphericalHarmonicAcceleration_->updateMembers( currentTime );
 
-        currentTorque_ = perturberMassFunction_( ) *
+        currentTorque_ = -perturberMassFunction_( ) *
                 ( ( sphericalHarmonicAcceleration_->getCurrentRelativePosition( ) ).cross(
                       sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ) ) );
     }

@@ -50,6 +50,27 @@ public:
 
 };
 
+class SphericalHarmonicTorqueSettings: public TorqueSettings
+{
+public:
+
+    //! Constructor, sets type of torque.
+    /*!
+     *  Constructor, sets type of torque.
+     *  \param torqueType Type of torque from AvailableTorque enum.
+     */
+    SphericalHarmonicTorqueSettings( const int maximumDegree,
+                                     const int maximumOrder ):
+        TorqueSettings( basic_astrodynamics::spherical_harmonic_gravitational_torque ),
+        maximumDegree_( maximumDegree ), maximumOrder_( maximumOrder ){ }
+
+    //! Maximum degree that is to be used for spherical harmonic acceleration
+    int maximumDegree_;
+
+    //! Maximum order that is to be used for spherical harmonic acceleration
+    int maximumOrder_;
+};
+
 typedef std::map< std::string, std::map< std::string, std::vector< boost::shared_ptr< TorqueSettings > > > > SelectedTorqueMap;
 
 } // namespace simulation_setup

@@ -1045,6 +1045,20 @@ public:
         bodyInertiaTensor_ = bodyInertiaTensor;
     }
 
+    void setBodyInertiaTensorFromGravityField( const double scaledMeanMomentsOfInertia )
+    {
+        if( boost::dynamic_pointer_cast< gravitation::SphericalHarmonicsGravityField >( gravityFieldModel_ ) == NULL )
+        {
+            throw std::runtime_error( "Error when setting inertia tensor from mean moments of inertia, gravity field model is not spherical harmonic" );
+        }
+        else
+        {
+            bodyInertiaTensor_ = gravitation::getInertiaTensor(
+                        boost::dynamic_pointer_cast< gravitation::SphericalHarmonicsGravityField >( gravityFieldModel_ ),
+                        scaledMeanMomentsOfInertia );
+        }
+    }
+
     //! Function to add a ground station to the body
     /*!
      * Function to add a ground station to the body

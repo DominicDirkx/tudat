@@ -317,6 +317,29 @@ protected:
     boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache_;
 };
 
+
+Eigen::Matrix3d getInertiaTensor(
+        const double c20Coefficient,
+        const double c21Coefficient,
+        const double c22Coefficient,
+        const double s21Coefficient,
+        const double s22Coefficient,
+        const double scaledMeanMomentOfInertia,
+        const double bodyMass,
+        const double referenceRadius );
+
+Eigen::Matrix3d getInertiaTensor(
+        const Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        const Eigen::MatrixXd& unnormalizedSineCoefficients,
+        const double scaledMeanMomentOfInertia,
+        const double bodyMass,
+        const double referenceRadius );
+
+Eigen::Matrix3d getInertiaTensor(
+        const boost::shared_ptr< SphericalHarmonicsGravityField > sphericalHarmonicGravityField,
+        const double scaledMeanMomentOfInertia );
+
+
 } // namespace gravitation
 
 } // namespace tudat

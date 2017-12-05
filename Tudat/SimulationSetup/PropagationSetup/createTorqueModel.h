@@ -17,6 +17,7 @@
 #include "Tudat/SimulationSetup/EnvironmentSetup/body.h"
 #include "Tudat/SimulationSetup/PropagationSetup/torqueSettings.h"
 #include "Tudat/Astrodynamics/Gravitation/secondDegreeGravitationalTorque.h"
+#include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicGravitationalTorque.h"
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicTorque.h"
 
 namespace tudat
@@ -56,6 +57,14 @@ boost::shared_ptr< aerodynamics::AerodynamicTorque > createAerodynamicTorqueMode
 boost::shared_ptr< gravitation::SecondDegreeGravitationalTorqueModel > createSecondDegreeGravitationalTorqueModel(
         const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
         const boost::shared_ptr< simulation_setup::Body > bodyExertingTorque,
+        const std::string& nameOfBodyUndergoingTorque,
+        const std::string& nameOfBodyExertingTorque );
+
+//! Function to create a second-degree gravitational torque.
+boost::shared_ptr< gravitation::SphericalHarmonicGravitationalTorqueModel > createSphericalHarmonicGravitationalTorqueModel(
+        const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
+        const boost::shared_ptr< simulation_setup::Body > bodyExertingTorque,
+        const boost::shared_ptr< TorqueSettings > torqueSettings,
         const std::string& nameOfBodyUndergoingTorque,
         const std::string& nameOfBodyExertingTorque );
 

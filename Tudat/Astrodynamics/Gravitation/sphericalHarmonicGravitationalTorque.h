@@ -17,6 +17,7 @@
 
 #include <Eigen/Geometry>
 
+#include "Tudat/Astrodynamics/BasicAstrodynamics/physicalConstants.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/torqueModel.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityModel.h"
 
@@ -32,34 +33,30 @@ class SphericalHarmonicGravitationalTorqueModel: public basic_astrodynamics::Tor
 public:
 
     SphericalHarmonicGravitationalTorqueModel(
-            const boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicAcceleration ){ }
+            const boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicAcceleration,
+            const boost::function< Eigen::Quaterniond( ) > rotationToBodyUndergoingTorque,
+            const boost::function< double( ) > perturberMassFunction ):
+        sphericalHarmonicAcceleration_( sphericalHarmonicAcceleration ),
+        rotationToBodyUndergoingTorque_( rotationToBodyUndergoingTorque ),
+        perturberMassFunction_( perturberMassFunction ){ }
 
-    //! Get gravitational torque.
-    /*!
-     * Returns the gravitational torque. All data required for the computation is taken
-     * from member variables, which are set to their latest values by the last call of the
-     * updateMembers function.
-     * \return Gravitational torque.
-     * \sa updateMembers().
-     */
     Eigen::Vector3d getTorque( )
     {
         return currentTorque_;
     }
 
-    //! Update member variables used by the gravitational torque model.
-    /*!
-     * Updates member variables used by the gravitational accfeleration model.
-     * Function pointers to retrieve the current values of quantities from which the
-     * torque is to be calculated are set by constructor. This function calls
-     * them to update the associated variables to their current state.
-     * \param currentTime Time at which torque model is to be updated.
-     */
     void updateMembers( const double currentTime )
     {
         sphericalHarmonicAcceleration_->updateMembers( currentTime );
 
-        currentTorque_ =
+        std::cout<<"Current acceleration: "<<sphericalHarmonicAcceleration_->getAcceleration( ).transpose( )<<" "<<
+                   ( sphericalHarmonicAcceleration_->getCurrentRotationToIntegrationFrame( ).inverse( ) *
+                     sphericalHarmonicAcceleration_->getAcceleration( ) ).transpose( )<<std::endl;
+
+        currentTorque_ = -perturberMassFunction_( ) *
+                ( ( sphericalHarmonicAcceleration_->getCurrentRelativePosition( ) ).cross(
+                      sphericalHarmonicAcceleration_->getCurrentRotationToIntegrationFrame( ).inverse( ) *
+                      sphericalHarmonicAcceleration_->getAcceleration( ) ) );
     }
 
 protected:
@@ -68,6 +65,11 @@ private:
 
 
     boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicAcceleration_;
+
+    boost::function< Eigen::Quaterniond( ) > rotationToBodyUndergoingTorque_;
+
+    boost::function< double( ) > perturberMassFunction_;
+
 
     Eigen::Vector3d currentTorque_;
 };

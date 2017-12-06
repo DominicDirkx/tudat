@@ -42,7 +42,8 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
         const Eigen::MatrixXd& sineHarmonicCoefficients,
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         std::map< std::pair< int, int >, Eigen::Vector3d >& accelerationPerTerm,
-        const bool saveSeparateTerms )
+        const bool saveSeparateTerms,
+        const Eigen::Matrix3d& accelerationRotation )
 {
     // Set highest degree and order.
     const int highestDegree = cosineHarmonicCoefficients.rows( );
@@ -99,7 +100,8 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
                                                    legendrePolynomialDerivative, sphericalHarmonicsCache );
                 sphericalGradient += accelerationPerTerm[ std::make_pair( degree, order ) ];
                 accelerationPerTerm[ std::make_pair( degree, order ) ] =
-                        transformationToCartesianCoordinates * accelerationPerTerm[ std::make_pair( degree, order ) ];
+                        accelerationRotation * (
+                            transformationToCartesianCoordinates * accelerationPerTerm[ std::make_pair( degree, order ) ] );
             }
             else
             {
@@ -120,7 +122,7 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
 
     // Convert from spherical gradient to Cartesian gradient (which equals acceleration vector) and
     // return the resulting acceleration vector.
-    return transformationToCartesianCoordinates * sphericalGradient;
+    return accelerationRotation * ( transformationToCartesianCoordinates * sphericalGradient );
 }
 
 //! Compute gravitational acceleration due to single spherical harmonics term.

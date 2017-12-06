@@ -91,7 +91,8 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
         const Eigen::MatrixXd& sineHarmonicCoefficients,
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         std::map< std::pair< int, int >, Eigen::Vector3d >& accelerationPerTerm,
-        const bool saveSeparateTerms = 0 );
+        const bool saveSeparateTerms = 0,
+        const Eigen::Matrix3d& accelerationRotation = Eigen::Matrix3d::Identity( ) );
 
 //! Compute gravitational acceleration due to single spherical harmonics term.
 /*!
@@ -327,7 +328,7 @@ public:
             currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
                         currentInertialRelativePosition_ );
 
-            currentAccelerationInBodyFixedFrame_ =
+            currentAcceleration_ =
                     computeGeodesyNormalizedGravitationalAccelerationSum(
                         currentRelativePosition_,
                         gravitationalParameter,
@@ -335,8 +336,9 @@ public:
                         cosineHarmonicCoefficients,
                         sineHarmonicCoefficients, sphericalHarmonicsCache_,
                         accelerationPerTerm_,
-                        saveSphericalHarmonicTermsSeparately_ );
-            currentAcceleration_ = rotationToIntegrationFrame_ * currentAccelerationInBodyFixedFrame_;
+                        saveSphericalHarmonicTermsSeparately_,
+                        rotationToIntegrationFrame_.toRotationMatrix( ) );
+            currentAccelerationInBodyFixedFrame_ = rotationToIntegrationFrame_.inverse( ) * currentAcceleration_;
         }
     }
 

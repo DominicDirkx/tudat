@@ -157,6 +157,9 @@ std::string getDependentVariableName( const PropagationDependentVariables propag
     case keplerian_state_dependent_variable:
         variableName = "Kepler elements  ";
         break;
+    case spherical_harmonic_acceleration_terms_dependent_variable:
+        variableName = "Spherical harmonic acceleration terms ";
+        break;
     default:
         std::string errorMessage = "Error, dependent variable " +
                 std::to_string( propagationDependentVariables ) +

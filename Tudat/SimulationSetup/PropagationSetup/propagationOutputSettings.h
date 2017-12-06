@@ -92,7 +92,8 @@ enum PropagationDependentVariables
     total_torque_dependent_variable = 29,
     single_torque_dependent_variable = 30,
     body_fixed_groundspeed_based_velocity_variable = 31,
-    keplerian_state_dependent_variable = 32
+    keplerian_state_dependent_variable = 32,
+    spherical_harmonic_acceleration_terms_dependent_variable = 33
 };
 
 
@@ -177,6 +178,42 @@ public:
 
     //! Boolean denoting whether to use the norm (if true) or the vector (if false) of the acceleration.
     basic_astrodynamics::AvailableAcceleration accelerationModeType_;
+
+};
+
+class SphericalHarmonicAccelerationTermsDependentVariableSaveSettings: public SingleDependentVariableSaveSettings
+{
+public:
+
+    SphericalHarmonicAccelerationTermsDependentVariableSaveSettings(
+            const std::string& bodyUndergoingAcceleration,
+            const std::string& bodyExertingAcceleration,
+            const std::vector< std::pair< int, int > > componentIndices,
+            const int componentIndex = -1 ):
+        SingleDependentVariableSaveSettings(
+            spherical_harmonic_acceleration_terms_dependent_variable, bodyUndergoingAcceleration, bodyExertingAcceleration,
+            componentIndex ), componentIndices_( componentIndices ) { }
+
+    SphericalHarmonicAccelerationTermsDependentVariableSaveSettings(
+            const std::string& bodyUndergoingAcceleration,
+            const std::string& bodyExertingAcceleration,
+            const int maximumDegree,
+            const int maximumOrder,
+            const int componentIndex = -1 ):
+        SingleDependentVariableSaveSettings(
+            spherical_harmonic_acceleration_terms_dependent_variable, bodyUndergoingAcceleration, bodyExertingAcceleration,
+            componentIndex )
+    {
+        for( int i = 0; i <= maximumDegree; i++ )
+        {
+            for( int j = 0; ( j <= i && j <= maximumOrder ); j++ )
+            {
+                componentIndices_.push_back( std::make_pair( i, j ) );
+            }
+        }
+    }
+
+    std::vector< std::pair< int, int > > componentIndices_;
 
 };
 

@@ -89,7 +89,9 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
         const double equatorialRadius,
         const Eigen::MatrixXd& cosineHarmonicCoefficients,
         const Eigen::MatrixXd& sineHarmonicCoefficients,
-        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
+        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        std::map< std::pair< int, int >, Eigen::Vector3d >& accelerationPerTerm,
+        const bool saveSeparateTerms = 0 );
 
 //! Compute gravitational acceleration due to single spherical harmonics term.
 /*!
@@ -218,8 +220,8 @@ public:
           rotationFromBodyFixedToIntegrationFrameFunction_(
               rotationFromBodyFixedToIntegrationFrameFunction ),
           sphericalHarmonicsCache_( sphericalHarmonicsCache ),
-          currentAcceleration_( Eigen::Vector3d::Zero( ) )
-
+          currentAcceleration_( Eigen::Vector3d::Zero( ) ),
+          saveSphericalHarmonicTermsSeparately_( false )
     {
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
                     std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
@@ -277,7 +279,8 @@ public:
           getSineHarmonicsCoefficients( sineHarmonicCoefficientsFunction ),
           rotationFromBodyFixedToIntegrationFrameFunction_( rotationFromBodyFixedToIntegrationFrameFunction ),
           sphericalHarmonicsCache_( sphericalHarmonicsCache ),
-          currentAcceleration_( Eigen::Vector3d::Zero( ) )
+          currentAcceleration_( Eigen::Vector3d::Zero( ) ),
+          saveSphericalHarmonicTermsSeparately_( false )
     {
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
                     std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
@@ -321,8 +324,6 @@ public:
 
             currentInertialRelativePosition_ = this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
 
-//            std::cout<<"Position: "<<currentInertialRelativePosition_.transpose( )<<" "<<
-//                       gravitationalParameter<<" "<<equatorialRadius<<std::endl;
             currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
                         currentInertialRelativePosition_ );
 
@@ -332,13 +333,10 @@ public:
                         gravitationalParameter,
                         equatorialRadius,
                         cosineHarmonicCoefficients,
-                        sineHarmonicCoefficients, sphericalHarmonicsCache_ );
+                        sineHarmonicCoefficients, sphericalHarmonicsCache_,
+                        accelerationPerTerm_,
+                        saveSphericalHarmonicTermsSeparately_ );
             currentAcceleration_ = rotationToIntegrationFrame_ * currentAccelerationInBodyFixedFrame_;
-
-//            std::cout<<"Coeffs: "<<cosineHarmonicCoefficients<<std::endl<<sineHarmonicCoefficients<<std::endl;
-//            std::cout<<"Acc: "<<currentAcceleration_.transpose( )<<std::endl;
-//            std::cout<<"Rot: "<<rotationToIntegrationFrame_.toRotationMatrix( )<<std::endl;
-
         }
     }
 
@@ -410,6 +408,27 @@ public:
         return rotationToIntegrationFrame_.toRotationMatrix( );
     }
 
+    void setSaveSphericalHarmonicTermsSeparately( const bool saveSphericalHarmonicTermsSeparately )
+    {
+        saveSphericalHarmonicTermsSeparately_ = saveSphericalHarmonicTermsSeparately;
+    }
+
+    Eigen::VectorXd getConcatenatedAccelerationComponents( const std::vector< std::pair< int, int > >& coefficientIndices )
+    {
+        if( !saveSphericalHarmonicTermsSeparately_ )
+        {
+            throw std::runtime_error( "Error when retrieving component accelerations from spherial harmonic acceleration, components not saved" );
+        }
+
+        Eigen::VectorXd returnVector = Eigen::VectorXd( 3 * coefficientIndices.size( ) );
+        for( unsigned int i = 0; i < coefficientIndices.size( ); i++ )
+        {
+            returnVector.segment( i * 3, 3 ) = accelerationPerTerm_.at( coefficientIndices.at( i ) );
+        }
+        return returnVector;
+    }
+
+
 protected:
 
 private:
@@ -463,6 +482,10 @@ private:
     Eigen::Vector3d currentAcceleration_;
 
     Eigen::Vector3d currentAccelerationInBodyFixedFrame_;
+
+    std::map< std::pair< int, int >, Eigen::Vector3d > accelerationPerTerm_;
+
+    bool saveSphericalHarmonicTermsSeparately_;
 
 };
 

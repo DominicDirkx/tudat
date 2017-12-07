@@ -35,6 +35,7 @@ set(GRAVITATION_SOURCES
   "${SRCROOT}${GRAVITATIONDIR}/secondDegreeGravitationalTorque.cpp"
   "${SRCROOT}${GRAVITATIONDIR}/directTidalDissipationAcceleration.cpp"
   "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicAcceleration.cpp"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicTorque.cpp"
   "${SRCROOT}${GRAVITATIONDIR}/mutualForcePotential.cpp"
 )
 
@@ -62,6 +63,7 @@ set(GRAVITATION_HEADERS
   "${SRCROOT}${GRAVITATIONDIR}/secondDegreeGravitationalTorque.h"
   "${SRCROOT}${GRAVITATIONDIR}/directTidalDissipationAcceleration.h"
   "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicAcceleration.h"
+  "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicTorque.h"
   "${SRCROOT}${GRAVITATIONDIR}/mutualForcePotential.h"
 )
 

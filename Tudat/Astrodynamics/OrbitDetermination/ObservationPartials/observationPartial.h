@@ -231,6 +231,7 @@ public:
             const Eigen::Matrix< double, ObservationSize, 1 >& currentObservation =
             Eigen::Matrix< double, ObservationSize, 1 >::Constant( TUDAT_NAN ) )
     {
+        std::cout<<"Computing partial "<<currentObservation<<" "<<times.at( 0 )<<" "<<observableType_<<std::endl;
         return { std::make_pair( currentObservation, times.at( 0 ) ) };
     }
 
@@ -284,8 +285,11 @@ template< int ObservationSize >
 boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPartialWrtLinkProperty(
         const observation_models::LinkEnds& linkEnds,
         const observation_models::ObservableType observableType,
-        const boost::shared_ptr< estimatable_parameters::EstimatableParameter< Eigen::VectorXd > > parameterToEstimate )
+        const boost::shared_ptr< estimatable_parameters::EstimatableParameter< Eigen::VectorXd > > parameterToEstimate,
+        const bool useBiasPartials = true )
 {
+    std::cout<<"Creating bias partial: "<<observableType<<" "<<linkEnds.size( )<<" "<<linkEnds.begin( )->second.first<<" "<<
+               ( ++linkEnds.begin( ) )->second.first<<" "<<useBiasPartials<<std::endl;
     boost::shared_ptr< ObservationPartial< ObservationSize > > observationPartial;
 
     // Check parameter type
@@ -293,6 +297,8 @@ boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPart
     {
     case estimatable_parameters::constant_additive_observation_bias:
     {
+        if( useBiasPartials )
+        {
         // Check input consistency
         boost::shared_ptr< estimatable_parameters::ConstantObservationBiasParameter > constantBias =
                 boost::dynamic_pointer_cast< estimatable_parameters::ConstantObservationBiasParameter >(
@@ -306,14 +312,18 @@ boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPart
             // Check dependency between parameter and link properties.
             if( linkEnds == constantBias->getLinkEnds( ) && observableType == constantBias->getObservableType( ) )
             {
+                std::cout<<"creating absolute bias"<<std::endl;
                 observationPartial = boost::make_shared< ObservationPartialWrtConstantAbsoluteBias< ObservationSize > >(
                             observableType, linkEnds );
             }
+        }
         }
         break;
     }
     case estimatable_parameters::constant_relative_observation_bias:
     {
+        if( useBiasPartials )
+        {
         // Check input consistency
         boost::shared_ptr< estimatable_parameters::ConstantRelativeObservationBiasParameter > constantBias =
                 boost::dynamic_pointer_cast< estimatable_parameters::ConstantRelativeObservationBiasParameter >(
@@ -327,15 +337,20 @@ boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPart
             // Check dependency between parameter and link properties.
             if( linkEnds == constantBias->getLinkEnds( ) && observableType == constantBias->getObservableType( ) )
             {
+                std::cout<<"creating relative bias"<<std::endl;
                 observationPartial = boost::make_shared< ObservationPartialWrtConstantRelativeBias< ObservationSize > >(
                             observableType, linkEnds );
             }
         }
         break;
+        }
     }
     default:
         break;
     }
+
+    std::cout<<"Created bias partial: "<<( observationPartial == NULL )<<std::endl;
+
     return observationPartial;
 }
 

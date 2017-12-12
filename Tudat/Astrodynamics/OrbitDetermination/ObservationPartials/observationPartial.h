@@ -231,7 +231,6 @@ public:
             const Eigen::Matrix< double, ObservationSize, 1 >& currentObservation =
             Eigen::Matrix< double, ObservationSize, 1 >::Constant( TUDAT_NAN ) )
     {
-        std::cout<<"Computing partial "<<currentObservation<<" "<<times.at( 0 )<<" "<<observableType_<<std::endl;
         return { std::make_pair( currentObservation, times.at( 0 ) ) };
     }
 
@@ -279,6 +278,7 @@ typedef std::map< std::pair< int, int >, boost::shared_ptr< ObservationPartial< 
  *  \param linkEnds Link ends of observable for which partial is to be made.
  *  \param observableType Type of observable for which partial is to be made.
  *  \param parameterToEstimate Parameter w.r.t. which the partial is to be taken
+ *  \param useBiasPartials Boolean to denote whether this function should create partials w.r.t. observation bias parameters
  *  \return Object that computes the partial of the observation w.r.t. parameterToEstimate (NULL if no dependency).
  */
 template< int ObservationSize >
@@ -288,8 +288,6 @@ boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPart
         const boost::shared_ptr< estimatable_parameters::EstimatableParameter< Eigen::VectorXd > > parameterToEstimate,
         const bool useBiasPartials = true )
 {
-    std::cout<<"Creating bias partial: "<<observableType<<" "<<linkEnds.size( )<<" "<<linkEnds.begin( )->second.first<<" "<<
-               ( ++linkEnds.begin( ) )->second.first<<" "<<useBiasPartials<<std::endl;
     boost::shared_ptr< ObservationPartial< ObservationSize > > observationPartial;
 
     // Check parameter type
@@ -348,8 +346,6 @@ boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPart
     default:
         break;
     }
-
-    std::cout<<"Created bias partial: "<<( observationPartial == NULL )<<std::endl;
 
     return observationPartial;
 }

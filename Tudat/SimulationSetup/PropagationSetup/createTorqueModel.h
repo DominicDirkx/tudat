@@ -47,7 +47,7 @@ boost::shared_ptr< aerodynamics::AerodynamicTorque > createAerodynamicTorqueMode
 
 //! Function to create a second-degree gravitational torque.
 /*!
- * Function to create a second-degree gravitational torque.
+ * Function to create a second-degree gravitational torque, exerted by a point mass
  *  \param bodyUndergoingTorque Pointer to object of body that is being accelerated.
  *  \param bodyExertingTorque Pointer to object of body that is exerting the gravitational torque.
  *  \param nameOfBodyUndergoingTorque Name of body that is being accelerated.
@@ -60,7 +60,16 @@ boost::shared_ptr< gravitation::SecondDegreeGravitationalTorqueModel > createSec
         const std::string& nameOfBodyUndergoingTorque,
         const std::string& nameOfBodyExertingTorque );
 
-//! Function to create a second-degree gravitational torque.
+//! Function to create a spherical harmonic gravitational torque
+/*!
+ * Function to create spherical harmonic gravitational torque, exerted by a point mass
+*  \param bodyUndergoingTorque Pointer to object of body that is being accelerated.
+*  \param bodyExertingTorque Pointer to object of body that is exerting the gravitational torque.
+*  \param torqueSettings Settings for the torque that is to be created
+*  \param nameOfBodyUndergoingTorque Name of body that is being accelerated.
+*  \param nameOfBodyExertingTorque Name of body that is exerting the gravitational torque.
+*  \return Direct gravitational torque model of requested settings.
+*/
 boost::shared_ptr< gravitation::SphericalHarmonicGravitationalTorqueModel > createSphericalHarmonicGravitationalTorqueModel(
         const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
         const boost::shared_ptr< simulation_setup::Body > bodyExertingTorque,

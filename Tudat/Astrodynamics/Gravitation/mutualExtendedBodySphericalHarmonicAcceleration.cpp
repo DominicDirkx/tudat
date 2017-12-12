@@ -9,7 +9,7 @@ namespace tudat
 namespace gravitation
 {
 
-
+//! Class to compute the full two-extended body gravitational attraction between two bodies
 MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarmonicAcceleration(
         const boost::function< Eigen::Vector3d( ) > positionOfBody1Function,
         const boost::function< Eigen::Vector3d( ) > positionOfBody2Function,
@@ -34,9 +34,9 @@ MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarm
     useCentraBodyFrame_( useCentraBodyFrame ),
     areCoefficientsNormalized_( areCoefficientsNormalized )
 {
+    // Determine maximum degrees and orders to be evaluated.
     maximumDegree_ = 0;
     maximumOrder_ = 0;
-
     unsigned int degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2;
     for( unsigned int i = 0; i < coefficientCombinationsToUse_.size( ); i++ )
     {
@@ -56,6 +56,7 @@ MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarm
         }
     }
 
+    // Create objects used to transform spherical harmonic coefficients, and to compute effective one-body coefficients
     sphericalHarmonicsCache_ = boost::make_shared< basic_mathematics::SphericalHarmonicsCache >(
                 maximumOrder_ + 1, maximumDegree_ + 1 );
     effectiveMutualPotentialField_ =  boost::make_shared< EffectiveMutualSphericalHarmonicsField >(
@@ -69,38 +70,40 @@ MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarm
     effectiveSineCoefficientFunction_ = boost::bind(
                 &EffectiveMutualSphericalHarmonicsField::getEffectiveSineCoefficient,
                 effectiveMutualPotentialField_, _1, _2, _3, _4 );
+
     radius1Powers_.resize( effectiveMutualPotentialField_->getMaximumDegree1( ) + 1 );
     radius2Powers_.resize( effectiveMutualPotentialField_->getMaximumDegree2( ) + 1 );
 
 }
 
+//! Update member variables used by the acceleration model.
 void MutualExtendedBodySphericalHarmonicAcceleration::updateMembers( const double currentTime )
 {
     if( !( currentTime == currentTime_ ) )
     {
+        // Compute current (relative) rotation and state
         Eigen::Quaterniond currentRotationFromInertialToBody1 = toLocalFrameOfBody1Transformation_( );
         currentRotationFromBody2ToBody1_ = currentRotationFromInertialToBody1 * toLocalFrameOfBody2Transformation_( ).inverse( );
-
         currentRelativePosition_ = positionOfBody1Function_( ) - positionOfBody2Function_( );
         currentBodyFixedRelativePosition_ =
                 currentRotationFromInertialToBody1 * ( currentRelativePosition_ );
 
+        // Compute effective one-body coefficients for current state
         effectiveMutualPotentialField_->computeCurrentEffectiveCoefficients( currentRotationFromBody2ToBody1_ );
 
+        // Compute radius powers
         double currentDistance = currentRelativePosition_.norm( );
         for( int i = 0; i <= effectiveMutualPotentialField_->getMaximumDegree1( ); i++ )
         {
             radius1Powers_[ i ] = basic_mathematics::raiseToIntegerPower( equatorialRadiusOfBody1_ / currentDistance, i );
-
         }
 
         for( int i = 0; i <= effectiveMutualPotentialField_->getMaximumDegree2( ); i++ )
         {
             radius2Powers_[ i ] = basic_mathematics::raiseToIntegerPower( equatorialRadiusOfBody2_ / currentDistance, i );
-
         }
 
-
+        // Compute acceleration in frame fixed to body 1.
         if( areCoefficientsNormalized_ )
         {
             mutualPotentialGradient_ = computeGeodesyNormalizedMutualGravitationalAccelerationSum(

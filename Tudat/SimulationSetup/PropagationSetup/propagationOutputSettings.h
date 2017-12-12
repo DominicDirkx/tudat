@@ -181,10 +181,20 @@ public:
 
 };
 
+//! Class to define settings for saving contributions at separate degree/order to spherical harmonic acceleration
 class SphericalHarmonicAccelerationTermsDependentVariableSaveSettings: public SingleDependentVariableSaveSettings
 {
 public:
 
+    //! Constructor
+    /*!
+     * Constructor
+     * \param bodyUndergoingAcceleration Name of body undergoing the acceleration.
+     * \param bodyExertingAcceleration Name of body exerting the acceleration.
+     * \param componentIndices List of degree/order terms that are to be saved
+     * \param componentIndex Index of the acceleration vectors component to be saved. By default -1, i.e. all the components
+     * are saved.
+     */
     SphericalHarmonicAccelerationTermsDependentVariableSaveSettings(
             const std::string& bodyUndergoingAcceleration,
             const std::string& bodyExertingAcceleration,
@@ -194,6 +204,16 @@ public:
             spherical_harmonic_acceleration_terms_dependent_variable, bodyUndergoingAcceleration, bodyExertingAcceleration,
             componentIndex ), componentIndices_( componentIndices ) { }
 
+    //! Constructor
+    /*!
+     * Constructor for saving all terms up to a given degree/order
+     * \param bodyUndergoingAcceleration Name of body undergoing the acceleration.
+     * \param bodyExertingAcceleration Name of body exerting the acceleration.
+     * \param maximumDegree Maximum degree to which terms are to be saved.
+     * \param maximumDegree Maximum order to which terms are to be saved.
+     * \param componentIndex Index of the acceleration vectors component to be saved. By default -1, i.e. all the components
+     * are saved.
+     */
     SphericalHarmonicAccelerationTermsDependentVariableSaveSettings(
             const std::string& bodyUndergoingAcceleration,
             const std::string& bodyExertingAcceleration,
@@ -213,10 +233,12 @@ public:
         }
     }
 
+    //! List of degree/order terms that are to be saved
     std::vector< std::pair< int, int > > componentIndices_;
 
 };
 
+//! Class to define settings for saving a single torque (norm or vector) during propagation
 class SingleTorqueDependentVariableSaveSettings: public SingleDependentVariableSaveSettings
 {
 public:

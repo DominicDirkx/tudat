@@ -77,6 +77,11 @@ namespace gravitation
  *          coefficients. The matrix must be equal in size to cosineHarmonicCoefficients.
  * \param sphericalHarmonicsCache Cache object for computing/retrieving repeated terms in spherical harmonics potential
  *          gradient calculation.
+ * \param accelerationPerTerm List of contributions to accelerations at given degrees/orders, represented by first/second entry
+ *          of map key pair. List is returned by reference only if saveSeparateTerms is set to true.
+ * \param saveSeparateTerms Boolean to denote whether the separate terms in the acceleration are to be stored term by term (in
+ *          accelerationPerTerm map) by reference
+ * \param accelerationRotation Rotation from body-fixed frame (in which coefficients are defined) to inertial frame.
  * \return Cartesian acceleration vector resulting from the summation of all harmonic terms.
  *           The order is important!
  *           acceleration( 0 ) = x acceleration [m s^-2],
@@ -225,8 +230,10 @@ public:
           saveSphericalHarmonicTermsSeparately_( false )
     {
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) ), sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
+                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ),
+                                     sphericalHarmonicsCache_->getMaximumDegree( ) ),
+                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) ),
+                                     sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
         this->updateMembers( );
     }
 
@@ -284,8 +291,10 @@ public:
           saveSphericalHarmonicTermsSeparately_( false )
     {
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) ), sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
+                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ),
+                                     sphericalHarmonicsCache_->getMaximumDegree( ) ),
+                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) ),
+                                     sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
 
 
         this->updateMembers( );
@@ -293,9 +302,7 @@ public:
 
     //! Get gravitational acceleration.
     /*!
-     * Returns the gravitational acceleration computed using the input parameters provided to the
-     * class. This function serves as a wrapper for the
-     * computeGeodesyNormalizedGravitationalAccelerationSum() function.
+     * Returns the gravitational acceleration computed by the updateMembers function.
      * \return Computed gravitational acceleration vector.
      */
     Eigen::Vector3d getAcceleration( )
@@ -303,6 +310,12 @@ public:
         return currentAcceleration_;
     }
 
+    //! Get gravitational acceleration in body-fixed frame of body undergoing acceleration.
+    /*!
+     * Returns the gravitational acceleration in body-fixed frame of body undergoing acceleration computed
+     * computed by the updateMembers function.
+     * \return Computed gravitational acceleration vector.
+     */
     Eigen::Vector3d getAccelerationInBodyFixedFrame( )
     {
         return currentAccelerationInBodyFixedFrame_;
@@ -323,7 +336,8 @@ public:
             rotationToIntegrationFrame_ = rotationFromBodyFixedToIntegrationFrameFunction_( );
             this->updateBaseMembers( );
 
-            currentInertialRelativePosition_ = this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
+            currentInertialRelativePosition_ =
+                    this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
 
             currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
                         currentInertialRelativePosition_ );
@@ -352,11 +366,26 @@ public:
         return sphericalHarmonicsCache_;
     }
 
+    //! Function to return current position vector from body exerting acceleration to body undergoing acceleration, in frame
+    //! fixed to body undergoing acceleration
+    /*!
+     * Function to return current position vector from body exerting acceleration to body undergoing acceleration, in frame
+     * fixed to bodyundergoing acceleration
+     * \return Current position vector from body exerting acceleration to body undergoing acceleration, in frame
+     * fixed to bodyundergoing acceleration
+     */
     Eigen::Vector3d getCurrentRelativePosition( )
     {
         return currentRelativePosition_;
     }
 
+    //! Function to return current position vector from body exerting acceleration to body undergoing acceleration, in inertial
+    //! frame
+    /*!
+     * Function to return current position vector from body exerting acceleration to body undergoing acceleration, in inertial
+     * frame
+     * \return Current position vector from body exerting acceleration to body undergoing acceleration, in inertial frame
+     */
     Eigen::Vector3d getCurrentInertialRelativePosition( )
     {
         return currentInertialRelativePosition_;
@@ -410,11 +439,25 @@ public:
         return rotationToIntegrationFrame_.toRotationMatrix( );
     }
 
+    //! Function to set whether each of the separate spherical harmonic terms should be saved
+    /*!
+     * Function to set whether each of the separate spherical harmonic terms should be saved (in accelerationPerTerm_ member
+     * variable of this class)
+     * \param saveSphericalHarmonicTermsSeparately Boolean denoting whether each of the separate spherical harmonic terms should
+     * be saved (in accelerationPerTerm_ member variable of this class
+     */
     void setSaveSphericalHarmonicTermsSeparately( const bool saveSphericalHarmonicTermsSeparately )
     {
         saveSphericalHarmonicTermsSeparately_ = saveSphericalHarmonicTermsSeparately;
     }
 
+    //! Function to retrieve the contributions of separate degrees/ordesr to the acceleration, concatenated in a single vector
+    /*!
+     * Function to retrieve the contributions of specific separate degree/order to the acceleration, concatenated in a single
+     * vector
+     * \param coefficientIndices List of degree/order at which the contributions to the full acceleration are to be retrieved
+     * \return Contributions of separate degrees/ordesr to the acceleration, concatenated in a single vector
+     */
     Eigen::VectorXd getConcatenatedAccelerationComponents( const std::vector< std::pair< int, int > >& coefficientIndices )
     {
         if( !saveSphericalHarmonicTermsSeparately_ )
@@ -473,20 +516,26 @@ private:
     //! Current rotation from body-fixed frame to integration frame.
     Eigen::Quaterniond rotationToIntegrationFrame_;
 
+    //! Current position vector from body exerting acceleration to body undergoing acceleration, in frame fixed to body
+    //! undergoing acceleration
     Eigen::Vector3d currentRelativePosition_;
 
+    //! Current position vector from body exerting acceleration to body undergoing acceleration, in inertial frame
     Eigen::Vector3d currentInertialRelativePosition_;
 
     //!  Spherical harmonics cache for this acceleration
     boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache_;
 
-    //! Current acceleration, as computed by last call to updateMembers function
+    //! Current acceleration in inertial frame, as computed by last call to updateMembers function
     Eigen::Vector3d currentAcceleration_;
 
+    //! Current acceleration in frame fixed to body undergoing acceleration, as computed by last call to updateMembers function
     Eigen::Vector3d currentAccelerationInBodyFixedFrame_;
 
+    //! List of contributions to accelerations at given degrees/orders, represented by first/second entry of map key pair.
     std::map< std::pair< int, int >, Eigen::Vector3d > accelerationPerTerm_;
 
+    //! Boolean that denotes whether each of the separate spherical harmonic terms should be saved (in accelerationPerTerm_)
     bool saveSphericalHarmonicTermsSeparately_;
 
 };

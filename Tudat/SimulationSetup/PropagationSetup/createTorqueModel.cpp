@@ -140,7 +140,7 @@ boost::shared_ptr< gravitation::SecondDegreeGravitationalTorqueModel > createSec
 }
 
 
-//! Function to create a second-degree gravitational torque.
+//! Function to create a spherical harmonic gravitational torque
 boost::shared_ptr< gravitation::SphericalHarmonicGravitationalTorqueModel > createSphericalHarmonicGravitationalTorqueModel(
         const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
         const boost::shared_ptr< simulation_setup::Body > bodyExertingTorque,

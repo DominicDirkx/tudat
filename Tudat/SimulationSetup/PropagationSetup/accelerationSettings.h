@@ -140,71 +140,59 @@ public:
     int maximumOrderOfCentralBody_;
 };
 
+//! Function to get the full list of combinations of degrees/orders of two bodies for full two-body potential
+/*!
+ * Function to get the full list of combinations of degrees/orders of two bodies for full two-body potential, the combinations of
+ * the four indices over which mutual potential is computed, in order: (degree body 1, order body 1, degree body 2, order body 2)
+ * \param maximumDegreeOfBodyUndergoingAcceleration Maximum degree of body undergoing acceleration
+ * \param maximumOrderOfBodyUndergoingAcceleration Maximum order of body undergoing acceleration
+ * \param maximumDegreeOfBodyExertingAcceleration Maximum degree of body exerting acceleration
+ * \param maximumOrderOfBodyExertingAcceleration Maximum order of body exerting acceleration
+ * \return Full list of combinations of degrees/orders of two bodies for full two-body potential
+ */
 std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > getExtendedSinglePointMassInteractions(
         const int maximumDegreeOfBodyUndergoingAcceleration,
         const int maximumOrderOfBodyUndergoingAcceleration,
         const int maximumDegreeOfBodyExertingAcceleration,
         const int maximumOrderOfBodyExertingAcceleration );
 
+//! Class for providing acceleration settings for full two-body spherical harmonic acceleration
 class MutualExtendedBodySphericalHarmonicAccelerationSettings: public AccelerationSettings
 {
 public:
 
+    //! Constructor
+    /*!
+     * Constructor
+     * \param maximumDegreeOfBodyUndergoingAcceleration Maximum degree of body undergoing acceleration
+     * \param maximumOrderOfBodyUndergoingAcceleration Maximum order of body undergoing acceleration
+     * \param maximumDegreeOfBodyExertingAcceleration Maximum degree of body exerting acceleration
+     * \param maximumOrderOfBodyExertingAcceleration Maximum order of body exerting acceleration
+     */
     MutualExtendedBodySphericalHarmonicAccelerationSettings(
             const int maximumDegreeOfBodyUndergoingAcceleration,
             const int maximumOrderOfBodyUndergoingAcceleration,
             const int maximumDegreeOfBodyExertingAcceleration,
-            const int maximumOrderOfBodyExertingAcceleration ):
-        AccelerationSettings( basic_astrodynamics::mutual_extended_body_spherical_harmonic_gravity ),
-        maximumDegreeOfBody1_( maximumDegreeOfBodyUndergoingAcceleration ),
-        maximumDegreeOfBody2_( maximumDegreeOfBodyExertingAcceleration )
-    {
-        for( int i = 0; i <= maximumDegreeOfBodyUndergoingAcceleration; i++ )
-        {
-            for( int j = 0; ( j <= maximumOrderOfBodyUndergoingAcceleration && j <= i ); j++ )
-            {
-                for( int k = 0; k <= maximumDegreeOfBodyExertingAcceleration; k++ )
-                {
-                    for( int l = 0; ( l <= maximumOrderOfBodyExertingAcceleration && l <= k ); l++ )
-                    {
-                        coefficientCombinationsToUse_.push_back( boost::make_tuple( i, j, k, l ) );
-                    }
-                }
-            }
-        }
-    }
+            const int maximumOrderOfBodyExertingAcceleration );
 
+    //! Constructor
+    /*!
+     * Constructor
+     * \param coefficientCombinationsToUse List of combinations of degrees/orders of two bodies for full two-body potential, in
+     * order: (degree body 1, order body 1, degree body 2, order body 2)
+     */
     MutualExtendedBodySphericalHarmonicAccelerationSettings(
-           const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse ):
-        AccelerationSettings( basic_astrodynamics::mutual_extended_body_spherical_harmonic_gravity ),
-        coefficientCombinationsToUse_( coefficientCombinationsToUse )
-    {
+           const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >&
+            coefficientCombinationsToUse );
 
-        maximumDegreeOfBody1_ = 0;
-        maximumDegreeOfBody2_ = 0;
-
-        int degreeOfBody1, degreeOfBody2;
-        for( unsigned int i = 0; i < coefficientCombinationsToUse_.size( ); i++ )
-        {
-            degreeOfBody1 = coefficientCombinationsToUse.at( i ).get< 0 >( );
-            degreeOfBody2 = coefficientCombinationsToUse.at( i ).get< 2 >( );
-
-            if( degreeOfBody1 > maximumDegreeOfBody1_ )
-            {
-                maximumDegreeOfBody1_ = degreeOfBody1;
-            }
-
-            if( degreeOfBody2 > maximumDegreeOfBody2_ )
-            {
-                maximumDegreeOfBody2_ = degreeOfBody2;
-            }
-        }
-    }
-
+    //! Full list of combinations of degrees/orders of two bodies for full two-body potential, in
+    //! order: (degree body 1, order body 1, degree body 2, order body 2)
     std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse_;
 
+    //! Maximum degree that is used for body 1
     int maximumDegreeOfBody1_;
 
+    //! Maximum degree that is used for body 2
     int maximumDegreeOfBody2_;
 
 };

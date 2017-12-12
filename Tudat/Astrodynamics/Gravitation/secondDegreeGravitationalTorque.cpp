@@ -25,9 +25,6 @@ Eigen::Vector3d calculateSecondDegreeGravitationalTorque(
         const double gravitationalParameterOfAttractingBody,
         const Eigen::Matrix3d& inertiaTensorOfRotatingBody )
 {
-//    std::cout<<"Rel pos in func. "<<relativePositionOfBodySubjectToTorque.transpose( )<<std::endl;
-//    std::cout<<"Inertia tensor in func. "<<inertiaTensorOfRotatingBody<<std::endl;
-
     double distanceBetweenBodies = relativePositionOfBodySubjectToTorque.norm( ) ;
     Eigen::Vector3d multipliedRelativePosition =  inertiaTensorOfRotatingBody * relativePositionOfBodySubjectToTorque;
     return 3.0 * gravitationalParameterOfAttractingBody / std::pow( distanceBetweenBodies, 5.0 ) *

@@ -65,6 +65,7 @@ set(GRAVITATION_HEADERS
   "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicAcceleration.h"
   "${SRCROOT}${GRAVITATIONDIR}/mutualExtendedBodySphericalHarmonicTorque.h"
   "${SRCROOT}${GRAVITATIONDIR}/mutualForcePotential.h"
+  "${SRCROOT}${GRAVITATIONDIR}/sphericalHarmonicGravitationalTorque.h"
 )
 
 # Add static libraries.

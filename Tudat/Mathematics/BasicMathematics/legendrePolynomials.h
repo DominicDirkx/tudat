@@ -639,17 +639,33 @@ double calculateLegendreGeodesyNormalizationFactor( const int degree, const int 
 const LegendreCache::LegendrePolynomialFunction regularLegendrePolynomialFunction =
         boost::bind( &computeLegendrePolynomialFromCache, _1, _2, _3 );
 
+//! Function to convert unnormalized to geodesy-normalized (4-pi normalized) spherical harmonic coefficients
+/*!
+ * Function to convert unnormalized to geodesy-normalized (4-pi normalized) spherical harmonic coefficients
+ * \param unnormalizedCosineCoefficients Original, unnormalized, cosine coefficients
+ * \param unnormalizedSineCoefficients Original, unnormalized, sine coefficients
+ * \param normalizedCosineCoefficients Transformed, normalized, cosine coefficients (returned by reference)
+ * \param normalizedSineCoefficients Transformed, normalized, sine coefficients (returned by reference)
+ */
 void convertUnnormalizedToGeodesyNormalizedCoefficients(
         const Eigen::MatrixXd& unnormalizedCosineCoefficients,
         const Eigen::MatrixXd& unnormalizedSineCoefficients,
         Eigen::MatrixXd& normalizedCosineCoefficients,
         Eigen::MatrixXd& normalizedSineCoefficients );
 
+//! Function to convert geodesy-normalized (4-pi normalized) to unnormalized spherical harmonic coefficients
+/*!
+ * Function to convert geodesy-normalized (4-pi normalized) to unnormalized spherical harmonic coefficients
+ * \param normalizedCosineCoefficients Original, normalized, cosine coefficients
+ * \param normalizedSineCoefficients Original, normalized, sine coefficients
+ * \param unnormalizedCosineCoefficients Transformed, unnormalized, cosine coefficients (returned by reference)
+ * \param unnormalizedSineCoefficients Transformed, unnormalized, sine coefficients (returned by reference)
+ */
 void convertGeodesyNormalizedToUnnormalizedCoefficients(
-        const Eigen::MatrixXd& unnormalizedCosineCoefficients,
-        const Eigen::MatrixXd& unnormalizedSineCoefficients,
-        Eigen::MatrixXd& normalizedCosineCoefficients,
-        Eigen::MatrixXd& normalizedSineCoefficients );
+        const Eigen::MatrixXd& normalizedCosineCoefficients,
+        const Eigen::MatrixXd& normalizedSineCoefficients,
+        Eigen::MatrixXd& unnormalizedCosineCoefficients,
+        Eigen::MatrixXd& unnormalizedSineCoefficients );
 
 } // namespace basic_mathematics
 } // namespace tudat

@@ -5,6 +5,7 @@ namespace tudat
 namespace basic_mathematics
 {
 
+//! Function to convert a quaternion representing a rotation to two Cayley-Klein parameters
 void convertQuaterionToCayleyKleinParameters(
         const Eigen::Quaterniond quaternion, std::complex< double >& cayleyKleinA, std::complex< double >& cayleyKleinB )
 {
@@ -12,7 +13,7 @@ void convertQuaterionToCayleyKleinParameters(
     cayleyKleinB = std::complex< double >( quaternion.y( ), -quaternion.x( ) );
 }
 
-// Angles alpha, beta, gamma, from Fourier transform summation of Legendre series and D-functions, by Risbo
+//! Function to convert 3-2-3 Euler angles representing a rotation to two Cayley-Klein parameters
 void convert323EulerAnglesToCayleyKleinParameters(
         const double firstZRotation, const double yRotation, const double secondZRotation,
         std::complex< double >& cayleyKleinA, std::complex< double >& cayleyKleinB )
@@ -24,14 +25,15 @@ void convert323EulerAnglesToCayleyKleinParameters(
             std::sin( yRotation/ 2.0 );
 }
 
-// Angles alpha, beta, gamma, from Fourier transform summation of Legendre series and D-functions, by Risbo
+//! Function to convert 3-1-3 Euler angles representing a rotation to two Cayley-Klein parameters
 void convert313EulerAnglesToCayleyKleinParameters(
         const double firstZRotation, const double xRotation, const double secondZRotation,
         std::complex< double >& cayleyKleinA, std::complex< double >& cayleyKleinB )
 {
     cayleyKleinA = std::exp( mathematical_constants::COMPLEX_I * ( firstZRotation + secondZRotation ) / 2.0 ) *
             std::cos( xRotation / 2.0 );
-    cayleyKleinB = mathematical_constants::COMPLEX_I * std::exp( mathematical_constants::COMPLEX_I * ( firstZRotation - secondZRotation ) / 2.0 ) *
+    cayleyKleinB = mathematical_constants::COMPLEX_I * std::exp( mathematical_constants::COMPLEX_I *
+                                                                 ( firstZRotation - secondZRotation ) / 2.0 ) *
             std::sin( xRotation / 2.0 );
 }
 

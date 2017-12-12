@@ -485,6 +485,7 @@ BOOST_AUTO_TEST_CASE( testDependentVariableOutput )
     }
 }
 
+//! Function to test whether separate spherical harmonic acceleration contributions are correctly saved.
 BOOST_AUTO_TEST_CASE( testSphericalHarmonicDependentVariableOutput )
 {
     // Load Spice kernels.

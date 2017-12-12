@@ -22,7 +22,6 @@
 #include "Tudat/Astrodynamics/BasicAstrodynamics/physicalConstants.h"
 #include "Tudat/Mathematics/BasicMathematics/legendrePolynomials.h"
 #include "Tudat/Mathematics/BasicMathematics/sphericalHarmonics.h"
-
 #include "Tudat/Mathematics/BasicMathematics/sphericalHarmonicTransformations.h"
 
 namespace tudat
@@ -91,6 +90,21 @@ double computeSingleMutualForcePotentialTerm(
         const int degreeOfBody2,
         const int orderOfBody2 );
 
+//! Function to compute the full two-body potential, from effective one-body formulation of Dirkx et al. (2018)
+/*!
+ * Function to compute the full two-body potential, from effective one-body formulation of Dirkx et al. (2018)
+ * \param bodyFixedPosition
+ * \param effectiveGravitationalParameterOfBody1
+ * \param equatorialRadiusOfBody1
+ * \param equatorialRadiusOfBody2
+ * \param maximumDegreeOfBody1
+ * \param maximumDegreeOfBody2
+ * \param effectiveCosineCoefficientFunction
+ * \param effectiveSineCoefficientFunction
+ * \param coefficientCombinationsToUse
+ * \param sphericalHarmonicsCache
+ * \return
+ */
 double computeMutualForcePotential(
         const Eigen::Vector3d& bodyFixedPosition,
         const double effectiveGravitationalParameterOfBody1,
@@ -103,8 +117,6 @@ double computeMutualForcePotential(
         const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
 
-//! Compute gravitational acceleration due to multiple spherical harmonics terms, defined using
-//! geodesy-normalization.
 Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
         const Eigen::Vector3d& positionOfBodySubjectToAcceleration,
         const double gravitationalParameterOfBody,
@@ -120,8 +132,6 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
         const std::vector< double > radius2Powers,
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
 
-//! Compute gravitational acceleration due to multiple spherical harmonics terms, defined using
-//! geodesy-normalization.
 Eigen::Vector3d computeUnnormalizedMutualGravitationalAccelerationSum(
         const Eigen::Vector3d& positionOfBodySubjectToAcceleration,
         const double gravitationalParameterOfBody,
@@ -150,7 +160,8 @@ class EffectiveMutualSphericalHarmonicsField
 {
 public:
     EffectiveMutualSphericalHarmonicsField(
-            const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
+            const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >&
+            coefficientCombinationsToUse,
             const boost::function< Eigen::MatrixXd( ) > cosineCoefficientFunctionOfBody1,
             const boost::function< Eigen::MatrixXd( ) > sineCoefficientFunctionOfBody1,
             const boost::function< Eigen::MatrixXd( ) > cosineCoefficientFunctionOfBody2,
@@ -186,6 +197,18 @@ public:
         initializeMultipliers( );
     }
 
+    void getCurrentEffectiveCoefficients(
+            const int degree1, const int order1, const int degree2, const int order2, const int effectiveIndex,
+            double& cosineCoefficient, double& sineCoefficient );
+
+    void computeCurrentEffectiveCoefficients( const Eigen::Quaterniond coefficientRotationQuaterion );
+
+    void computeCurrentEffectiveCoefficientsFromManualTransformedCoefficients(
+            const Eigen::MatrixXd& transformedCosineCoefficients,
+            const Eigen::MatrixXd& transformedSineCoefficients );
+
+    void updateEffectiveMutualPotential( );
+
     int getMaximumDegree1( )
     {
         return maximumDegree1_;
@@ -200,18 +223,6 @@ public:
     {
         return ( 2 * maximumDegree1_ + 1 ) * ( maximumDegree1_ + 1 ) * ( 2 * maximumDegree2_ + 1 ) * ( maximumDegree2_ + 1 );
     }
-
-    void getCurrentEffectiveCoefficients(
-            const int degree1, const int order1, const int degree2, const int order2, const int effectiveIndex,
-            double& cosineCoefficient, double& sineCoefficient );
-
-    void computeCurrentEffectiveCoefficients( const Eigen::Quaterniond coefficientRotationQuaterion );
-
-    void computeCurrentEffectiveCoefficientsFromManualTransformedCoefficients(
-            const Eigen::MatrixXd& transformedCosineCoefficients,
-            const Eigen::MatrixXd& transformedSineCoefficients );
-
-    void updateEffectiveMutualPotential( );
 
     int getEffectiveIndex(
             const int degreeOfBody1, const int orderOfBody1, const int degreeOfBody2, const int orderOfBody2 )

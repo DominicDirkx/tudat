@@ -776,7 +776,7 @@ double calculateLegendreGeodesyNormalizationFactor( const int degree, const int 
     return 1.0 / factor;
 }
 
-
+//! Function to convert unnormalized to geodesy-normalized (4-pi normalized) spherical harmonic coefficients
 void convertUnnormalizedToGeodesyNormalizedCoefficients(
         const Eigen::MatrixXd& unnormalizedCosineCoefficients,
         const Eigen::MatrixXd& unnormalizedSineCoefficients,
@@ -798,11 +798,10 @@ void convertUnnormalizedToGeodesyNormalizedCoefficients(
             normalizedSineCoefficients( degree, order ) = unnormalizedSineCoefficients( degree, order ) /
                     normalizationFactor;
         }
-
     }
-
 }
 
+//! Function to convert geodesy-normalized (4-pi normalized) to unnormalized spherical harmonic coefficients
 void convertGeodesyNormalizedToUnnormalizedCoefficients(
         const Eigen::MatrixXd& normalizedCosineCoefficients,
         const Eigen::MatrixXd& normalizedSineCoefficients,

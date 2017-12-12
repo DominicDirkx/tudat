@@ -50,24 +50,26 @@ public:
 
 };
 
+//! Class to define settings for a spherical harmonic gravitational torque exerted by a point mass.
 class SphericalHarmonicTorqueSettings: public TorqueSettings
 {
 public:
 
-    //! Constructor, sets type of torque.
+    //! Constructor
     /*!
-     *  Constructor, sets type of torque.
-     *  \param torqueType Type of torque from AvailableTorque enum.
+     * Constructor
+     * \param maximumDegree Maximum degree to which gravity field of body undergoing torque is to be exerted
+     * \param maximumOrder Maximum order to which gravity field of body undergoing torque is to be exerted
      */
     SphericalHarmonicTorqueSettings( const int maximumDegree,
                                      const int maximumOrder ):
         TorqueSettings( basic_astrodynamics::spherical_harmonic_gravitational_torque ),
         maximumDegree_( maximumDegree ), maximumOrder_( maximumOrder ){ }
 
-    //! Maximum degree that is to be used for spherical harmonic acceleration
+    //! Maximum degree to which gravity field of body undergoing torque is to be exerted
     int maximumDegree_;
 
-    //! Maximum order that is to be used for spherical harmonic acceleration
+    //! Maximum order to which gravity field of body undergoing torque is to be exerted
     int maximumOrder_;
 };
 

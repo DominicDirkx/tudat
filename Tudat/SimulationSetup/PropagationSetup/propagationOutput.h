@@ -274,7 +274,7 @@ std::pair< boost::function< Eigen::VectorXd( ) >, int > getVectorDependentVariab
                         accelerationDependentVariableSettings->secondaryBody_,
                         stateDerivativeModels, accelerationDependentVariableSettings->accelerationModeType_ );
 
-            // Check if thirfd-body counterpart of acceleration is found
+            // Check if third-body counterpart of acceleration is found
             if( listOfSuitableAccelerationModels.size( ) == 0 && basic_astrodynamics::isAccelerationDirectGravitational(
                         accelerationDependentVariableSettings->accelerationModeType_ ) )
             {
@@ -324,7 +324,7 @@ std::pair< boost::function< Eigen::VectorXd( ) >, int > getVectorDependentVariab
                         accelerationComponentVariableSettings->secondaryBody_, stateDerivativeModels,
                         basic_astrodynamics::spherical_harmonic_gravity );
 
-            // Check if thirfd-body counterpart of acceleration is found
+            // Check if third-body counterpart of acceleration is found
             if( listOfSuitableAccelerationModels.size( ) == 0 )
             {
                 listOfSuitableAccelerationModels = getAccelerationBetweenBodies(
@@ -791,7 +791,7 @@ boost::function< double( ) > getDoubleDependentVariableFunction(
                             accelerationDependentVariableSettings->secondaryBody_,
                             stateDerivativeModels, accelerationDependentVariableSettings->accelerationModeType_ );
 
-                // Check if thirfd-body counterpart of acceleration is found
+                // Check if third-body counterpart of acceleration is found
                 if( listOfSuitableAccelerationModels.size( ) == 0 && basic_astrodynamics::isAccelerationDirectGravitational(
                             accelerationDependentVariableSettings->accelerationModeType_ ) )
                 {

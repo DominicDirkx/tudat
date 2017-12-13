@@ -210,7 +210,7 @@ public:
      * \param bodyUndergoingAcceleration Name of body undergoing the acceleration.
      * \param bodyExertingAcceleration Name of body exerting the acceleration.
      * \param maximumDegree Maximum degree to which terms are to be saved.
-     * \param maximumDegree Maximum order to which terms are to be saved.
+     * \param maximumOrder Maximum order to which terms are to be saved.
      * \param componentIndex Index of the acceleration vectors component to be saved. By default -1, i.e. all the components
      * are saved.
      */

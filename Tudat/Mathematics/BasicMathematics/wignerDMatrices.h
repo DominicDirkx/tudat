@@ -16,6 +16,8 @@
 #ifndef TUDAT_WIGNER_D_MATRIXRES_H
 #define TUDAT_WIGNER_D_MATRIXRES_H
 
+#include <map>
+
 #include <Eigen/Core>
 
 namespace tudat
@@ -95,6 +97,9 @@ private:
     //! Function to precompute the coefficients used on the recursive formulation for Wigner D-matrices
     void computeCoefficients( );
 
+    void computeAngularMomentumCoefficients( );
+
+
     //! Coefficients used in the recursive formulation for Wigner D-matrices
     std::vector< Eigen::MatrixXd > coefficientsIndexMinusOne_;
 
@@ -104,10 +109,7 @@ private:
     //! Coefficients used in the recursive formulation for Wigner D-matrices
     std::vector< Eigen::MatrixXd > coefficientsIndexOne_;
 
-
-    Eigen::MatrixXd angularMomentumScalingEntry0_;
-
-    Eigen::MatrixXd angularMomentumScalingEntry2_;
+    std::map< int, std::map< int, Eigen::Matrix3cd > > angularMomentumOperatorCoefficients_;
 
 
     //! Maximum degree for which Wigner-D matrix is to be computed
@@ -136,7 +138,6 @@ private:
 
     const bool computeAngularMomentumOperators_;
 
-    Eigen::Matrix3cd transformationMatrixToCartesianBasis_;
 };
 
 } // namespace basic_mathematics

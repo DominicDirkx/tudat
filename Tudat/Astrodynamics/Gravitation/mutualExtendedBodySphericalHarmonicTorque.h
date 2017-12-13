@@ -12,6 +12,7 @@
 #include <Tudat/Astrodynamics/BasicAstrodynamics/accelerationModel.h>
 #include <Tudat/Mathematics/BasicMathematics/linearAlgebra.h>
 #include <Tudat/Mathematics/BasicMathematics/legendrePolynomials.h>
+#include <Tudat/Mathematics/BasicMathematics/wignerDMatrices.h>
 
 #include "Tudat/Astrodynamics/BasicAstrodynamics/torqueModel.h"
 #include "Tudat/Astrodynamics/Gravitation/mutualExtendedBodySphericalHarmonicAcceleration.h"
@@ -33,7 +34,10 @@ public:
         accelerationBetweenBodies_( accelerationBetweenBodies ),
         acceleratedBodyIsBody1_( acceleratedBodyIsBody1 )
     {
-        coefficientCombinationsToUse_ = accelerationBetweenBodies_->getEffectiveMutualPotentialField( )->getCoefficientCombinationsToUse( );
+        coefficientCombinationsToUse_ = accelerationBetweenBodies_->getEffectiveMutualPotentialField( )->
+                getCoefficientCombinationsToUse( );
+        wignerDMatrixCache_ = accelerationBetweenBodies_->getEffectiveMutualPotentialField( )->getTransformationCache( )->
+                getWignerDMatricesCache( );
     }
 
     void updateMembers( const double currentTime = TUDAT_NAN );
@@ -60,6 +64,8 @@ private:
     Eigen::Vector3d currentTorque_;
 
     boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > accelerationBetweenBodies_;
+
+    boost::shared_ptr< basic_astrodynamics::WignerDMatricesCache > wignerDMatrixCache_;
 
     std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse_;
 

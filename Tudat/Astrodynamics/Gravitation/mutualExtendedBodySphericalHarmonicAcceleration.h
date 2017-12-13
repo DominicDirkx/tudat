@@ -187,10 +187,11 @@ public:
         return radius1Powers_.at( index );
     }
 
-    //! Function to retrieve list of integer powers of (distance / equatorial radius of body 1)
+    //! Function to retrieve a single integer power of (distance / equatorial radius of body 2)
     /*!
-     *  Function to retrieve list of integer powers of (distance / equatorial radius of body 1)
-     *  \return List of integer powers of (distance / equatorial radius of body 1)
+     *  Function to retrieve a single integer power of (distance / equatorial radius of body 2)
+     *  \param index Power to which (distance / equatorial radius of body 2) is to be computed
+     *  \return Single integer power of (distance / equatorial radius of body 2)
      */
     double getRadius2Power( const int index )
     {

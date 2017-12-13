@@ -55,7 +55,8 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
             // Compute coefficient multipliers for (un-)normalized coefficients
             if( !areCoefficientsNormalized )
             {
-                orderMMultiplier = std::sqrt( boost::math::factorial< double >( l - m ) / boost::math::factorial< double >( l + m ) );
+                orderMMultiplier = std::sqrt( boost::math::factorial< double >( l - m ) /
+                                              boost::math::factorial< double >( l + m ) );
                 currentMultiplier = orderMMultiplier;
             }
             else
@@ -72,7 +73,7 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
                     ( currentMultiplier ) * orderZeroDFunction.imag( ) * originalCosineCoefficients( l, 0 );
 
             // Iterate over all original orders, and transform to new coefficients
-            for( int k = 1; k <= l; k++ )
+            for( int k = 1; k <= static_cast< int >( l ); k++ )
             {
                 // Compute muliplier
                 if( !areCoefficientsNormalized )

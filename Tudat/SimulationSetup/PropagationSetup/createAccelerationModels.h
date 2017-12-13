@@ -147,6 +147,7 @@ createCentralGravityAcceleratioModel(
  *  Should be set to true in case the body undergoing acceleration is a celestial body
  *  (with gravity field) and integration is performed in the frame centered at the body exerting
  *  acceleration.
+ *  \param useDegreeZeroTerm Boolean denoting whether the degree 0 term, the point mass, is to be used ot not (true by default)
  *  \return Spherical harmonic gravity acceleration model pointer.
  */
 boost::shared_ptr< gravitation::SphericalHarmonicsGravitationalAccelerationModel >

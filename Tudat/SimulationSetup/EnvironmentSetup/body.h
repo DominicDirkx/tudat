@@ -1052,7 +1052,7 @@ public:
      * \param scaledMeanMomentOfInertia  Mean moment of inertial, divided by (M*R^2), with M the mass of the body and R the
      * reference radius of the gravity field.
      */
-    void setBodyInertiaTensorFromGravityField( const double scaledMeanMomentsOfInertia )
+    void setBodyInertiaTensorFromGravityField( const double scaledMeanMomentOfInertia )
     {
         if( boost::dynamic_pointer_cast< gravitation::SphericalHarmonicsGravityField >( gravityFieldModel_ ) == NULL )
         {
@@ -1062,7 +1062,7 @@ public:
         {
             bodyInertiaTensor_ = gravitation::getInertiaTensor(
                         boost::dynamic_pointer_cast< gravitation::SphericalHarmonicsGravityField >( gravityFieldModel_ ),
-                        scaledMeanMomentsOfInertia );
+                        scaledMeanMomentOfInertia );
         }
     }
 

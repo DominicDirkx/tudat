@@ -756,7 +756,7 @@ createMutualExtendedBodySphericalHarmonicsGravityAcceleration(
             int maximumOrderOfUndergoingBody = mutualSphericalHarmonicsSettings->maximumDegreeOfBody1_;
             int maximumDegreeOfExertingBody = mutualSphericalHarmonicsSettings->maximumDegreeOfBody2_;
             int maximumOrderOfExertingBody = mutualSphericalHarmonicsSettings->maximumDegreeOfBody2_;
-            bool useNormalizedCoefficients;
+            bool useNormalizedCoefficients = -1;
             if( sphericalHarmonicsGravityFieldOfBodyExertingAcceleration->areCoefficientsGeodesyNormalized( ) ==
                     sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration->areCoefficientsGeodesyNormalized( )  )
             {
@@ -795,8 +795,7 @@ createMutualExtendedBodySphericalHarmonicsGravityAcceleration(
                                      bodyUndergoingAcceleration ),
                         boost::bind( &Body::getCurrentRotationToLocalFrame,
                                      bodyExertingAcceleration ),
-                        useCentralBodyFixedFrame,
-                        sphericalHarmonicsGravityFieldOfBodyExertingAcceleration->areCoefficientsGeodesyNormalized( ) );
+                        useCentralBodyFixedFrame, useNormalizedCoefficients );
         }
     }
     return accelerationModel;

@@ -75,10 +75,6 @@ double getMutualPotentialEffectiveCoefficientMultiplier(
  * \param effectiveCosineCoefficient Effective one-body cosine coefficient
  * \param effectiveSineCoefficient Effective one-body sine coefficient
  * \param sphericalHarmonicsCache Cache object used to pre-compute Legendre polynomials and other spherical harmonic terms
- * \param degree1 Degree of body 1
- * \param order1 Order of body 1
- * \param degree2 Degree of body 2
- * \param order2 Order of body 2
  * \return Single-term in effective one-body formulation, omitting the radius power term, and the common multiplier for all terms
  */
 double computeSingleMutualForcePotentialTerm(
@@ -90,21 +86,6 @@ double computeSingleMutualForcePotentialTerm(
         const int degreeOfBody2,
         const int orderOfBody2 );
 
-//! Function to compute the full two-body potential, from effective one-body formulation of Dirkx et al. (2018)
-/*!
- * Function to compute the full two-body potential, from effective one-body formulation of Dirkx et al. (2018)
- * \param bodyFixedPosition
- * \param effectiveGravitationalParameterOfBody1
- * \param equatorialRadiusOfBody1
- * \param equatorialRadiusOfBody2
- * \param maximumDegreeOfBody1
- * \param maximumDegreeOfBody2
- * \param effectiveCosineCoefficientFunction
- * \param effectiveSineCoefficientFunction
- * \param coefficientCombinationsToUse
- * \param sphericalHarmonicsCache
- * \return
- */
 double computeMutualForcePotential(
         const Eigen::Vector3d& bodyFixedPosition,
         const double effectiveGravitationalParameterOfBody1,
@@ -142,23 +123,40 @@ Eigen::Vector3d computeUnnormalizedMutualGravitationalAccelerationSum(
         const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
 
-void computePartialDerivativesOfPotentialComponentsWrtFullCoefficients(
-        std::vector< Eigen::Matrix< double, 1, 2 > >& potentialComponentsWrtFullCoefficients,
-        const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
-        const double distance,
-        const std::vector< double > radius1Powers,
-        const std::vector< double > radius2Powers,
-        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
-        const boost::function< int( const int, const int, const int, const int )> effectiveIndexFunction );
+//void computePartialDerivativesOfPotentialComponentsWrtFullCoefficients(
+//        std::vector< Eigen::Matrix< double, 1, 2 > >& potentialComponentsWrtFullCoefficients,
+//        const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
+//        const double distance,
+//        const std::vector< double > radius1Powers,
+//        const std::vector< double > radius2Powers,
+//        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+//        const boost::function< int( const int, const int, const int, const int )> effectiveIndexFunction );
 
 inline double getSigmaSignFunction( const int order )
 {
     return ( ( order >= 0 ) ? ( 1.0 ) : ( ( std::abs( order ) % 2 == 0 ) ? ( 1.0 ) : ( -1.0 ) ) );
 }
 
+//! Class to compute the effective one-body coefficients used to evaluate the two-body mutual potential, according to the
+//! approach of Dirkx et al. (2018)
 class EffectiveMutualSphericalHarmonicsField
 {
 public:
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param coefficientCombinationsToUse List of combinations of degrees/orders of the two bodies that are to be used, given in
+     * order: (degree body 1, order body 1, degree body 2, order body 2)
+     * \param cosineCoefficientFunctionOfBody1 Function returning the cosine coefficients of body 1 in its body-fixed frame
+     * \param sineCoefficientFunctionOfBody1 Function returning the sine coefficients of body 1 in its body-fixed frame
+     * \param cosineCoefficientFunctionOfBody2 Function returning the cosine coefficients of body 2 in its body-fixed frame
+     * \param sineCoefficientFunctionOfBody2 Function returning the sine coefficients of body 2 in its body-fixed frame
+     * \param gravitationalParameterFunction Function returning the effective gravitational parameter
+     * \param equatorialRadiusOfBody1 Reference (equatorial) radius of body 1
+     * \param equatorialRadiusOfBody2 Reference (equatorial) radius of body 2
+     * \param areCoefficientsNormalized Boolean denoting whether the coefficients are (4 pi) normalized
+     */
     EffectiveMutualSphericalHarmonicsField(
             const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >&
             coefficientCombinationsToUse,
@@ -191,23 +189,40 @@ public:
                     getTotalVectorSize( ) );
         multipliers_.resize(
                     getTotalVectorSize( ) );
+
         transformationCache_ = boost::make_shared< basic_mathematics::SphericalHarmonicTransformationCache >(
                     cosineCoefficientFunctionOfBody1( ).rows( ) + cosineCoefficientFunctionOfBody2( ).rows( ),
                     cosineCoefficientFunctionOfBody1( ).cols( ) + cosineCoefficientFunctionOfBody2( ).cols( ) );
         initializeMultipliers( );
     }
 
-    void getCurrentEffectiveCoefficients(
-            const int degree1, const int order1, const int degree2, const int order2, const int effectiveIndex,
-            double& cosineCoefficient, double& sineCoefficient );
+    //! Function to update the object to the current state, with the rotation provided as a quaternion
+    /*!
+     * Function to update the object to the current state, with the rotation provided as a quaternion. This function
+     * updates the member variables, and ultimately the effectiveCosineCoefficients_ and effectiveSineCoefficients_
+     * variables containing the effective one-body coefficients
+     * \param coefficientRotationQuaterion Current rotation from body-fixed frame of body 2 to body-fixed frame of body 1
+     */
+    void computeCurrentEffectiveCoefficients(
+            const Eigen::Quaterniond coefficientRotationQuaterion );
 
-    void computeCurrentEffectiveCoefficients( const Eigen::Quaterniond coefficientRotationQuaterion );
-
+    //! Function to update the object to the current state, with the transformed coefficient provided manually
+    /*!
+     * Function to update the object to the current state, with the transformed coefficient provided manually. This function
+     * updates the member variables, and ultimately the effectiveCosineCoefficients_ and effectiveSineCoefficients_
+     * variables containing the effective one-body coefficients. As opposed to the computeCurrentEffectiveCoefficients function,
+     * the gravity field coefficients of body 2, in frame fixed to body 1, are provided directly as input to this function.
+     * \param transformedCosineCoefficients Current cosine gravity field coefficients of body 2, in frame fixed to body 1
+     * \param transformedSineCoefficients Current sine gravity field coefficients of body 2, in frame fixed to body 1
+     */
     void computeCurrentEffectiveCoefficientsFromManualTransformedCoefficients(
             const Eigen::MatrixXd& transformedCosineCoefficients,
             const Eigen::MatrixXd& transformedSineCoefficients );
 
-    void updateEffectiveMutualPotential( );
+    double getGravitationalPotential(
+            const Eigen::Vector3d& bodyFixedPosition,
+            boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
+
 
     int getMaximumDegree1( )
     {
@@ -231,24 +246,6 @@ public:
                                                 ( degreeOfBody2 + ( maximumDegree2_ + 1 ) * ( orderOfBody2 + maximumDegree2_ ) ) );
     }
 
-    double getGravitationalPotential(
-            const Eigen::Vector3d& bodyFixedPosition,
-            boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
-    {
-
-        return computeMutualForcePotential(
-                    bodyFixedPosition, gravitationalParameterFunction_( ), equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
-                    maximumDegree1_, maximumDegree2_,
-                    boost::bind(
-                        &EffectiveMutualSphericalHarmonicsField::getEffectiveCosineCoefficient,
-                        this, _1, _2, _3, _4 ),
-                    boost::bind(
-                        &EffectiveMutualSphericalHarmonicsField::getEffectiveSineCoefficient,
-                        this, _1, _2, _3, _4 ), coefficientCombinationsToUse_,
-                    sphericalHarmonicsCache );
-    }
-
-
     double getEffectiveCosineCoefficient(
             const int degreeOfBody1, const int orderOfBody1, const int degreeOfBody2, const int orderOfBody2 )
     {
@@ -266,15 +263,15 @@ public:
         return transformationCache_;
     }
 
-    void setCalculatePartials( )
-    {
-        transformedCosineCoefficientsOfBody2Partials_.resize( 3 );
-        transformedSineCoefficientsOfBody2Partials_.resize( 3 );
+//    void setCalculatePartials( )
+//    {
+//        transformedCosineCoefficientsOfBody2Partials_.resize( 3 );
+//        transformedSineCoefficientsOfBody2Partials_.resize( 3 );
 
-        transformationCache_->setUpdatePartials( );
+//        transformationCache_->setUpdatePartials( );
 
-        calculatePartials_ = true;
-    }
+//        calculatePartials_ = true;
+//    }
 
     std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > getCoefficientCombinationsToUse( )
     {
@@ -297,8 +294,8 @@ public:
                     degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ) ] ;
     }
 
-    void computePartialsOfFullCoefficientsWrtTransformedCoefficients(
-            std::vector< Eigen::Matrix2d >& fullCoefficientsWrtBody2CoefficientsList );
+//    void computePartialsOfFullCoefficientsWrtTransformedCoefficients(
+//            std::vector< Eigen::Matrix2d >& fullCoefficientsWrtBody2CoefficientsList );
 
     Eigen::MatrixXd getTransformedCosineCoefficientsOfBody2( )
     {
@@ -310,49 +307,103 @@ public:
         return transformedSineCoefficientsOfBody2_;
     }
 
+    boost::shared_ptr< basic_mathematics::SphericalHarmonicTransformationCache > getTransformationCache( )
+    {
+        return transformationCache_;
+    }
+
+
 private:
 
-    double getEffectiveCoefficientMultiplier(
-            const int degree1, const int order1, const int degree2, const int order2 );
+    //! Function to return (by reference) single set of effective one-body coefficients
+    /*!
+     * Function to return (by reference) single set of effective one-body coefficients
+     * \param degree1 Degree of expansion for body 1 at which coefficient is to be retrieved
+     * \param order1 Order of expansion for body 1 at which coefficient is to be retrieved
+     * \param degree2 Degree of expansion for body 2 at which coefficient is to be retrieved
+     * \param order2 Order of expansion for body 2 at which coefficient is to be retrieved
+     * \param effectiveIndex Index in multipliers_ vector corresponding to coefficient to be retrieved from getEffectiveIndex
+     * function
+     * \param cosineCoefficient Effective cosine coefficient (returned by reference)
+     * \param sineCoefficient Effective sine coefficient (returned by reference)
+     */
+    void getCurrentEffectiveCoefficients(
+            const int degree1, const int order1, const int degree2, const int order2, const int effectiveIndex,
+            double& cosineCoefficient, double& sineCoefficient );
 
+    //! Function that updates the effective one-body coefficients from current member variables of object
+    void updateEffectiveMutualPotential( );
+
+    //! Function to initialize state-independent terms used to compute effective one-body coefficients
     void initializeMultipliers( );
 
+    //! List of combinations of degrees/orders of the two bodies that are to be used, given in order
+    //! (degree body 1, order body 1, degree body 2, order body 2)
     std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse_;
 
+    //! Function returning the cosine coefficients of body 1 in its body-fixed frame
     boost::function< Eigen::MatrixXd( ) > cosineCoefficientFunctionOfBody1_;
+
+    //! Function returning the sine coefficients of body 1 in its body-fixed frame
     boost::function< Eigen::MatrixXd( ) > sineCoefficientFunctionOfBody1_;
+
+    //! Function returning the cosine coefficients of body 2 in its body-fixed frame
     boost::function< Eigen::MatrixXd( ) > cosineCoefficientFunctionOfBody2_;
+
+    //! Function returning the sine coefficients of body 2 in its body-fixed frame
     boost::function< Eigen::MatrixXd( ) > sineCoefficientFunctionOfBody2_;
 
-
+    //! Current cosine coefficients of body 1 in its body-fixed frame
     Eigen::MatrixXd cosineCoefficientsOfBody1_;
+
+    //! Current sine coefficients of body 1 in its body-fixed frame
     Eigen::MatrixXd sineCoefficientsOfBody1_;
+
+    //! Current cosine coefficients of body 2 in its body-fixed frame
     Eigen::MatrixXd cosineCoefficientsOfBody2_;
+
+    //! Current sine coefficients of body 2 in its body-fixed frame
     Eigen::MatrixXd sineCoefficientsOfBody2_;
 
+    //! Current cosine coefficients of body 2, transformed to body-fixed frame of body 1
     Eigen::MatrixXd transformedCosineCoefficientsOfBody2_;
+
+    //! Current sine coefficients of body 2, transformed to body-fixed frame of body 1
     Eigen::MatrixXd transformedSineCoefficientsOfBody2_;
 
     std::vector< Eigen::MatrixXd > transformedCosineCoefficientsOfBody2Partials_;
     std::vector< Eigen::MatrixXd > transformedSineCoefficientsOfBody2Partials_;
 
+    //! Effective one-body cosine coefficients, for given entry of coefficientCombinationsToUse_
     std::vector< double > effectiveCosineCoefficients_;
+
+    //! Effective one-body sine coefficients, for given entry of coefficientCombinationsToUse_
     std::vector< double > effectiveSineCoefficients_;
 
+    //! State-independent multipliers to compute given entry of effectiveCosineCoefficients_/effectiveSineCoefficients_
     std::vector< double > multipliers_;
 
+    //! Object used to transform spherical harmonic coefficients of body 2 to body-fixed frame of body 1
     boost::shared_ptr< basic_mathematics::SphericalHarmonicTransformationCache > transformationCache_;
 
+    //! Function returning the effective gravitational parameter
     boost::function< double( ) > gravitationalParameterFunction_;
+
+    //! Reference (equatorial) radius of body 1
     double equatorialRadiusOfBody1_;
+
+    //! Reference (equatorial) radius of body 2
     double equatorialRadiusOfBody2_;
 
+    //! Boolean denoting whether the coefficients are (4 pi) normalized
     bool areCoefficientsNormalized_;
 
     bool calculatePartials_;
 
+    //! Maximum degree used for body 1
     int maximumDegree1_;
 
+    //! Maximum degree used for body 2
     int maximumDegree2_;
 
 };

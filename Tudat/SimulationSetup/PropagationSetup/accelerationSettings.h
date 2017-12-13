@@ -20,8 +20,6 @@
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicAcceleration.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModelTypes.h"
 #include "Tudat/SimulationSetup/PropagationSetup/createThrustModelGuidance.h"
-// #include "Tudat/Mathematics/Interpolators/createInterpolator.h"
-
 
 namespace tudat
 {

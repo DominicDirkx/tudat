@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <Tudat/Mathematics/BasicMathematics/wignerDMatrices.h>
+#include <Tudat/Mathematics/BasicMathematics/mathematicalConstants.h>
 
 namespace tudat
 {
@@ -27,11 +28,11 @@ WignerDMatricesCache::WignerDMatricesCache( const int maximumDegree ):
     }
     wignerDMatrices_[ 0 ]( 0, 0 ) = std::complex< double >( 1.0, 0.0 );
 
-    transformationMatrixToCartesianBasis_ << std::complex< double >( 1.0 / std::sqrt( 2.0 ), 0.0 ),
-            std::complex< double >( 0.0, 0.0 ), std::complex< double >( -1.0 / std::sqrt( 2.0 ), 0.0 ),
-            std::complex< double >( 0.0, 1.0 / std::sqrt( 2.0 ) ), std::complex< double >( 0.0, 0.0 ),
-            std::complex< double >( 0.0, 1.0 / std::sqrt( 2.0 ) ),
-            std::complex< double >( 0.0, 0.0 ), std::complex< double >( 1.0, 0.0 ), std::complex< double >( 0.0, 0.0 ) ;
+//    transformationMatrixToCartesianBasis_ << std::complex< double >( 1.0 / std::sqrt( 2.0 ), 0.0 ),
+//            std::complex< double >( 0.0, 0.0 ), std::complex< double >( -1.0 / std::sqrt( 2.0 ), 0.0 ),
+//            std::complex< double >( 0.0, 1.0 / std::sqrt( 2.0 ) ), std::complex< double >( 0.0, 0.0 ),
+//            std::complex< double >( 0.0, 1.0 / std::sqrt( 2.0 ) ),
+//            std::complex< double >( 0.0, 0.0 ), std::complex< double >( 1.0, 0.0 ), std::complex< double >( 0.0, 0.0 ) ;
 
 
     computeCoefficients( );
@@ -120,8 +121,8 @@ void WignerDMatricesCache::updateMatrices( const std::complex< double > cayleyKl
 
 void WignerDMatricesCache::computeAngularMomentumOperators( )
 {
-    Eigen::Vector3cd currentAngularMomentumOperatorInComplexCoordinates_, currentAngularMomentumOperatorInCartesianCoordinates_;
-    int m, k;
+    Eigen::Vector3cd currentWignerDMatrixVector, currentAngularMomentumOperatorInCartesianCoordinates_;
+    int m;
     for( int l = 0; l <= maximumDegree_; l++ )
     {
         for( int i = 0; i <= 2 * l; i++ )
@@ -129,30 +130,26 @@ void WignerDMatricesCache::computeAngularMomentumOperators( )
             m = i - l;
             for( int j = 0; j <= 2 * l; j++ )
             {
-                k = j - l;
                 if( j <= 2* l )
                 {
-                    currentAngularMomentumOperatorInComplexCoordinates_( 0 ) = angularMomentumScalingEntry0_( l, i ) *
-                            wignerDMatrices_[ l ]( i, j + 1 );
+                    currentWignerDMatrixVector( 0 ) = wignerDMatrices_[ l ]( i, j + 1 );
                 }
                 else
                 {
-                    currentAngularMomentumOperatorInComplexCoordinates_( 0 ) = 0.0;
+                    currentWignerDMatrixVector( 0 ) = 0.0;
                 }
-                currentAngularMomentumOperatorInComplexCoordinates_( 1 ) = -static_cast< double >( m ) *
-                        wignerDMatrices_[ l ]( i, j );
+                currentWignerDMatrixVector( 1 ) = wignerDMatrices_[ l ]( i, j );
                 if( j > 0 )
                 {
-                    currentAngularMomentumOperatorInComplexCoordinates_( 2 ) = angularMomentumScalingEntry2_( l, i ) *
-                            wignerDMatrices_[ l ]( i, j - 1 );
+                    currentWignerDMatrixVector( 2 ) = wignerDMatrices_[ l ]( i, j - 1 );
                 }
                 else
                 {
-                    currentAngularMomentumOperatorInComplexCoordinates_( 2 ) = 0.0;
+                    currentWignerDMatrixVector( 2 ) = 0.0;
                 }
 
-                currentAngularMomentumOperatorInCartesianCoordinates_ = transformationMatrixToCartesianBasis_ *
-                        currentAngularMomentumOperatorInComplexCoordinates_;
+                currentAngularMomentumOperatorInCartesianCoordinates_ = angularMomentumOperatorCoefficients_.at( l ).at( i ) *
+                        currentWignerDMatrixVector;
                 angularMomentumOperatorsX_[ l ]( i, j ) = currentAngularMomentumOperatorInCartesianCoordinates_( 0 );
                 angularMomentumOperatorsY_[ l ]( i, j ) = currentAngularMomentumOperatorInCartesianCoordinates_( 1 );
                 angularMomentumOperatorsZ_[ l ]( i, j ) = currentAngularMomentumOperatorInCartesianCoordinates_( 2 );
@@ -169,9 +166,8 @@ void WignerDMatricesCache::computeCoefficients( )
     coefficientsIndexZero_.resize( maximumDegree_ + 1 );
     coefficientsIndexOne_.resize( maximumDegree_ + 1 );
 
-    angularMomentumScalingEntry0_.setZero( maximumDegree_ + 1, 2 * maximumDegree_ + 1 );
-    angularMomentumScalingEntry2_.setZero( maximumDegree_ + 1, 2 * maximumDegree_ + 1 );
-
+    Eigen::Matrix3cd angularMomentumOperatorMultiplier;
+    double angularMomentumScalingEntry0, angularMomentumScalingEntry2;
     int m = 0, k = 0;
     for( int l = 0; l <= maximumDegree_; l++ )
     {
@@ -185,10 +181,19 @@ void WignerDMatricesCache::computeCoefficients( )
         {
             m = i - l;
 
-            angularMomentumScalingEntry0_( l, i ) = std::sqrt(
+            angularMomentumScalingEntry0 = std::sqrt(
                         static_cast< double >( l *( l + 1 ) - m * ( m + 1 ) ) / 2.0 );
-            angularMomentumScalingEntry2_( l, i ) = std::sqrt(
-                        -static_cast< double >( l *( l + 1 ) - m * ( m - 1 ) ) / 2.0 );
+            angularMomentumScalingEntry2 = std::sqrt(
+                        static_cast< double >( l *( l + 1 ) - m * ( m - 1 ) ) / 2.0 );
+            angularMomentumOperatorMultiplier.setZero( );
+
+            angularMomentumOperatorMultiplier( 0, 0 ) = -angularMomentumScalingEntry0;
+            angularMomentumOperatorMultiplier( 0, 2 ) = -angularMomentumScalingEntry2;
+            angularMomentumOperatorMultiplier( 1, 0 ) = -mathematical_constants::COMPLEX_I * angularMomentumScalingEntry0;
+            angularMomentumOperatorMultiplier( 1, 2 ) = mathematical_constants::COMPLEX_I * angularMomentumScalingEntry2;
+            angularMomentumOperatorMultiplier( 2, 1 ) = -static_cast< double >( m );
+
+            angularMomentumOperatorCoefficients_[ l ][ i ] = angularMomentumOperatorMultiplier;
 
             for( int j = 0; j <= 2 * l; j++ )
             {

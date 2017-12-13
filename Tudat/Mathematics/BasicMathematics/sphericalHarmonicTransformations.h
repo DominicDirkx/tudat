@@ -113,6 +113,11 @@ public:
         updatePartials_ = updatePartials;
     }
 
+    boost::shared_ptr< WignerDMatricesCache > getWignerDMatricesCache( )
+    {
+        return wignerDMatricesCache_;
+    }
+
 
 private:
 

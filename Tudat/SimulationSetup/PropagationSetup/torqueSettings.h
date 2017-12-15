@@ -73,6 +73,87 @@ public:
     int maximumOrder_;
 };
 
+class MutualExtendedBodySphericalHarmonicTorqueSettings: public TorqueSettings
+{
+public:
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param maximumDegreeOfBodyUndergoingAcceleration Maximum degree of body undergoing acceleration
+     * \param maximumOrderOfBodyUndergoingAcceleration Maximum order of body undergoing acceleration
+     * \param maximumDegreeOfBodyExertingAcceleration Maximum degree of body exerting acceleration
+     * \param maximumOrderOfBodyExertingAcceleration Maximum order of body exerting acceleration
+     */
+    MutualExtendedBodySphericalHarmonicTorqueSettings(
+            const int maximumDegreeOfBodyUndergoingAcceleration,
+            const int maximumOrderOfBodyUndergoingAcceleration,
+            const int maximumDegreeOfBodyExertingAcceleration,
+            const int maximumOrderOfBodyExertingAcceleration ):
+    TorqueSettings( basic_astrodynamics::mutual_extended_body_spherical_harmonic_gravitational_torque ),
+    maximumDegreeOfBody1_( maximumDegreeOfBodyUndergoingAcceleration ),
+    maximumDegreeOfBody2_( maximumDegreeOfBodyExertingAcceleration )
+{
+    for( int i = 0; i <= maximumDegreeOfBodyUndergoingAcceleration; i++ )
+    {
+        for( int j = 0; ( j <= maximumOrderOfBodyUndergoingAcceleration && j <= i ); j++ )
+        {
+            for( int k = 0; k <= maximumDegreeOfBodyExertingAcceleration; k++ )
+            {
+                for( int l = 0; ( l <= maximumOrderOfBodyExertingAcceleration && l <= k ); l++ )
+                {
+                    coefficientCombinationsToUse_.push_back( boost::make_tuple( i, j, k, l ) );
+                }
+            }
+        }
+    }
+}
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param coefficientCombinationsToUse List of combinations of degrees/orders of two bodies for full two-body potential, in
+     * order: (degree body 1, order body 1, degree body 2, order body 2)
+     */
+    MutualExtendedBodySphericalHarmonicTorqueSettings(
+           const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >&
+            coefficientCombinationsToUse ):
+        TorqueSettings( basic_astrodynamics::mutual_extended_body_spherical_harmonic_gravitational_torque ),
+        coefficientCombinationsToUse_( coefficientCombinationsToUse )
+    {
+
+        maximumDegreeOfBody1_ = 0;
+        maximumDegreeOfBody2_ = 0;
+
+        int degreeOfBody1, degreeOfBody2;
+        for( unsigned int i = 0; i < coefficientCombinationsToUse_.size( ); i++ )
+        {
+            degreeOfBody1 = coefficientCombinationsToUse.at( i ).get< 0 >( );
+            degreeOfBody2 = coefficientCombinationsToUse.at( i ).get< 2 >( );
+
+            if( degreeOfBody1 > maximumDegreeOfBody1_ )
+            {
+                maximumDegreeOfBody1_ = degreeOfBody1;
+            }
+
+            if( degreeOfBody2 > maximumDegreeOfBody2_ )
+            {
+                maximumDegreeOfBody2_ = degreeOfBody2;
+            }
+        }
+    }
+
+    //! Full list of combinations of degrees/orders of two bodies for full two-body potential, in
+    //! order: (degree body 1, order body 1, degree body 2, order body 2)
+    std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse_;
+
+    //! Maximum degree that is used for body 1
+    int maximumDegreeOfBody1_;
+
+    //! Maximum degree that is used for body 2
+    int maximumDegreeOfBody2_;
+};
+
 typedef std::map< std::string, std::map< std::string, std::vector< boost::shared_ptr< TorqueSettings > > > > SelectedTorqueMap;
 
 } // namespace simulation_setup

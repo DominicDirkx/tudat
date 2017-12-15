@@ -30,14 +30,11 @@ public:
 
     MutualExtendedBodySphericalHarmonicTorque(
             const boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > accelerationBetweenBodies,
-            const bool acceleratedBodyIsBody1 ):
+            const boost::function< double( ) > gravitationalParameterFunctionOfBodyUndergoingTorque ):
         accelerationBetweenBodies_( accelerationBetweenBodies ),
-        acceleratedBodyIsBody1_( acceleratedBodyIsBody1 )
+        gravitationalParameterFunctionOfBodyUndergoingTorque_( gravitationalParameterFunctionOfBodyUndergoingTorque )
     {
-        coefficientCombinationsToUse_ = accelerationBetweenBodies_->getEffectiveMutualPotentialField( )->
-                getCoefficientCombinationsToUse( );
-        wignerDMatrixCache_ = accelerationBetweenBodies_->getEffectiveMutualPotentialField( )->getTransformationCache( )->
-                getWignerDMatricesCache( );
+        effectiveCoefficientCalculator_ = accelerationBetweenBodies->getEffectiveMutualPotentialField( );
     }
 
     void updateMembers( const double currentTime = TUDAT_NAN );
@@ -47,30 +44,24 @@ public:
         return currentTorque_;
     }
 
-
-
-    std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > getCoefficientCombinationsToUse( )
+    Eigen::Vector3d getTorqueOnBodyExertingTorque( )
     {
-        return coefficientCombinationsToUse_;
+        return - ( accelerationBetweenBodies_->getCurrentRotationFromBody2ToBody1( ).inverse( ) *
+                currentAngularMomentumOpertorOfMutualPotential_ );
     }
 
 private:
 
-    void calculateDirectTorque( )
-    {
-
-    }
-
     Eigen::Vector3d currentTorque_;
+
+    //current torque acting on body exerting acceleration in frame fixed to body undergoing acceleration_
+    Eigen::Vector3d currentAngularMomentumOpertorOfMutualPotential_;
 
     boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > accelerationBetweenBodies_;
 
-    boost::shared_ptr< basic_astrodynamics::WignerDMatricesCache > wignerDMatrixCache_;
+    boost::function< double( ) > gravitationalParameterFunctionOfBodyUndergoingTorque_;
 
-    std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse_;
-
-    bool acceleratedBodyIsBody1_;
-
+    boost::shared_ptr< gravitation::EffectiveMutualSphericalHarmonicsField > effectiveCoefficientCalculator_;
 };
 
 }

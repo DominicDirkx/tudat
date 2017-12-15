@@ -276,204 +276,46 @@ int main( )
         boost::shared_ptr< SphericalHarmonicsGravityField > europaGravityField = boost::dynamic_pointer_cast< SphericalHarmonicsGravityField >(
                     ( bodyMap.at( "Europa" ) )->getGravityFieldModel( ) );
 
-        // Create central gravity acceleration (mu = Io + Jupiter)
-        boost::shared_ptr< AccelerationSettings > centralGravitySettings = boost::make_shared< AccelerationSettings >(
-                    central_gravity );
-        boost::shared_ptr< CentralGravitationalAccelerationModel3d > centralGravity =
-                boost::dynamic_pointer_cast< CentralGravitationalAccelerationModel3d >(
-                    createAccelerationModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), centralGravitySettings, "Io", "Jupiter",
-                                             bodyMap.at( "Jupiter" ), "Jupiter" ) );
-
-        // Calculate central gravity acceleration.
-        centralGravity->updateMembers( );
-        Eigen::Vector3d centralGravityAcceleration = centralGravity->getAcceleration( );
-
-        // Create spherical harmonic gravity of Jupiter on Io, Jupiter-fixed (mu = Io + Jupiter)
-        boost::shared_ptr< AccelerationSettings > sphericalHarmonicGravityOnIoFromJupiterSettings =
-                boost::make_shared< SphericalHarmonicAccelerationSettings >( expansionDegree, expansionDegree );
-        boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicGravityOnIoFromJupiter =
-                boost::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
-                    createAccelerationModel(  bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), sphericalHarmonicGravityOnIoFromJupiterSettings,
-                                              "Io", "Jupiter" ) );
-
-        // Calculate spherical harmonic gravity of Jupiter on Io.
-        sphericalHarmonicGravityOnIoFromJupiter->updateMembers( );
-        Eigen::Vector3d sphericalHarmonicGravityOnIoFromJupiterAcceleration = sphericalHarmonicGravityOnIoFromJupiter->getAcceleration( );
-        double sphericalHarmonicPotentialAtIoFromJupiter = jupiterGravityField->getGravitationalPotential(
-                    sphericalHarmonicGravityOnIoFromJupiter->getCurrentRelativePosition( ), expansionDegree, expansionDegree );
-
-        // Create spherical harmonic gravity of Io on Jupiter, Io-fixed (mu = Io + Jupiter)
-        boost::shared_ptr< AccelerationSettings > sphericalHarmonicGravityOnJupiterFromIoSettings =
-                boost::make_shared< SphericalHarmonicAccelerationSettings >( expansionDegree, expansionDegree );
-        boost::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicGravityOnJupiterFromIo =
-                boost::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
-                    createAccelerationModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ), sphericalHarmonicGravityOnJupiterFromIoSettings,
-                                             "Jupiter", "Io" ) );
-
-        // Calculate spherical harmonic gravity of Io on Jupiter.
-        sphericalHarmonicGravityOnJupiterFromIo->updateMembers( );
-        Eigen::Vector3d sphericalHarmonicGravityOnJupiterFromIoAcceleration = sphericalHarmonicGravityOnJupiterFromIo->getAcceleration( );
-        double sphericalHarmonicPotentialAtJupiterFromIo = ioGravityField->getGravitationalPotential(
-                    sphericalHarmonicGravityOnJupiterFromIo->getCurrentRelativePosition( ), expansionDegree, expansionDegree );
-
-        // Create mutual spherical harmonic gravity between Io and Jupiter on Io, Jupiter fixed (mu = Io + Jupiter)
-        boost::shared_ptr< AccelerationSettings > mutualDirectJupiterIoShGravitySettings =
-                boost::make_shared< MutualSphericalHarmonicAccelerationSettings >( expansionDegree, expansionDegree, expansionDegree, expansionDegree );
-        boost::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > mutualDirectJupiterIoShGravity =
-                boost::dynamic_pointer_cast< MutualSphericalHarmonicsGravitationalAccelerationModel >(
-                    createAccelerationModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), mutualDirectJupiterIoShGravitySettings,
-                                             "Io", "Jupiter" ) );
-
-        mutualDirectJupiterIoShGravity->updateMembers( );
-        Eigen::Vector3d mutualSphericalHarmonicGravityOnIoFromJupiterAcceleration = mutualDirectJupiterIoShGravity->getAcceleration( );
-
-
         {
             // Create (through mutual extended body interface) central gravity acceleration (mu = Io + Jupiter)
-            boost::shared_ptr< AccelerationSettings > extendedBodySettings = boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
-                        expansionDegree, expansionDegree, 0, 0 );
-            boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > sh1ExtendedGravity =
-                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAcceleration >(
-                        createAccelerationModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), extendedBodySettings, "Io", "Jupiter" ) );
-            sh1ExtendedGravity->updateMembers( );
-            Eigen::Vector3d sh1ExtendedGravityAcceleration = sh1ExtendedGravity->getAcceleration( );
-
-            Eigen::Vector3d precomputedAcceleration = ( ( -1.0 * spice_interface::getBodyGravitationalParameter( "Jupiter" ) ) /
-                                                        5.959916033410404E012 * sphericalHarmonicGravityOnJupiterFromIoAcceleration );
-
-            Eigen::Vector3d accelerationDifference = precomputedAcceleration - sh1ExtendedGravityAcceleration;
-
-            for( unsigned int i = 0; i < 3; i++ )
-            {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
-            }
-        }
-
-
-        {
-            // Create (through mutual extended body interface) central gravity acceleration (mu = Io + Jupiter)
-            boost::shared_ptr< AccelerationSettings > extendedBodySettings = boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
-                        0, 0, expansionDegree, expansionDegree );
-            boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > sh1ExtendedGravity =
-                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAcceleration >(
-                        createAccelerationModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ), extendedBodySettings, "Io", "Jupiter" ) );
-            sh1ExtendedGravity->updateMembers( );
-            Eigen::Vector3d sh1ExtendedGravityAcceleration = sh1ExtendedGravity->getAcceleration( );;
-
-            Eigen::Vector3d accelerationDifference = sphericalHarmonicGravityOnIoFromJupiterAcceleration - sh1ExtendedGravityAcceleration;
-
-            for( unsigned int i = 0; i < 3; i++ )
-            {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
-            }
-        }
-
-        {
-            // Create (through mutual extended body interface) central gravity acceleration (mu = Io + Jupiter)
-            boost::shared_ptr< AccelerationSettings > extendedBodySettings = boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
-                        0, 0, expansionDegree, expansionDegree );
-            boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > sh1ExtendedGravity =
-                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAcceleration >(
-                        createAccelerationModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ), extendedBodySettings, "Jupiter", "Io" ) );
-            sh1ExtendedGravity->updateMembers( );
-            Eigen::Vector3d sh1ExtendedGravityAcceleration = sh1ExtendedGravity->getAcceleration( );
-
-            Eigen::Vector3d accelerationDifference = sphericalHarmonicGravityOnJupiterFromIoAcceleration - sh1ExtendedGravityAcceleration;
-
-            for( unsigned int i = 0; i < 3; i++ )
-            {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
-            }
-        }
-
-        {
-            // Create (through mutual extended body interface) central gravity acceleration (mu = Io + Jupiter)
-            boost::shared_ptr< AccelerationSettings > extendedBodySettings = boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
-                        expansionDegree, expansionDegree, 0, 0 );
-            boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > sh1ExtendedGravity =
-                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAcceleration >(
-                        createAccelerationModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ), extendedBodySettings, "Jupiter", "Io" ) );
-            sh1ExtendedGravity->updateMembers( );
-            Eigen::Vector3d sh1ExtendedGravityAcceleration = sh1ExtendedGravity->getAcceleration( );
-
-            Eigen::Vector3d precomputedAcceleration = -1.0 * spice_interface::getBodyGravitationalParameter( "Jupiter" ) /
-                    5.959916033410404E012 * sh1ExtendedGravityAcceleration;
-
-            Eigen::Vector3d accelerationDifference = sphericalHarmonicGravityOnIoFromJupiterAcceleration - precomputedAcceleration;
-
-            for( unsigned int i = 0; i < 3; i++ )
-            {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
-            }
-        }
-
-        {
-            // Create (through mutual extended body interface) central gravity acceleration (mu = Io + Jupiter)
-            boost::shared_ptr< AccelerationSettings > extendedBodySettings = boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
-                        getExtendedSinglePointMassInteractions( expansionDegree, expansionDegree, expansionDegree, expansionDegree ) );
-            boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > sh1ExtendedGravity =
-                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAcceleration >(
-                        createAccelerationModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ),  extendedBodySettings, "Io", "Jupiter" ) );
-            sh1ExtendedGravity->updateMembers( );
-            Eigen::Vector3d sh1ExtendedGravityAcceleration = sh1ExtendedGravity->getAcceleration( );
-
-            Eigen::Vector3d accelerationDifference = mutualSphericalHarmonicGravityOnIoFromJupiterAcceleration - sh1ExtendedGravityAcceleration;
-
-            for( unsigned int i = 0; i < 3; i++ )
-            {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
-            }
-        }
-
-        {
-            // Create (through mutual extended body interface) central gravity acceleration (mu = Io + Jupiter)
-            boost::shared_ptr< AccelerationSettings > extendedBodySettings = boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
-                        getExtendedSinglePointMassInteractions( expansionDegree, expansionDegree, expansionDegree, expansionDegree ) );
-            boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > sh1ExtendedGravity =
-                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAcceleration >(
-                        createAccelerationModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ),  extendedBodySettings, "Jupiter", "Io" ) );
-            sh1ExtendedGravity->updateMembers( );
-            Eigen::Vector3d sh1ExtendedGravityAcceleration = sh1ExtendedGravity->getAcceleration( );
-
-            Eigen::Vector3d precomputedAcceleration = -1.0 * spice_interface::getBodyGravitationalParameter( "Jupiter" ) /
-                    5.959916033410404E012 * sh1ExtendedGravityAcceleration;
-
-            Eigen::Vector3d accelerationDifference = mutualSphericalHarmonicGravityOnIoFromJupiterAcceleration - precomputedAcceleration;
-
-            for( unsigned int i = 0; i < 3; i++ )
-            {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
-            }
-
-        }
-
-        {
-            std::cout<<"A"<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl<<std::endl;
-            // Create (through mutual extended body interface) central gravity acceleration (mu = Io + Jupiter)
-            boost::shared_ptr< AccelerationSettings > extendedBodySettings = boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
-                        getExtendedSinglePointMassInteractions( expansionDegree, expansionDegree, 0, 0 ) );
+            boost::shared_ptr< TorqueSettings > sphericalHarmonicTorqueSettings = boost::make_shared< SphericalHarmonicTorqueSettings >(
+                        2, 2 );
             boost::shared_ptr< TorqueSettings > extendedBodyTorqueSettings = boost::make_shared< MutualExtendedBodySphericalHarmonicTorqueSettings >(
-                        2, 2, 2, 2 );
-//                        getExtendedSinglePointMassInteractions( 2, 2, 2, 2 ) );
-//            boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > extendedGravityAcceleration =
-//                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicAcceleration >(
-//                        createAccelerationModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ),  extendedBodySettings, "Jupiter", "Io" ) );
-
-            std::cout<<"B"<<std::endl;
+                        getExtendedSinglePointMassInteractions( 1, 1, 0, 0, false ) );
+            boost::shared_ptr< TorqueSettings > oppositeExtendedBodyTorqueSettings = boost::make_shared< MutualExtendedBodySphericalHarmonicTorqueSettings >(
+                        getExtendedSinglePointMassInteractions( 0, 0, 1, 1, false ) );
 
             boost::shared_ptr< MutualExtendedBodySphericalHarmonicTorque > extendedGravityTorque =
                     boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicTorque >(
                         createTorqueModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ),  extendedBodyTorqueSettings, "Jupiter", "Io" ) );
-
-            std::cout<<"C"<<std::endl;
-
-            //extendedGravityAcceleration->updateMembers( );
-
-            std::cout<<"D"<<std::endl;
-
             extendedGravityTorque->updateMembers( );
 
+            boost::shared_ptr< MutualExtendedBodySphericalHarmonicTorque > oppositeExtendedGravityTorque =
+                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicTorque >(
+                        createTorqueModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ),  oppositeExtendedBodyTorqueSettings, "Io", "Jupiter" ) );
+            oppositeExtendedGravityTorque->updateMembers( );
+
+            boost::shared_ptr< SphericalHarmonicGravitationalTorqueModel > sphericalHarmonicTorque =
+                    boost::dynamic_pointer_cast< SphericalHarmonicGravitationalTorqueModel >(
+                        createTorqueModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ),  sphericalHarmonicTorqueSettings, "Jupiter", "Io" ) );
+            sphericalHarmonicTorque->updateMembers( );
+
+
+
+            std::cout<<"Sh. torque: "<<sphericalHarmonicTorque->getTorque( ).transpose( )<<std::endl;
+
+            std::cout<<"Full torque: "<<extendedGravityTorque->getTorque( ).transpose( )<<std::endl;
+
+            std::cout<<"Torque ratio: "<<std::setprecision( 16 )<<
+                       ( ( extendedGravityTorque->getTorque( ) - sphericalHarmonicTorque->getTorque( ) ).cwiseQuotient(
+                                               sphericalHarmonicTorque->getTorque( ) ) )<<std::endl;
+
             std::cout<<"E"<<std::endl;
+            std::cout<<oppositeExtendedGravityTorque->getTorque( )<<std::endl;
+            std::cout<<oppositeExtendedGravityTorque->getTorqueOnBodyExertingTorque( )<<std::endl<<std::endl;
+
+            std::cout<<extendedGravityTorque->getTorque( )<<std::endl;
+            std::cout<<extendedGravityTorque->getTorqueOnBodyExertingTorque( )<<std::endl;
 
 
         }

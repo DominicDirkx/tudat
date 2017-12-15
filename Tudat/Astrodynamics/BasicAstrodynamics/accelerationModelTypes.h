@@ -18,6 +18,7 @@
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/mutualSphericalHarmonicGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/thirdBodyPerturbation.h"
+#include "Tudat/Astrodynamics/Gravitation/mutualExtendedBodySphericalHarmonicAcceleration.h"
 #include "Tudat/Astrodynamics/Gravitation/directTidalDissipationAcceleration.h"
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicAcceleration.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/massRateModel.h"

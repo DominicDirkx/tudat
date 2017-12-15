@@ -11,7 +11,8 @@ std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned in
         const int maximumDegreeOfBodyUndergoingAcceleration,
         const int maximumOrderOfBodyUndergoingAcceleration,
         const int maximumDegreeOfBodyExertingAcceleration,
-        const int maximumOrderOfBodyExertingAcceleration )
+        const int maximumOrderOfBodyExertingAcceleration,
+        const bool includePointMass )
 {
     std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse;
 
@@ -31,7 +32,10 @@ std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned in
         }
     }
 
-    coefficientCombinationsToUse.push_back( boost::make_tuple( 0, 0, 0, 0 ) );
+    if( includePointMass )
+    {
+        coefficientCombinationsToUse.push_back( boost::make_tuple( 0, 0, 0, 0 ) );
+    }
 
     return coefficientCombinationsToUse;
 }

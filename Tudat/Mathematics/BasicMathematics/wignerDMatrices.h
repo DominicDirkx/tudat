@@ -68,6 +68,11 @@ public:
         return wignerDMatrices_[ degree ]( originalOrder + degree, newOrder + degree );
     }
 
+    Eigen::Vector3cd getAngularMomentumOperatorOnWignerDCoefficient( const int degree, const int originalOrder, const int newOrder )
+    {
+        return angularMomentumOperator_[ degree ][ originalOrder ][ newOrder ];
+    }
+
 
     //! Function to retrieve single Wigner D-matrix
     /*!
@@ -118,11 +123,7 @@ private:
     //! List of Wigner D-matrices
     std::vector< Eigen::MatrixXcd > wignerDMatrices_;
 
-    std::vector< Eigen::MatrixXcd > angularMomentumOperatorsX_;
-
-    std::vector< Eigen::MatrixXcd > angularMomentumOperatorsY_;
-
-    std::vector< Eigen::MatrixXcd > angularMomentumOperatorsZ_;
+    std::map< int, std::map< int, std::map< int, Eigen::Vector3cd > > > angularMomentumOperator_;
 
     //! Cayley-Klein parameter a for current orientation.
     std::complex< double > currentCayleyKleinA_;

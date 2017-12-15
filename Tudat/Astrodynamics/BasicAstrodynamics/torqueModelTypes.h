@@ -30,7 +30,9 @@ enum AvailableTorque
     underfined_torque = -1,
     second_order_gravitational_torque = 0,
     aerodynamic_torque = 1,
-    spherical_harmonic_gravitational_torque = 2
+    spherical_harmonic_gravitational_torque = 2,
+    mutual_extended_body_spherical_harmonic_gravitational_torque = 3
+
 };
 
 //! Function to identify the derived class type of a torque model.

@@ -14,17 +14,10 @@ WignerDMatricesCache::WignerDMatricesCache( const int maximumDegree ):
     maximumDegree_( maximumDegree ), computeAngularMomentumOperators_( false )
 {
     wignerDMatrices_.resize( maximumDegree + 1 );
-    angularMomentumOperatorsX_.resize( maximumDegree + 1 );
-    angularMomentumOperatorsY_.resize( maximumDegree + 1 );
-    angularMomentumOperatorsZ_.resize( maximumDegree + 1 );
 
     for( int l = 0; l <= maximumDegree; l++ )
     {
         wignerDMatrices_[ l ] = Eigen::MatrixXd::Zero( 2 * l + 1, 2 * l + 1 );
-        angularMomentumOperatorsX_[ l ] = Eigen::MatrixXd::Zero( 2 * l + 1, 2 * l + 1 );
-        angularMomentumOperatorsY_[ l ] = Eigen::MatrixXd::Zero( 2 * l + 1, 2 * l + 1 );
-        angularMomentumOperatorsZ_[ l ] = Eigen::MatrixXd::Zero( 2 * l + 1, 2 * l + 1 );
-
     }
     wignerDMatrices_[ 0 ]( 0, 0 ) = std::complex< double >( 1.0, 0.0 );
 
@@ -113,7 +106,7 @@ void WignerDMatricesCache::updateMatrices( const std::complex< double > cayleyKl
         }
     }
 
-    if( computeAngularMomentumOperators_ )
+    //if( computeAngularMomentumOperators_ )
     {
         computeAngularMomentumOperators( );
     }
@@ -122,7 +115,7 @@ void WignerDMatricesCache::updateMatrices( const std::complex< double > cayleyKl
 void WignerDMatricesCache::computeAngularMomentumOperators( )
 {
     Eigen::Vector3cd currentWignerDMatrixVector, currentAngularMomentumOperatorInCartesianCoordinates_;
-    int m;
+    int m, k;
     for( int l = 0; l <= maximumDegree_; l++ )
     {
         for( int i = 0; i <= 2 * l; i++ )
@@ -130,6 +123,7 @@ void WignerDMatricesCache::computeAngularMomentumOperators( )
             m = i - l;
             for( int j = 0; j <= 2 * l; j++ )
             {
+                k = j - l;
                 if( j <= 2* l )
                 {
                     currentWignerDMatrixVector( 0 ) = wignerDMatrices_[ l ]( i, j + 1 );
@@ -150,9 +144,7 @@ void WignerDMatricesCache::computeAngularMomentumOperators( )
 
                 currentAngularMomentumOperatorInCartesianCoordinates_ = angularMomentumOperatorCoefficients_.at( l ).at( i ) *
                         currentWignerDMatrixVector;
-                angularMomentumOperatorsX_[ l ]( i, j ) = currentAngularMomentumOperatorInCartesianCoordinates_( 0 );
-                angularMomentumOperatorsY_[ l ]( i, j ) = currentAngularMomentumOperatorInCartesianCoordinates_( 1 );
-                angularMomentumOperatorsZ_[ l ]( i, j ) = currentAngularMomentumOperatorInCartesianCoordinates_( 2 );
+                angularMomentumOperator_[ l ][ m ][ k ] = currentAngularMomentumOperatorInCartesianCoordinates_;
 
             }
         }

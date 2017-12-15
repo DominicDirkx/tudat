@@ -10,27 +10,24 @@ namespace gravitation
 void MutualExtendedBodySphericalHarmonicTorque::updateMembers( const double currentTime )
 {
 
-    return computeMutualForcePotential(
-                bodyFixedPosition, gravitationalParameterFunction_( ), equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
-                maximumDegree1_, maximumDegree2_,
-                boost::bind(
-                    &EffectiveMutualSphericalHarmonicsField::getEffectiveCosineCoefficient,
-                    this, _1, _2, _3, _4 ),
-                boost::bind(
-                    &EffectiveMutualSphericalHarmonicsField::getEffectiveSineCoefficient,
-                    this, _1, _2, _3, _4 ), coefficientCombinationsToUse_,
-                sphericalHarmonicsCache );
+    accelerationBetweenBodies_->updateMembers( currentTime );
 
+    currentAngularMomentumOpertorOfMutualPotential_ =
+            gravitationalParameterFunctionOfBodyUndergoingTorque_( ) / physical_constants::GRAVITATIONAL_CONSTANT *
+            effectiveCoefficientCalculator_->getAngularMomentumOpertorOfGravitationalPotential(
+                accelerationBetweenBodies_->getCurrentRelativePosition( ),
+                accelerationBetweenBodies_->getSphericalHarmonicsCache( ) );
 
-//    if( acceleratedBodyIsBody1_ )
-//    {
-//        currentTorque_ = -acceleratedBodyIsBody1_ - ( accelerationBetweenBodies_->getCurrentRelativePosition( ) ).cross(
-//                    accelerationBetweenBodies_->getAcceleration( ) );
-//    }
-//    else
-//    {
-//        currentTorque_ = acceleratedBodyIsBody1_;
-//    }
+    std::cout<<"Torque cross-product extended: "<<std::endl<<
+               accelerationBetweenBodies_->getCurrentRelativePosition( ).norm( )<<" "<<
+               accelerationBetweenBodies_->getCurrentRelativePosition( ).transpose( )<<std::endl<<
+               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).norm( )<<" "<<
+               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).transpose( )<<std::endl;
+
+    currentTorque_ = currentAngularMomentumOpertorOfMutualPotential_ -
+            accelerationBetweenBodies_->getCurrentBodyFixedRelativePosition( ).cross(
+                gravitationalParameterFunctionOfBodyUndergoingTorque_( ) / physical_constants::GRAVITATIONAL_CONSTANT *
+                accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ) );
 
 }
 

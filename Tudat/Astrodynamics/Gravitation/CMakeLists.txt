@@ -127,6 +127,10 @@ add_executable(test_MutualExtendedBodySphericalHarmonicGravity "${SRCROOT}${GRAV
 setup_custom_test_program(test_MutualExtendedBodySphericalHarmonicGravity "${SRCROOT}${GRAVITATIONDIR}")
 target_link_libraries(test_MutualExtendedBodySphericalHarmonicGravity ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
 
+add_executable(test_MutualExtendedBodySphericalHarmonicGravityTorque "${SRCROOT}${GRAVITATIONDIR}/UnitTests/unitTestMutualExtendedBodySphericalHarmonicTorque.cpp")
+setup_custom_test_program(test_MutualExtendedBodySphericalHarmonicGravityTorque "${SRCROOT}${GRAVITATIONDIR}")
+target_link_libraries(test_MutualExtendedBodySphericalHarmonicGravityTorque ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
+
 add_executable(test_GravitationalTorques "${SRCROOT}${GRAVITATIONDIR}/UnitTests/unitTestGravitationalTorques.cpp")
 setup_custom_test_program(test_GravitationalTorques "${SRCROOT}${GRAVITATIONDIR}")
 target_link_libraries(test_GravitationalTorques ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})

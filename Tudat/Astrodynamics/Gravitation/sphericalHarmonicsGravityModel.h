@@ -336,6 +336,10 @@ public:
             rotationToIntegrationFrame_ = rotationFromBodyFixedToIntegrationFrameFunction_( );
             this->updateBaseMembers( );
 
+            std::cout<<"Current rotation to body sh.: "<<std::endl<<
+                       rotationToIntegrationFrame_.inverse( ).toRotationMatrix( )<<std::endl;
+
+
             currentInertialRelativePosition_ =
                     this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
 

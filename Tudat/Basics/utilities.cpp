@@ -61,6 +61,18 @@ boost::array< boost::multi_array< double, 3 >::index, 3 > getMultiArrayIndexArra
     return currentIndices;
 }
 
+template< >
+double getZeroEntry< double >( )
+{
+    return 0.0;
+}
+
+template< >
+Eigen::Vector3d getZeroEntry< Eigen::Vector3d >( )
+{
+    return Eigen::Vector3d::Zero( );
+}
+
 }
 
 }

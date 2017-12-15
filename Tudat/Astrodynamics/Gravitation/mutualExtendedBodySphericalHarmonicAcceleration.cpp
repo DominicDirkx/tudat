@@ -88,6 +88,10 @@ void MutualExtendedBodySphericalHarmonicAcceleration::updateMembers( const doubl
         currentBodyFixedRelativePosition_ =
                 currentRotationFromInertialToBody1 * ( currentRelativePosition_ );
 
+        std::cout<<"Current rotation to body undergoing ext.: "<<std::endl<<
+                   currentRotationFromInertialToBody1.toRotationMatrix( )<<std::endl;
+        std::cout<<"Current rotation to body exerting ext.: "<<std::endl<<toLocalFrameOfBody2Transformation_( ).toRotationMatrix( )<<std::endl;
+
         // Compute effective one-body coefficients for current state
         effectiveMutualPotentialField_->computeCurrentEffectiveCoefficients( currentRotationFromBody2ToBody1_ );
 
@@ -106,7 +110,7 @@ void MutualExtendedBodySphericalHarmonicAcceleration::updateMembers( const doubl
         // Compute acceleration in frame fixed to body 1.
         if( areCoefficientsNormalized_ )
         {
-            mutualPotentialGradient_ = computeGeodesyNormalizedMutualGravitationalAccelerationSum(
+            currentAccelerationInBodyFixedFrame_ = computeGeodesyNormalizedMutualGravitationalAccelerationSum(
                         currentBodyFixedRelativePosition_, gravitationalParameterFunction_( ),
                         equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
                         effectiveCosineCoefficientFunction_, effectiveSineCoefficientFunction_,
@@ -120,14 +124,14 @@ void MutualExtendedBodySphericalHarmonicAcceleration::updateMembers( const doubl
         }
         else
         {            
-            mutualPotentialGradient_ = computeUnnormalizedMutualGravitationalAccelerationSum(
+            currentAccelerationInBodyFixedFrame_ = computeUnnormalizedMutualGravitationalAccelerationSum(
                         currentBodyFixedRelativePosition_, gravitationalParameterFunction_( ),
                         equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
                         effectiveCosineCoefficientFunction_, effectiveSineCoefficientFunction_,
                         coefficientCombinationsToUse_, sphericalHarmonicsCache_ );
         }
 
-        currentAcceleration_ = currentRotationFromInertialToBody1.inverse( ) * mutualPotentialGradient_;
+        currentAcceleration_ = currentRotationFromInertialToBody1.inverse( ) * currentAccelerationInBodyFixedFrame_;
         currentTime_ = currentTime;
     }
 }

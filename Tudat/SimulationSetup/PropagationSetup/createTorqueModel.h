@@ -18,6 +18,7 @@
 #include "Tudat/SimulationSetup/PropagationSetup/torqueSettings.h"
 #include "Tudat/Astrodynamics/Gravitation/secondDegreeGravitationalTorque.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicGravitationalTorque.h"
+#include "Tudat/Astrodynamics/Gravitation/mutualExtendedBodySphericalHarmonicTorque.h"
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicTorque.h"
 
 namespace tudat
@@ -71,6 +72,13 @@ boost::shared_ptr< gravitation::SecondDegreeGravitationalTorqueModel > createSec
 *  \return Direct gravitational torque model of requested settings.
 */
 boost::shared_ptr< gravitation::SphericalHarmonicGravitationalTorqueModel > createSphericalHarmonicGravitationalTorqueModel(
+        const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
+        const boost::shared_ptr< simulation_setup::Body > bodyExertingTorque,
+        const boost::shared_ptr< TorqueSettings > torqueSettings,
+        const std::string& nameOfBodyUndergoingTorque,
+        const std::string& nameOfBodyExertingTorque );
+
+boost::shared_ptr< gravitation::MutualExtendedBodySphericalHarmonicTorque > createMutualExtendedBodySphericalHarmonicGravitationalTorqueModel(
         const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
         const boost::shared_ptr< simulation_setup::Body > bodyExertingTorque,
         const boost::shared_ptr< TorqueSettings > torqueSettings,

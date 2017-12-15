@@ -171,6 +171,39 @@ boost::shared_ptr< gravitation::SphericalHarmonicGravitationalTorqueModel > crea
                 boost::bind( &Body::getBodyMass, bodyExertingTorque ) );
 }
 
+
+//! Function to create a spherical harmonic gravitational torque
+boost::shared_ptr< gravitation::MutualExtendedBodySphericalHarmonicTorque > createMutualExtendedBodySphericalHarmonicGravitationalTorqueModel(
+        const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
+        const boost::shared_ptr< simulation_setup::Body > bodyExertingTorque,
+        const boost::shared_ptr< TorqueSettings > torqueSettings,
+        const std::string& nameOfBodyUndergoingTorque,
+        const std::string& nameOfBodyExertingTorque )
+{
+    boost::shared_ptr< MutualExtendedBodySphericalHarmonicTorqueSettings > sphericalHarmonicTorqueSettings =
+            boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicTorqueSettings >( torqueSettings );
+
+    if( sphericalHarmonicTorqueSettings == NULL )
+    {
+        throw std::runtime_error( "Error when creating mutual extended body spherical harmonic torque, input is inconsistent" );
+    }
+
+    boost::shared_ptr< AccelerationSettings > sphericalHarmonicAccelerationSettings =
+            boost::make_shared< MutualExtendedBodySphericalHarmonicAccelerationSettings >(
+                sphericalHarmonicTorqueSettings->coefficientCombinationsToUse_ );
+
+    boost::shared_ptr< gravitation::MutualExtendedBodySphericalHarmonicAcceleration > sphericalHarmonicAcceleration =
+            boost::dynamic_pointer_cast< gravitation::MutualExtendedBodySphericalHarmonicAcceleration >(
+                 createMutualExtendedBodySphericalHarmonicsGravityAcceleration(
+                    bodyUndergoingTorque, bodyExertingTorque, nameOfBodyUndergoingTorque, nameOfBodyExertingTorque,
+                    sphericalHarmonicAccelerationSettings, false ) );
+
+    return boost::make_shared< gravitation::MutualExtendedBodySphericalHarmonicTorque >(
+                sphericalHarmonicAcceleration,
+                boost::bind( &gravitation::GravityFieldModel::getGravitationalParameter,
+                             bodyUndergoingTorque->getGravityFieldModel( ) ) );
+}
+
 //! Function to create torque model object.
 boost::shared_ptr< basic_astrodynamics::TorqueModel > createTorqueModel(
         const boost::shared_ptr< simulation_setup::Body > bodyUndergoingTorque,
@@ -198,6 +231,12 @@ boost::shared_ptr< basic_astrodynamics::TorqueModel > createTorqueModel(
     case basic_astrodynamics::spherical_harmonic_gravitational_torque:
     {
         torqueModel = createSphericalHarmonicGravitationalTorqueModel(
+                    bodyUndergoingTorque, bodyExertingTorque, torqueSettings, nameOfBodyUndergoingTorque, nameOfBodyExertingTorque );
+        break;
+    }
+    case basic_astrodynamics::mutual_extended_body_spherical_harmonic_gravitational_torque:
+    {
+        torqueModel = createMutualExtendedBodySphericalHarmonicGravitationalTorqueModel(
                     bodyUndergoingTorque, bodyExertingTorque, torqueSettings, nameOfBodyUndergoingTorque, nameOfBodyExertingTorque );
         break;
     }

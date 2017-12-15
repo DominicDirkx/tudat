@@ -37,7 +37,8 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
         const Eigen::MatrixXd& originalSineCoefficients,
         Eigen::MatrixXd& currentCosineCoefficients,
         Eigen::MatrixXd& currentSineCoefficients,
-        const bool areCoefficientsNormalized )
+        const bool areCoefficientsNormalized,
+        const bool computeAngularMomentumOperatorProduct )
 {
     // Resize transformed coefficients
     currentCosineCoefficients.setZero( originalCosineCoefficients.rows( ), originalCosineCoefficients.cols( ) );
@@ -72,6 +73,23 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
             currentSineCoefficients( l, m ) +=
                     ( currentMultiplier ) * orderZeroDFunction.imag( ) * originalCosineCoefficients( l, 0 );
 
+            if( computeAngularMomentumOperatorProduct )
+            {
+                currentAngularMomentumProduceCosineCoefficients_[ l ][ m ].setZero( );
+                currentAngularMomentumProduceSineCoefficients_[ l ][ m ].setZero( );
+
+                Eigen::Vector3cd orderZeroAngularMomentumOperator =
+                        wignerDMatricesCache_->getAngularMomentumOperatorOnWignerDCoefficient( l, m, 0 );
+
+                std::cout<<" wigner d function ang. mom "<<l<<" "<<m<<" "<<orderZeroAngularMomentumOperator.transpose( )<<std::endl;
+
+                currentAngularMomentumProduceCosineCoefficients_[ l ][ m ] +=
+                        ( currentMultiplier ) * orderZeroAngularMomentumOperator.real( ) * originalCosineCoefficients( l, 0 );
+                currentAngularMomentumProduceSineCoefficients_[ l ][ m ] +=
+                        ( currentMultiplier ) * orderZeroAngularMomentumOperator.imag( ) * originalCosineCoefficients( l, 0 );
+
+            }
+
             // Iterate over all original orders, and transform to new coefficients
             for( int k = 1; k <= static_cast< int >( l ); k++ )
             {
@@ -104,6 +122,31 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
                             originalCosineCoefficients( l, k )  +
                             ( -signMultiplier * orderKDFunction.real( ) + orderMinusKDFunction.real( ) ) *
                             originalSineCoefficients( l, k ) );
+
+                if( computeAngularMomentumOperatorProduct )
+                {
+                    Eigen::Vector3cd orderKAngularMomentumOperator =
+                            wignerDMatricesCache_->getAngularMomentumOperatorOnWignerDCoefficient( l, m, k );
+                    Eigen::Vector3cd orderMinusKAngularMomentumOperator =
+                            wignerDMatricesCache_->getAngularMomentumOperatorOnWignerDCoefficient( l, m, -k );
+
+                    currentAngularMomentumProduceCosineCoefficients_[ l ][ m ] += 0.5 * currentMultiplier * (
+                                ( signMultiplier * orderKAngularMomentumOperator.real( ) +
+                                  orderMinusKAngularMomentumOperator.real( ) ) *
+                                originalCosineCoefficients( l, k )  +
+                                ( signMultiplier * orderKAngularMomentumOperator.imag( ) -
+                                  orderMinusKAngularMomentumOperator.imag( ) ) *
+                                originalSineCoefficients( l, k ) );
+                    currentAngularMomentumProduceSineCoefficients_[ l ][ m ] += 0.5 * currentMultiplier * (
+                                ( signMultiplier * orderKAngularMomentumOperator.imag( ) +
+                                  orderMinusKAngularMomentumOperator.imag( ) ) *
+                                originalCosineCoefficients( l, k )  +
+                                ( -signMultiplier * orderKAngularMomentumOperator.real( ) +
+                                  orderMinusKAngularMomentumOperator.real( ) ) *
+                                originalSineCoefficients( l, k ) );
+
+
+                }
             }
 
             // Compute final scaling
@@ -116,8 +159,30 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
                 currentCosineCoefficients( l, m ) = currentCosineCoefficients( l, m ) * 2.0;
                 currentSineCoefficients( l, m ) = currentSineCoefficients( l, m ) * 2.0;
             }
+
+            if( computeAngularMomentumOperatorProduct )
+            {
+                currentAngularMomentumProduceCosineCoefficients_[ l ][ m ] =
+                        currentAngularMomentumProduceCosineCoefficients_[ l ][ m ] *
+                        ( ( ( m % 2 ) == 0 ) ? ( 1.0 ) : ( -1.0 ) );
+                currentAngularMomentumProduceSineCoefficients_[ l ][ m ] =
+                        currentAngularMomentumProduceSineCoefficients_[ l ][ m ] *
+                        ( ( ( ( m + 1 ) % 2 ) == 0 ) ? ( 1.0 ) : ( -1.0 ) );
+                if( m > 0 )
+                {
+                    currentAngularMomentumProduceCosineCoefficients_[ l ][ m ] =
+                            currentAngularMomentumProduceCosineCoefficients_[ l ][ m ] * 2.0;
+                    currentAngularMomentumProduceSineCoefficients_[ l ][ m ] =
+                            currentAngularMomentumProduceSineCoefficients_[ l ][ m ] * 2.0;
+                }
+            }
+
+            std::cout<<"Ang. mom operator of single coefficient: "<<l<<" "<<m<<std::endl<<
+                       currentAngularMomentumProduceCosineCoefficients_[ l ][ m ].transpose( )<<" "<<
+                       currentAngularMomentumProduceSineCoefficients_[ l ][ m ].transpose( )<<std::endl;
         }
     }
+    std::cout<<std::endl<<std::endl<<std::endl;
 }
 
 }

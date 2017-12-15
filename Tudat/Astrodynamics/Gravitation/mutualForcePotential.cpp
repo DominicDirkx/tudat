@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "Tudat/Mathematics/BasicMathematics/coordinateConversions.h"
 #include "Tudat/Mathematics/BasicMathematics/basicMathematicsFunctions.h"
 #include "Tudat/Astrodynamics/Gravitation/mutualForcePotential.h"
 
@@ -82,114 +81,6 @@ double getMutualPotentialEffectiveCoefficientMultiplier(
                 ( ( order1 == 0 ) ? ( 1.0 ) : ( 0.5 ) ) * ( ( order2 == 0 ) ? ( 1.0 ) : ( 0.5 ) ) *
                 ( ( degree1 % 2 == 0 ) ? ( 1.0 ) : ( -1.0 ) );
     }
-}
-
-double computeSingleMutualForcePotentialTerm(
-        const double effectiveCosineCoefficient,
-        const double effectiveSineCoefficient,
-        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
-        const int degreeOfBody1,
-        const int orderOfBody1,
-        const int degreeOfBody2,
-        const int orderOfBody2 )
-{
-    return ( effectiveCosineCoefficient * sphericalHarmonicsCache->getCosineOfMultipleLongitude(
-                 std::abs( orderOfBody1 + orderOfBody2 ) ) +
-             effectiveSineCoefficient * sphericalHarmonicsCache->getSineOfMultipleLongitude(
-                 std::abs( orderOfBody1 + orderOfBody2 ) ) ) *
-            sphericalHarmonicsCache->getLegendreCache( )->getLegendrePolynomial(
-                degreeOfBody1 + degreeOfBody2, std::abs( orderOfBody1 + orderOfBody2 ) );
-}
-
-double computeMutualForcePotential(
-        const Eigen::Vector3d& bodyFixedPosition,
-        const double effectiveGravitationalParameterOfBody1,
-        const double equatorialRadiusOfBody1,
-        const double equatorialRadiusOfBody2,
-        const int maximumDegreeOfBody1,
-        const int maximumDegreeOfBody2,
-        const boost::function< double( int, int, int, int ) >& effectiveCosineCoefficientFunction,
-        const boost::function< double( int, int, int, int ) >& effectiveSineCoefficientFunction,
-        const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
-        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
-{
-    
-    // Determine body fixed spherical position of body udnergoing acceleration.
-    Eigen::Vector3d sphericalPositon =
-            coordinate_conversions::convertCartesianToSpherical( bodyFixedPosition );
-    double radius = sphericalPositon.x( );
-    double latitude = mathematical_constants::PI / 2.0 - sphericalPositon.y( );
-    double longitude = sphericalPositon.z( );
-    
-    double sineOfLatitude = std::sin( latitude );
-    sphericalHarmonicsCache->update( TUDAT_NAN, sineOfLatitude, longitude, TUDAT_NAN );
-
-    double potential = 0.0;
-    
-    int degreeOfBody1, degreeOfBody2, orderOfBody1, orderOfBody2;
-    
-    std::vector< double > radiusRatioOfBody1List;
-    double radiusRatioOfBody1 = equatorialRadiusOfBody1 / radius;
-    radiusRatioOfBody1List.push_back( 1 );
-    for( int i = 1; i < maximumDegreeOfBody1; i++ )
-    {
-        radiusRatioOfBody1List.push_back( radiusRatioOfBody1List.at( i - 1 ) * radiusRatioOfBody1 );
-    }
-    
-    std::vector< double > radiusRatioOfBody2List;
-    radiusRatioOfBody2List.push_back( 1 );
-    double radiusRatioOfBody2 = equatorialRadiusOfBody2 / radius;
-    for( int i = 1; i < maximumDegreeOfBody2; i++ )
-    {
-        radiusRatioOfBody2List.push_back( radiusRatioOfBody2List.at( i - 1 ) * radiusRatioOfBody2 );
-    }
-    
-    
-    double currentTerm = 0;
-    for(  unsigned int i = 0; i < coefficientCombinationsToUse.size( ); i++ )
-    {
-        degreeOfBody1 = coefficientCombinationsToUse.at( i ).get< 0 >( );
-        orderOfBody1 = coefficientCombinationsToUse.at( i ).get< 1 >( );
-        degreeOfBody2 = coefficientCombinationsToUse.at( i ).get< 2 >( );
-        orderOfBody2 = coefficientCombinationsToUse.at( i ).get< 3 >( );
-        
-        currentTerm = 0;
-        currentTerm += computeSingleMutualForcePotentialTerm(
-                    effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
-                    effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
-                    sphericalHarmonicsCache, degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 );
-
-        if( orderOfBody1 != 0 )
-        {
-            currentTerm += computeSingleMutualForcePotentialTerm(
-                        effectiveCosineCoefficientFunction( degreeOfBody1, -orderOfBody1, degreeOfBody2, orderOfBody2 ),
-                        effectiveSineCoefficientFunction( degreeOfBody1, -orderOfBody1, degreeOfBody2, orderOfBody2 ),
-                        sphericalHarmonicsCache, degreeOfBody1, -orderOfBody1, degreeOfBody2, orderOfBody2 );
-        }
-
-        if( orderOfBody2 != 0 )
-        {
-            currentTerm += computeSingleMutualForcePotentialTerm(
-                        effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2 ),
-                        effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2 ),
-                        sphericalHarmonicsCache, degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2 );
-        }
-
-        if( ( orderOfBody1 != 0 ) && ( orderOfBody2 != 0 ) )
-        {
-            currentTerm += computeSingleMutualForcePotentialTerm(
-                        effectiveCosineCoefficientFunction( degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2 ),
-                        effectiveSineCoefficientFunction( degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2 ),
-                        sphericalHarmonicsCache, degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2 );
-        }
-        currentTerm *= radiusRatioOfBody1List.at( degreeOfBody1 );
-        currentTerm *= radiusRatioOfBody2List.at( degreeOfBody2 );
-
-        potential += currentTerm;
-    }
-
-    // Multiply by central term and return
-    return potential * effectiveGravitationalParameterOfBody1 / radius;
 }
 
 //! Compute gravitational acceleration due to multiple spherical harmonics terms, defined using
@@ -590,6 +481,37 @@ void EffectiveMutualSphericalHarmonicsField::getCurrentEffectiveCoefficients(
 
 }
 
+//! Function to return (by reference) single set of effective one-body coefficients
+void EffectiveMutualSphericalHarmonicsField::getCurrentEffectiveAngularMomentumOperatorOfCoefficients(
+        const int degree1, const int order1, const int degree2, const int order2,
+        const int effectiveIndex,
+        Eigen::Vector3d& cosineCoefficient, Eigen::Vector3d& sineCoefficient )
+{
+
+    cosineCoefficient = ( cosineCoefficientsOfBody1_( degree1, std::abs( order1 ) ) *
+                          currentAngularMomentumProduceCosineCoefficients_.at( degree2 ).at( std::abs( order2 ) ) -
+                          ( ( order1 < 0 ) ? ( -1.0 ) : ( 1.0 ) ) * ( ( order2 < 0 ) ? ( -1.0 ) : ( 1.0 ) )  *
+                          sineCoefficientsOfBody1_( degree1, std::abs( order1 ) ) *
+                          currentAngularMomentumProduceSineCoefficients_.at( degree2 ).at( std::abs( order2 ) ) );
+    sineCoefficient = ( ( ( order2 < 0 ) ? ( -1.0 ) : ( 1.0 ) ) *
+                        cosineCoefficientsOfBody1_( degree1, std::abs( order1 ) ) *
+                        currentAngularMomentumProduceSineCoefficients_.at( degree2 ).at( std::abs( order2 ) ) +
+                        ( ( order1 < 0 ) ? ( -1.0 ) : ( 1.0 ) )  *
+                        sineCoefficientsOfBody1_( degree1, std::abs( order1 ) ) *
+                        currentAngularMomentumProduceCosineCoefficients_.at( degree2 ).at( std::abs( order2 ) ) );
+
+    std::cout<<"Getting ang. mom. operators: "<<degree1<<" "<<order1<<" "<<degree2<<" "<<order2<<std::endl<<
+               currentAngularMomentumProduceCosineCoefficients_.at( degree2 ).at( std::abs( order2 ) ).transpose( )<<" "<<
+               currentAngularMomentumProduceSineCoefficients_.at( degree2 ).at( std::abs( order2 ) ).transpose( )<<" "<<std::endl<<
+           cosineCoefficient.transpose( )<<" "<<sineCoefficient.transpose( )<<std::endl;
+
+    double currentMultiplier = multipliers_.at( effectiveIndex );
+    cosineCoefficient *= currentMultiplier;
+    sineCoefficient *= ( ( ( order1 +  order2 ) < 0 ) ? ( -1.0 ) : ( 1.0 ) ) * currentMultiplier;
+}
+
+
+
 //! Function to update the object to the current state, with the rotation provided as a quaternion
 void EffectiveMutualSphericalHarmonicsField::computeCurrentEffectiveCoefficients(
         const Eigen::Quaterniond coefficientRotationQuaterion )
@@ -605,9 +527,16 @@ void EffectiveMutualSphericalHarmonicsField::computeCurrentEffectiveCoefficients
                 sineCoefficientsOfBody2_,
                 transformedCosineCoefficientsOfBody2_,
                 transformedSineCoefficientsOfBody2_,
-                areCoefficientsNormalized_ );
+                areCoefficientsNormalized_,
+                true );
+
+    transformationCache_->getCurrentAngularMomentumProductCoefficients(
+                currentAngularMomentumProduceCosineCoefficients_, currentAngularMomentumProduceSineCoefficients_ );
 
     updateEffectiveMutualPotential( );
+    updateEffectiveAngularMomentumOperatorOfMutualPotential( );
+
+    angularMomentumOperatorsAreSet_ = true;
 }
 
 //! Function to update the object to the current state, with the transformed coefficient provided manually
@@ -619,6 +548,9 @@ void EffectiveMutualSphericalHarmonicsField::computeCurrentEffectiveCoefficients
     transformedSineCoefficientsOfBody2_ = transformedSineCoefficients;
 
     updateEffectiveMutualPotential( );
+
+    angularMomentumOperatorsAreSet_ = false;
+
 }
 
 double EffectiveMutualSphericalHarmonicsField::getGravitationalPotential(
@@ -626,7 +558,7 @@ double EffectiveMutualSphericalHarmonicsField::getGravitationalPotential(
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
 {
 
-    return computeMutualForcePotential(
+    return computeMutualForcePotential< double >(
                 bodyFixedPosition, gravitationalParameterFunction_( ), equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
                 maximumDegree1_, maximumDegree2_,
                 boost::bind(
@@ -634,6 +566,23 @@ double EffectiveMutualSphericalHarmonicsField::getGravitationalPotential(
                     this, _1, _2, _3, _4 ),
                 boost::bind(
                     &EffectiveMutualSphericalHarmonicsField::getEffectiveSineCoefficient,
+                    this, _1, _2, _3, _4 ), coefficientCombinationsToUse_,
+                sphericalHarmonicsCache );
+}
+
+Eigen::Vector3d EffectiveMutualSphericalHarmonicsField::getAngularMomentumOpertorOfGravitationalPotential(
+        const Eigen::Vector3d& bodyFixedPosition,
+        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
+{
+
+    return computeMutualForcePotential< Eigen::Vector3d >(
+                bodyFixedPosition, gravitationalParameterFunction_( ), equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
+                maximumDegree1_, maximumDegree2_,
+                boost::bind(
+                    &EffectiveMutualSphericalHarmonicsField::getEffectiveAngularMomentumOperatorOfCosineCoefficient,
+                    this, _1, _2, _3, _4 ),
+                boost::bind(
+                    &EffectiveMutualSphericalHarmonicsField::getEffectiveAngularMomentumOperatorOfSineCoefficient,
                     this, _1, _2, _3, _4 ), coefficientCombinationsToUse_,
                 sphericalHarmonicsCache );
 }
@@ -686,6 +635,58 @@ void EffectiveMutualSphericalHarmonicsField::updateEffectiveMutualPotential( )
                         degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2, effectiveIndex,
                         effectiveCosineCoefficients_[ effectiveIndex ],
                         effectiveSineCoefficients_[ effectiveIndex ] );
+        }
+    }
+}
+
+//! Function that updates the effective one-body coefficients from current member variables of object
+void EffectiveMutualSphericalHarmonicsField::updateEffectiveAngularMomentumOperatorOfMutualPotential( )
+{
+
+    int degreeOfBody1, degreeOfBody2, orderOfBody1, orderOfBody2;
+    int effectiveIndex;
+    for( unsigned int i = 0; i < coefficientCombinationsToUse_.size( ); i++ )
+    {
+        degreeOfBody1 = coefficientCombinationsToUse_.at( i ).get< 0 >( );
+        orderOfBody1 = coefficientCombinationsToUse_.at( i ).get< 1 >( );
+        degreeOfBody2 = coefficientCombinationsToUse_.at( i ).get< 2 >( );
+        orderOfBody2 = coefficientCombinationsToUse_.at( i ).get< 3 >( );
+
+        effectiveIndex = getEffectiveIndex( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 );
+
+        getCurrentEffectiveAngularMomentumOperatorOfCoefficients(
+                    degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2, effectiveIndex,
+                    effectiveAngularMomentumOperatorOfCosineCoefficients_[ effectiveIndex ],
+                    effectiveAngularMomentumOperatorOfSineCoefficients_[ effectiveIndex ] );
+
+        if( orderOfBody1 != 0 )
+        {
+            effectiveIndex = getEffectiveIndex( degreeOfBody1, -orderOfBody1, degreeOfBody2, orderOfBody2 );
+
+            getCurrentEffectiveAngularMomentumOperatorOfCoefficients(
+                        degreeOfBody1, -orderOfBody1, degreeOfBody2, orderOfBody2, effectiveIndex,
+                        effectiveAngularMomentumOperatorOfCosineCoefficients_[ effectiveIndex ],
+                        effectiveAngularMomentumOperatorOfSineCoefficients_[ effectiveIndex ] );
+        }
+
+        if( orderOfBody2 != 0 )
+        {
+            effectiveIndex = getEffectiveIndex( degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2 );
+
+            getCurrentEffectiveAngularMomentumOperatorOfCoefficients(
+                        degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2, effectiveIndex,
+                        effectiveAngularMomentumOperatorOfCosineCoefficients_[ effectiveIndex ],
+                        effectiveAngularMomentumOperatorOfSineCoefficients_[ effectiveIndex ] );
+        }
+
+        if( !( orderOfBody1 == 0 || orderOfBody2 == 0 ) )
+        {
+            effectiveIndex = getEffectiveIndex( degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2 );
+
+            getCurrentEffectiveAngularMomentumOperatorOfCoefficients(
+                        degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2, effectiveIndex,
+                        effectiveAngularMomentumOperatorOfCosineCoefficients_[ effectiveIndex ],
+                        effectiveAngularMomentumOperatorOfSineCoefficients_[ effectiveIndex ] );
         }
     }
 }

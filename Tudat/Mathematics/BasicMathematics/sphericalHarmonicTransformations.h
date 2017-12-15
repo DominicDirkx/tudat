@@ -101,7 +101,8 @@ public:
             const Eigen::MatrixXd& originalSineCoefficients,
             Eigen::MatrixXd& currentCosineCoefficients,
             Eigen::MatrixXd& currentSineCoefficients,
-            const bool areCoefficientsNormalized = 1 );
+            const bool areCoefficientsNormalized = 1,
+            const bool computeAngularMomentumOperatorProduct = 0 );
 
     //! Function to set boolean denoting whether partial derivatives of coefficients are to be computed
     /*!
@@ -118,6 +119,13 @@ public:
         return wignerDMatricesCache_;
     }
 
+    void getCurrentAngularMomentumProductCoefficients(
+            std::map< int, std::map< int, Eigen::Vector3d > >& currentAngularMomentumProduceCosineCoefficients,
+            std::map< int, std::map< int, Eigen::Vector3d > >& currentAngularMomentumProduceSineCoefficients )
+    {
+        currentAngularMomentumProduceCosineCoefficients = currentAngularMomentumProduceCosineCoefficients_;
+        currentAngularMomentumProduceSineCoefficients = currentAngularMomentumProduceSineCoefficients_;
+    }
 
 private:
 
@@ -132,6 +140,10 @@ private:
 
     //! Boolean denoting whether partial derivatives of coefficients are to be computed
     bool updatePartials_;
+
+    std::map< int, std::map< int, Eigen::Vector3d > > currentAngularMomentumProduceCosineCoefficients_;
+
+    std::map< int, std::map< int, Eigen::Vector3d > > currentAngularMomentumProduceSineCoefficients_;
 
 };
 

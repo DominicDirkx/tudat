@@ -75,13 +75,19 @@ public:
      * them to update the associated variables to their current state.
      * \param currentTime Time at which torque model is to be updated.
      */
-    void updateMembers( const double currentTime )
+    void updateMembers( const double currentTime = TUDAT_NAN )
     {
         sphericalHarmonicAcceleration_->updateMembers( currentTime );
 
         currentTorque_ = -perturberMassFunction_( ) *
                 ( ( sphericalHarmonicAcceleration_->getCurrentRelativePosition( ) ).cross(
                       sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ) ) );
+
+        std::cout<<"Torque cross-product sh: "<<std::endl<<
+                   sphericalHarmonicAcceleration_->getCurrentRelativePosition( ).norm( )<<" "<<
+                   sphericalHarmonicAcceleration_->getCurrentRelativePosition( ).transpose( )<<std::endl<<
+                   sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ).norm( )<<" "<<
+                   sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ).transpose( )<<std::endl;
     }
 
 protected:

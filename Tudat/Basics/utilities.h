@@ -541,6 +541,10 @@ std::map< MapKey, Eigen::Array< ScalarType, Eigen::Dynamic, 1 > > convertSTLVect
     return eigenMap;
 }
 
+template< typename T >
+T getZeroEntry( );
+
+
 } // namespace utilities
 
 } // namespace tudat

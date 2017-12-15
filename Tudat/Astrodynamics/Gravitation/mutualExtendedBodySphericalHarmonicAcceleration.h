@@ -94,6 +94,12 @@ public:
         return currentAcceleration_;
     }
 
+    Eigen::Vector3d getAccelerationInBodyFixedFrame( )
+    {
+        return currentAccelerationInBodyFixedFrame_;
+    }
+
+
     //! Function to retrieve whether acceleration is expressed in body-fixed frame of body 1, or in inertial frame.
     /*!
      *  Function to retrieve whether acceleration is expressed in body-fixed frame of body 1, or in inertial frame.
@@ -114,15 +120,12 @@ public:
         return currentRelativePosition_;
     }
 
-    //! Function to retrieve current gradient of mutual potential, in body-fixed frame of body 1 in Cartesian coordinates
-    /*!
-     *  Function to retrieve current gradient of mutual potential, in body-fixed frame of body 1 in Cartesian coordinates
-     *  \return Current gradient of mutual potential, in body-fixed frame of body 1 in Cartesian coordinates
-     */
-    Eigen::Vector3d getMutualPotentialGradient( )
+    Eigen::Vector3d getCurrentBodyFixedRelativePosition( )
     {
-        return mutualPotentialGradient_;
+        return currentBodyFixedRelativePosition_;
     }
+
+
 
     //! Function to retrieve current rotation from body-fixed frame of body 2 to that of body 1, as computed by updateMembers
     /*!
@@ -277,14 +280,13 @@ private:
     //! Acceleration, as computed by last call to updateMembers
     Eigen::Vector3d currentAcceleration_;
 
+    Eigen::Vector3d currentAccelerationInBodyFixedFrame_;
+
     //! Position of body 1 w.r.t. body 2, expressed in inertial frame, as computed by last call to updateMembers
     Eigen::Vector3d currentRelativePosition_;
 
     //! Position of body 1 w.r.t. body 2, expressed in body-fixed frame of body 1, as computed by last call to updateMembers
     Eigen::Vector3d currentBodyFixedRelativePosition_;
-
-    //! Current gradient of mutual potential, in body-fixed frame of body 1 in Cartesian coordinates
-    Eigen::Vector3d mutualPotentialGradient_;
 
     //! Current rotation from body-fixed frame of body 2 to that of body 1, as computed by last call to updateMembers
     Eigen::Quaterniond currentRotationFromBody2ToBody1_;

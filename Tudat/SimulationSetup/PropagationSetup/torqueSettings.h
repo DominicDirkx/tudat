@@ -11,6 +11,8 @@
 #ifndef TUDAT_TORQUESETTINGS_H
 #define TUDAT_TORQUESETTINGS_H
 
+#include <boost/tuple/tuple.hpp>
+
 #include "Tudat/Astrodynamics/BasicAstrodynamics/torqueModelTypes.h"
 
 

@@ -210,12 +210,13 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
         const boost::function< double( int, int, int, int ) >& effectiveCosineCoefficientFunction,
         const boost::function< double( int, int, int, int ) >& effectiveSineCoefficientFunction,
         const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
-        const int maximumDegree1,
-        const int maximumDegree2,
         const int maximumEvaluationDegree,
         const std::vector< double > radius1Powers,
         const std::vector< double > radius2Powers,
-        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
+        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        std::map< int, std::map< int, std::map< int, std::map< int, Eigen::Vector3d > > > >& accelerationPerTerm,
+        const bool saveTermsSeparately = 0,
+        const Eigen::Matrix3d& accelerationRotation = Eigen::Matrix3d::Zero( ) );
 
 Eigen::Vector3d computeUnnormalizedMutualGravitationalAccelerationSum(
         const Eigen::Vector3d& positionOfBodySubjectToAcceleration,

@@ -32,7 +32,8 @@ MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarm
     toLocalFrameOfBody1Transformation_( toLocalFrameOfBody1Transformation ),
     toLocalFrameOfBody2Transformation_( toLocalFrameOfBody2Transformation ),
     useCentraBodyFrame_( useCentraBodyFrame ),
-    areCoefficientsNormalized_( areCoefficientsNormalized )
+    areCoefficientsNormalized_( areCoefficientsNormalized ),
+    saveSphericalHarmonicTermsSeparately_( false )
 {
     // Determine maximum degrees and orders to be evaluated.
     maximumDegree_ = 0;
@@ -74,66 +75,6 @@ MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarm
     radius1Powers_.resize( effectiveMutualPotentialField_->getMaximumDegree1( ) + 1 );
     radius2Powers_.resize( effectiveMutualPotentialField_->getMaximumDegree2( ) + 1 );
 
-}
-
-//! Update member variables used by the acceleration model.
-void MutualExtendedBodySphericalHarmonicAcceleration::updateMembers( const double currentTime )
-{
-    if( !( currentTime == currentTime_ ) )
-    {
-        // Compute current (relative) rotation and state
-        Eigen::Quaterniond currentRotationFromInertialToBody1 = toLocalFrameOfBody1Transformation_( );
-        currentRotationFromBody2ToBody1_ = currentRotationFromInertialToBody1 * toLocalFrameOfBody2Transformation_( ).inverse( );
-        currentRelativePosition_ = positionOfBody1Function_( ) - positionOfBody2Function_( );
-        currentBodyFixedRelativePosition_ =
-                currentRotationFromInertialToBody1 * ( currentRelativePosition_ );
-
-        std::cout<<"Current rotation to body undergoing ext.: "<<std::endl<<
-                   currentRotationFromInertialToBody1.toRotationMatrix( )<<std::endl;
-        std::cout<<"Current rotation to body exerting ext.: "<<std::endl<<toLocalFrameOfBody2Transformation_( ).toRotationMatrix( )<<std::endl;
-
-        // Compute effective one-body coefficients for current state
-        effectiveMutualPotentialField_->computeCurrentEffectiveCoefficients( currentRotationFromBody2ToBody1_ );
-
-        // Compute radius powers
-        double currentDistance = currentRelativePosition_.norm( );
-        for( int i = 0; i <= effectiveMutualPotentialField_->getMaximumDegree1( ); i++ )
-        {
-            radius1Powers_[ i ] = basic_mathematics::raiseToIntegerPower( equatorialRadiusOfBody1_ / currentDistance, i );
-        }
-
-        for( int i = 0; i <= effectiveMutualPotentialField_->getMaximumDegree2( ); i++ )
-        {
-            radius2Powers_[ i ] = basic_mathematics::raiseToIntegerPower( equatorialRadiusOfBody2_ / currentDistance, i );
-        }
-
-        // Compute acceleration in frame fixed to body 1.
-        if( areCoefficientsNormalized_ )
-        {
-            currentAccelerationInBodyFixedFrame_ = computeGeodesyNormalizedMutualGravitationalAccelerationSum(
-                        currentBodyFixedRelativePosition_, gravitationalParameterFunction_( ),
-                        equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
-                        effectiveCosineCoefficientFunction_, effectiveSineCoefficientFunction_,
-                        coefficientCombinationsToUse_,
-                        effectiveMutualPotentialField_->getMaximumDegree1( ),
-                        effectiveMutualPotentialField_->getMaximumDegree2( ),
-                        maximumDegree_,
-                        radius1Powers_,
-                        radius2Powers_,
-                        sphericalHarmonicsCache_ );
-        }
-        else
-        {            
-            currentAccelerationInBodyFixedFrame_ = computeUnnormalizedMutualGravitationalAccelerationSum(
-                        currentBodyFixedRelativePosition_, gravitationalParameterFunction_( ),
-                        equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
-                        effectiveCosineCoefficientFunction_, effectiveSineCoefficientFunction_,
-                        coefficientCombinationsToUse_, sphericalHarmonicsCache_ );
-        }
-
-        currentAcceleration_ = currentRotationFromInertialToBody1.inverse( ) * currentAccelerationInBodyFixedFrame_;
-        currentTime_ = currentTime;
-    }
 }
 
 }

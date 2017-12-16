@@ -82,7 +82,68 @@ public:
     *  them to update the associated variables to their current state.
     *  \param currentTime Time at which acceleration model is to be updated.
     */
-    void updateMembers( const double currentTime = TUDAT_NAN );
+    void updateMembers( const double currentTime = TUDAT_NAN )
+    {
+        if( !( currentTime == currentTime_ ) )
+        {
+            // Compute current (relative) rotation and state
+            Eigen::Quaterniond currentRotationFromInertialToBody1 = toLocalFrameOfBody1Transformation_( );
+            currentRotationFromBody2ToBody1_ = currentRotationFromInertialToBody1 * toLocalFrameOfBody2Transformation_( ).inverse( );
+            currentRelativePosition_ = positionOfBody1Function_( ) - positionOfBody2Function_( );
+            currentBodyFixedRelativePosition_ =
+                    currentRotationFromInertialToBody1 * ( currentRelativePosition_ );
+
+//            std::cout<<"Current rotation to body undergoing ext.: "<<std::endl<<
+//                       currentRotationFromInertialToBody1.toRotationMatrix( )<<std::endl;
+//            std::cout<<"Current rotation to body exerting ext.: "<<std::endl<<toLocalFrameOfBody2Transformation_( ).toRotationMatrix( )<<std::endl;
+
+            // Compute effective one-body coefficients for current state
+            effectiveMutualPotentialField_->computeCurrentEffectiveCoefficients( currentRotationFromBody2ToBody1_ );
+
+            // Compute radius powers
+            double currentDistance = currentRelativePosition_.norm( );
+            for( int i = 0; i <= effectiveMutualPotentialField_->getMaximumDegree1( ); i++ )
+            {
+                radius1Powers_[ i ] = basic_mathematics::raiseToIntegerPower( equatorialRadiusOfBody1_ / currentDistance, i );
+            }
+
+            for( int i = 0; i <= effectiveMutualPotentialField_->getMaximumDegree2( ); i++ )
+            {
+                radius2Powers_[ i ] = basic_mathematics::raiseToIntegerPower( equatorialRadiusOfBody2_ / currentDistance, i );
+            }
+
+            // Compute acceleration in frame fixed to body 1.
+            if( areCoefficientsNormalized_ )
+            {
+                currentAcceleration_ = computeGeodesyNormalizedMutualGravitationalAccelerationSum(
+                            currentBodyFixedRelativePosition_, gravitationalParameterFunction_( ),
+                            equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
+                            effectiveCosineCoefficientFunction_, effectiveSineCoefficientFunction_,
+                            coefficientCombinationsToUse_,
+                            maximumDegree_,
+                            radius1Powers_,
+                            radius2Powers_,
+                            sphericalHarmonicsCache_ ,
+                            accelerationPerTerm_,
+                            saveSphericalHarmonicTermsSeparately_,
+                            ( currentRotationFromInertialToBody1.inverse( ) ).toRotationMatrix( ) );
+            }
+            else
+            {
+    //            currentAccelerationInBodyFixedFrame_ = computeUnnormalizedMutualGravitationalAccelerationSum(
+    //                        currentBodyFixedRelativePosition_, gravitationalParameterFunction_( ),
+    //                        equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
+    //                        effectiveCosineCoefficientFunction_, effectiveSineCoefficientFunction_,
+    //                        coefficientCombinationsToUse_, sphericalHarmonicsCache_ );
+            }
+
+            std::cout<<"Acc. : "<<currentAccelerationInBodyFixedFrame_.transpose( )<<" "<<currentAcceleration_.transpose( )<<std::endl;
+
+            currentAccelerationInBodyFixedFrame_ = currentRotationFromInertialToBody1 * currentAcceleration_;
+            currentTime_ = currentTime;
+        }
+    }
+
 
     //! Get acceleration.
     /*!
@@ -221,6 +282,32 @@ public:
         return radius2Powers_;
     }
 
+    Eigen::VectorXd getConcatenatedAccelerationComponents(
+            const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse )
+    {
+        if( !saveSphericalHarmonicTermsSeparately_ )
+        {
+            throw std::runtime_error( "Error when retrieving component accelerations from spherial harmonic acceleration, components not saved" );
+        }
+        Eigen::VectorXd returnVector = Eigen::VectorXd( 3 * coefficientCombinationsToUse.size( ) );
+        for( unsigned int i = 0; i < coefficientCombinationsToUse.size( ); i++ )
+        {
+            returnVector.segment( i * 3, 3 ) =
+                    accelerationPerTerm_.at( coefficientCombinationsToUse.at( i ).get< 0 >( ) ).
+                    at( coefficientCombinationsToUse.at( i ).get< 1 >( ) ).
+                    at( coefficientCombinationsToUse.at( i ).get< 2 >( ) ).
+                    at( coefficientCombinationsToUse.at( i ).get< 3 >( ) );
+        }
+        return returnVector;
+    }
+
+    void setSaveSphericalHarmonicTermsSeparately( const bool saveSphericalHarmonicTermsSeparately )
+    {
+        saveSphericalHarmonicTermsSeparately_ = saveSphericalHarmonicTermsSeparately;
+
+    }
+
+
 private:
 
     //! Function returning the position of body 1
@@ -302,6 +389,10 @@ private:
 
     //! List of integer powers of (distance / equatorial radius of body 2)
     std::vector< double > radius2Powers_;
+
+    std::map< int, std::map< int, std::map< int, std::map< int, Eigen::Vector3d > > > > accelerationPerTerm_;
+
+    bool saveSphericalHarmonicTermsSeparately_;
 
 
 };

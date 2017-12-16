@@ -81,7 +81,7 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
                 Eigen::Vector3cd orderZeroAngularMomentumOperator =
                         wignerDMatricesCache_->getAngularMomentumOperatorOnWignerDCoefficient( l, m, 0 );
 
-                std::cout<<" wigner d function ang. mom "<<l<<" "<<m<<" "<<orderZeroAngularMomentumOperator.transpose( )<<std::endl;
+                //std::cout<<" wigner d function ang. mom "<<l<<" "<<m<<" "<<orderZeroAngularMomentumOperator.transpose( )<<std::endl;
 
                 currentAngularMomentumProduceCosineCoefficients_[ l ][ m ] +=
                         ( currentMultiplier ) * orderZeroAngularMomentumOperator.real( ) * originalCosineCoefficients( l, 0 );
@@ -177,12 +177,12 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
                 }
             }
 
-            std::cout<<"Ang. mom operator of single coefficient: "<<l<<" "<<m<<std::endl<<
-                       currentAngularMomentumProduceCosineCoefficients_[ l ][ m ].transpose( )<<" "<<
-                       currentAngularMomentumProduceSineCoefficients_[ l ][ m ].transpose( )<<std::endl;
+            //std::cout<<"Ang. mom operator of single coefficient: "<<l<<" "<<m<<std::endl<<
+            //           currentAngularMomentumProduceCosineCoefficients_[ l ][ m ].transpose( )<<" "<<
+            //           currentAngularMomentumProduceSineCoefficients_[ l ][ m ].transpose( )<<std::endl;
         }
     }
-    std::cout<<std::endl<<std::endl<<std::endl;
+    //std::cout<<std::endl<<std::endl<<std::endl;
 }
 
 }

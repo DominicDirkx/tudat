@@ -160,6 +160,9 @@ std::string getDependentVariableName( const PropagationDependentVariables propag
     case spherical_harmonic_acceleration_terms_dependent_variable:
         variableName = "Spherical harmonic acceleration terms ";
         break;
+    case mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable:
+        variableName = "Mutual extended spherical harmonic acceleration terms ";
+        break;
     default:
         std::string errorMessage = "Error, dependent variable " +
                 std::to_string( propagationDependentVariables ) +
@@ -239,7 +242,8 @@ std::string getDependentVariableId(
 
     if( ( dependentVariableSettings->dependentVariableType_ == single_acceleration_dependent_variable ) ||
             ( dependentVariableSettings->dependentVariableType_ == single_acceleration_norm_dependent_variable ) ||
-            ( dependentVariableSettings->dependentVariableType_ == spherical_harmonic_acceleration_terms_dependent_variable ) )
+            ( dependentVariableSettings->dependentVariableType_ == spherical_harmonic_acceleration_terms_dependent_variable ) ||
+            ( dependentVariableSettings->dependentVariableType_ == mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable  ) )
     {
         variableId += ", acting on " + dependentVariableSettings->associatedBody_;
         if( dependentVariableSettings->secondaryBody_ != dependentVariableSettings->associatedBody_ )

@@ -93,7 +93,8 @@ enum PropagationDependentVariables
     single_torque_dependent_variable = 30,
     body_fixed_groundspeed_based_velocity_variable = 31,
     keplerian_state_dependent_variable = 32,
-    spherical_harmonic_acceleration_terms_dependent_variable = 33
+    spherical_harmonic_acceleration_terms_dependent_variable = 33,
+    mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable = 34
 };
 
 
@@ -237,6 +238,72 @@ public:
     std::vector< std::pair< int, int > > componentIndices_;
 
 };
+
+
+//! Class to define settings for saving contributions at separate degree/order to spherical harmonic acceleration
+class MutualExtendedSphericalHarmonicAccelerationTermsDependentVariableSaveSettings: public SingleDependentVariableSaveSettings
+{
+public:
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param bodyUndergoingAcceleration Name of body undergoing the acceleration.
+     * \param bodyExertingAcceleration Name of body exerting the acceleration.
+     * \param componentIndices List of degree/order terms that are to be saved
+     * \param componentIndex Index of the acceleration vectors component to be saved. By default -1, i.e. all the components
+     * are saved.
+     */
+    MutualExtendedSphericalHarmonicAccelerationTermsDependentVariableSaveSettings(
+            const std::string& bodyUndergoingAcceleration,
+            const std::string& bodyExertingAcceleration,
+            const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse,
+            const int componentIndex = -1 ):
+        SingleDependentVariableSaveSettings(
+            mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable, bodyUndergoingAcceleration, bodyExertingAcceleration,
+            componentIndex ), coefficientCombinationsToUse_( coefficientCombinationsToUse ) { }
+
+    //! Constructor
+    /*!
+     * Constructor for saving all terms up to a given degree/order
+     * \param bodyUndergoingAcceleration Name of body undergoing the acceleration.
+     * \param bodyExertingAcceleration Name of body exerting the acceleration.
+     * \param maximumDegree Maximum degree to which terms are to be saved.
+     * \param maximumOrder Maximum order to which terms are to be saved.
+     * \param componentIndex Index of the acceleration vectors component to be saved. By default -1, i.e. all the components
+     * are saved.
+     */
+    MutualExtendedSphericalHarmonicAccelerationTermsDependentVariableSaveSettings(
+            const std::string& bodyUndergoingAcceleration,
+            const std::string& bodyExertingAcceleration,
+            const int maximumDegreeOfBody1,
+            const int maximumOrderOfBody1,
+            const int maximumDegreeOfBody2,
+            const int maximumOrderOfBody2,
+            const int componentIndex = -1 ):
+        SingleDependentVariableSaveSettings(
+            mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable, bodyUndergoingAcceleration, bodyExertingAcceleration,
+            componentIndex )
+    {
+        for( int i = 0; i <= maximumDegreeOfBody1; i++ )
+        {
+            for( int j = 0; ( j <= maximumOrderOfBody1 && j <= i ); j++ )
+            {
+                for( int k = 0; k <= maximumDegreeOfBody2; k++ )
+                {
+                    for( int l = 0; ( l <= maximumOrderOfBody2 && l <= k ); l++ )
+                    {
+                        coefficientCombinationsToUse_.push_back( boost::make_tuple( i, j, k, l ) );
+                    }
+                }
+            }
+        }
+    }
+
+    //! List of degree/order terms that are to be saved
+    std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse_;
+};
+
 
 //! Class to define settings for saving a single torque (norm or vector) during propagation
 class SingleTorqueDependentVariableSaveSettings: public SingleDependentVariableSaveSettings

@@ -255,6 +255,21 @@ int getDependentVariableSize(
         }
         break;
     }
+    case mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable:
+    {
+        if( boost::dynamic_pointer_cast< MutualExtendedSphericalHarmonicAccelerationTermsDependentVariableSaveSettings >(
+                    dependentVariableSettings ) == NULL )
+        {
+             std::string errorMessage = "Error, input for mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable inconsistent when getting parameter size ";
+             throw std::runtime_error( errorMessage );
+        }
+        else
+        {
+            variableSize = 3 * boost::dynamic_pointer_cast< MutualExtendedSphericalHarmonicAccelerationTermsDependentVariableSaveSettings >(
+                        dependentVariableSettings )->coefficientCombinationsToUse_.size( );
+        }
+        break;
+    }
     default:
         std::string errorMessage = "Error, did not recognize dependent variable size of type: " +
                 std::to_string( dependentVariableSettings->dependentVariableType_ );

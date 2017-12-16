@@ -93,12 +93,14 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
         const boost::function< double( int, int, int, int ) >& effectiveCosineCoefficientFunction,
         const boost::function< double( int, int, int, int ) >& effectiveSineCoefficientFunction,
         const std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > >& coefficientCombinationsToUse,
-        const int maximumDegree1, const int maximumDegree2, const int maximumEvaluationDegree,
+        const int maximumEvaluationDegree,
         const std::vector< double > radius1Powers,
         const std::vector< double > radius2Powers,
-        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
+        boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        std::map< int, std::map< int, std::map< int, std::map< int, Eigen::Vector3d > > > >& accelerationPerTerm,
+        const bool saveTermsSeparately,
+        const Eigen::Matrix3d& accelerationRotation )
 {
-    //    std::cout<<"Computing acceleration: "<<std::endl;
     // Declare spherical position vector.
     Eigen::Vector3d sphericalpositionOfBodySubjectToAcceleration = Eigen::Vector3d::Zero( );
 
@@ -114,7 +116,6 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
     // If radius coordinate is smaller than planetary radius...
     if ( sphericalpositionOfBodySubjectToAcceleration( 0 ) < ( equatorialRadiusOfBody1 + equatorialRadiusOfBody2 ) )
     {
-        // ...throw runtime error.
         boost::throw_exception(
                     boost::enable_error_info(
                         std::runtime_error(
@@ -148,10 +149,11 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
     double preMultiplier = gravitationalParameterOfBody /
             (  sphericalpositionOfBodySubjectToAcceleration( 0 ) );
 
+    Eigen::Matrix3d transformationToCartesianCoordinates = coordinate_conversions::getSphericalToCartesianGradientMatrix(
+                positionOfBodySubjectToAcceleration );
+
     bool computeTerm;
-
     std::vector< std::pair< double, double > > legendreTerms;
-
     legendreTerms.resize( ( maximumEvaluationDegree + 1 ) * ( maximumEvaluationDegree + 1 ) );
     for( int i = 0; i <= maximumEvaluationDegree; i++ )
     {
@@ -176,6 +178,7 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
 
 
     // Loop through all degrees.
+    Eigen::Vector3d currentAcceleration;
     std::pair< double, double > currentTerms;
     for ( unsigned int i = 0; i < coefficientCombinationsToUse.size( ); i++ )
     {
@@ -187,6 +190,11 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
         totalDegree = degreeOfBody1 + degreeOfBody2;
 
         equatorialRadiusRatioPower = radius1Powers[ degreeOfBody1 ] * radius2Powers[ degreeOfBody2 ];
+
+        if( saveTermsSeparately )
+        {
+            accelerationPerTerm[ degreeOfBody1 ][ orderOfBody1 ][ degreeOfBody2 ][ orderOfBody2 ].setZero( );
+        }
 
         for( unsigned j = 0; j < 4; j++ )
         {
@@ -216,17 +224,37 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
                 currentTerms = legendreTerms.at( totalDegree + ( maximumEvaluationDegree + 1 ) * totalOrder );
 
                 // Compute the potential gradient of a single spherical harmonic term.
-                sphericalGradient += basic_mathematics::computePotentialGradientWithManualRadiusRatioPower(
-                            sphericalpositionOfBodySubjectToAcceleration,
-                            preMultiplier,
-                            equatorialRadiusRatioPower,
-                            totalDegree,
-                            totalOrder,
-                            effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
-                            effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
-                            currentTerms.first,
-                            currentTerms.second,
-                            sphericalHarmonicsCache );
+                if( saveTermsSeparately )
+                {
+                    currentAcceleration =  basic_mathematics::computePotentialGradientWithManualRadiusRatioPower(
+                                sphericalpositionOfBodySubjectToAcceleration,
+                                preMultiplier,
+                                equatorialRadiusRatioPower,
+                                totalDegree,
+                                totalOrder,
+                                effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
+                                effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
+                                currentTerms.first,
+                                currentTerms.second,
+                                sphericalHarmonicsCache );
+                    accelerationPerTerm[ degreeOfBody1 ][ orderOfBody1 ][ degreeOfBody2 ][ orderOfBody2 ] +=
+                            accelerationRotation * ( transformationToCartesianCoordinates * currentAcceleration );
+                    sphericalGradient += currentAcceleration;
+                }
+                else
+                {
+                    sphericalGradient += basic_mathematics::computePotentialGradientWithManualRadiusRatioPower(
+                                sphericalpositionOfBodySubjectToAcceleration,
+                                preMultiplier,
+                                equatorialRadiusRatioPower,
+                                totalDegree,
+                                totalOrder,
+                                effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
+                                effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
+                                currentTerms.first,
+                                currentTerms.second,
+                                sphericalHarmonicsCache );
+                }
             }
         }
 
@@ -236,8 +264,7 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
     // Convert from spherical gradient to Cartesian gradient (which equals acceleration vector) and
     // return the resulting acceleration vector.
 
-    return coordinate_conversions::convertSphericalToCartesianGradient(
-                sphericalGradient, positionOfBodySubjectToAcceleration );
+    return accelerationRotation * ( transformationToCartesianCoordinates * positionOfBodySubjectToAcceleration );
 }
 
 //! Compute gravitational acceleration due to multiple spherical harmonics terms, defined using
@@ -500,10 +527,10 @@ void EffectiveMutualSphericalHarmonicsField::getCurrentEffectiveAngularMomentumO
                         sineCoefficientsOfBody1_( degree1, std::abs( order1 ) ) *
                         currentAngularMomentumProduceCosineCoefficients_.at( degree2 ).at( std::abs( order2 ) ) );
 
-    std::cout<<"Getting ang. mom. operators: "<<degree1<<" "<<order1<<" "<<degree2<<" "<<order2<<std::endl<<
-               currentAngularMomentumProduceCosineCoefficients_.at( degree2 ).at( std::abs( order2 ) ).transpose( )<<" "<<
-               currentAngularMomentumProduceSineCoefficients_.at( degree2 ).at( std::abs( order2 ) ).transpose( )<<" "<<std::endl<<
-           cosineCoefficient.transpose( )<<" "<<sineCoefficient.transpose( )<<std::endl;
+    //std::cout<<"Getting ang. mom. operators: "<<degree1<<" "<<order1<<" "<<degree2<<" "<<order2<<std::endl<<
+    //           currentAngularMomentumProduceCosineCoefficients_.at( degree2 ).at( std::abs( order2 ) ).transpose( )<<" "<<
+    //           currentAngularMomentumProduceSineCoefficients_.at( degree2 ).at( std::abs( order2 ) ).transpose( )<<" "<<std::endl<<
+    //           cosineCoefficient.transpose( )<<" "<<sineCoefficient.transpose( )<<std::endl;
 
     double currentMultiplier = multipliers_.at( effectiveIndex );
     cosineCoefficient *= currentMultiplier;

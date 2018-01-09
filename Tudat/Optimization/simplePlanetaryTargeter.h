@@ -378,18 +378,25 @@ struct UnperturbedNumericalPlanetaryTargeter
 
     //! Inertial departure velocity
     Eigen::Vector3d inertialDepartureVelocity_;
+
     //! Inertial arrival velocity
     Eigen::Vector3d inertialArrivalVelocity_;
+
     //! Velocity difference at departure with departure planet
     Eigen::Vector3d inertialDepartureDeltaV_;
+
     //! Velocity difference at arrival with target planet
     Eigen::Vector3d inertialArrivalDeltaV_;
+
     //! Departure speed in SSB centered reference frame
     double radialDepartureVelocity_;
+
     //! Arrivl speed in SSB centered reference frame
     double radialArrivalVelocity_;
+
     //! Departure delta-v (w.r.t. departure planet orbit)
     double departureDeltaV_;
+
     //! Arrival delta-v (w.r.t. target planet orbit)
     double arrivalDeltaV_;
 

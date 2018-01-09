@@ -21,20 +21,20 @@ bool MissionSegmentSettings::hasPropagatorSettings( propagators::IntegratedState
 
     bool found = false;
 
-    boost::shared_ptr< propagators::PropagatorSettings< > > propagatorSettings =
+    boost::shared_ptr< propagators::SingleArcPropagatorSettings< > > propagatorSettings =
             dynamicsSimulator_->getPropagatorSettings();
 
-    if( propagatorSettings->stateType_ == propagatorType )
+    if( propagatorSettings->getStateType( ) == propagatorType )
     {
         found = true;
     }
-    else if( propagatorSettings->stateType_ == propagators::hybrid )
+    else if( propagatorSettings->getStateType( ) == propagators::hybrid )
     {
         boost::shared_ptr< propagators::MultiTypePropagatorSettings< double > > multiTypePropagatorSettings =
                 boost::dynamic_pointer_cast< propagators::MultiTypePropagatorSettings< double > >(
                     propagatorSettings );
         std::map< propagators::IntegratedStateType,
-                std::vector< boost::shared_ptr< propagators::PropagatorSettings< > > > > propagatorSettingsMap =
+                std::vector< boost::shared_ptr< propagators::SingleArcPropagatorSettings< > > > > propagatorSettingsMap =
                 multiTypePropagatorSettings->propagatorSettingsMap_;
         if( propagatorSettingsMap.count( propagatorType ) != 0 )
             found = true;
@@ -49,20 +49,20 @@ boost::shared_ptr< propagators::PropagatorSettings< > >  MissionSegmentSettings:
         propagators::IntegratedStateType propagatorType )
 {
 
-    boost::shared_ptr< propagators::PropagatorSettings< > > propagatorSettings =
+    boost::shared_ptr< propagators::SingleArcPropagatorSettings< > > propagatorSettings =
             dynamicsSimulator_->getPropagatorSettings();
 
-    if( propagatorSettings->stateType_ == propagatorType )
+    if( propagatorSettings->getStateType( ) == propagatorType )
     {
         return propagatorSettings;
     }
-    else if( propagatorSettings->stateType_ == propagators::hybrid )
+    else if( propagatorSettings->getStateType( ) == propagators::hybrid )
     {
         boost::shared_ptr< propagators::MultiTypePropagatorSettings< double > > multiTypePropagatorSettings =
                 boost::dynamic_pointer_cast< propagators::MultiTypePropagatorSettings< double > >(
                     propagatorSettings );
         std::map< propagators::IntegratedStateType,
-                std::vector< boost::shared_ptr< propagators::PropagatorSettings< double > > > > propagatorSettingsMap =
+                std::vector< boost::shared_ptr< propagators::SingleArcPropagatorSettings< double > > > > propagatorSettingsMap =
                 multiTypePropagatorSettings->propagatorSettingsMap_;
         if( propagatorSettingsMap.count( propagatorType ) != 0 )
             return propagatorSettingsMap[ propagatorType ][0];
@@ -112,7 +112,7 @@ void MissionSegmentSettings::resetOrbitalState( Eigen::Vector6d modifiedState, i
 
     if( hasPropagatorSettings( propagators::hybrid ) )
     {
-        dynamicsSimulator_->propagatorSettings_->resetInitialStates( getInitialStates() );
+        dynamicsSimulator_->getPropagatorSettings( )->resetInitialStates( getInitialStates() );
     }
 
 
@@ -185,7 +185,7 @@ double MissionSegmentSettings::getFinalSimulationEpoch(){
                 boost::dynamic_pointer_cast< propagators::PropagationDependentVariableTerminationSettings >(
                     propagatorSettings->getTerminationSettings() );
         // Retrieve the saved variables
-        std::vector< boost::shared_ptr< propagators::SingleDependentVariableSaveSettings > >depVarSave =
+        std::vector< boost::shared_ptr< propagators::SingleDependentVariableSaveSettings > >listOfVariablesToSave =
                 propagatorSettings->getDependentVariablesToSave()->dependentVariables_;
 
         double terminationValue = terminationSettings->limitValue_; //limit value
@@ -199,12 +199,12 @@ double MissionSegmentSettings::getFinalSimulationEpoch(){
         std::map< double, Eigen::VectorXd >::reverse_iterator rit =
                 dependentVariableHistory.rbegin();
 
-        for( unsigned int i = 0; i < depVarSave.size(); i++ )
+        for( unsigned int i = 0; i < listOfVariablesToSave.size(); i++ )
         {
             // Look for a match between the dependent variable settings in the terminationSettings
             // and the dependent variable setting in the save variable list
            if( compareSingleDependentVariableSettings( terminationSettings->dependentVariableSettings_,
-                                                       depVarSave[i]) )
+                                                       listOfVariablesToSave[i]) )
            {
 
                // last time and value
@@ -222,7 +222,7 @@ double MissionSegmentSettings::getFinalSimulationEpoch(){
            }
            else
                // go to the next dependent variable
-               accumulator += propagators::getDependentVariableSize( depVarSave[i]->variableType_ );
+               accumulator += propagators::getDependentVariableSize( listOfVariablesToSave[i]->dependentVariableType_ );
         }
     }
     // if hybrid conditions:
@@ -263,7 +263,7 @@ double MissionSegmentSettings::getFinalSimulationEpoch(){
                         boost::dynamic_pointer_cast< propagators::PropagationDependentVariableTerminationSettings >(
                             propagatorSettings->getTerminationSettings() );
                 // retrieve map of dependent variable history
-                std::vector< boost::shared_ptr< propagators::SingleDependentVariableSaveSettings > > depVarSave =
+                std::vector< boost::shared_ptr< propagators::SingleDependentVariableSaveSettings > > listOfVariablesToSave =
                         propagatorSettings->getDependentVariablesToSave()->dependentVariables_;
 
                 double terminationValue = terminationSettings->limitValue_; // limit value
@@ -277,11 +277,11 @@ double MissionSegmentSettings::getFinalSimulationEpoch(){
                         dependentVariableHistory.rbegin();
 
                 // scout all the dependent variables to save
-                for( unsigned int j = 0; j < depVarSave.size(); j++ )
+                for( unsigned int j = 0; j < listOfVariablesToSave.size(); j++ )
                 {
                    // look for a match in the dependent variable settings in the termination conditions
                    // and the dependend current variable to save
-                   if( compareSingleDependentVariableSettings( terminationSettings->dependentVariableSettings_, depVarSave[j] ) )
+                   if( compareSingleDependentVariableSettings( terminationSettings->dependentVariableSettings_, listOfVariablesToSave[j] ) )
                    {
                        // if the termination condition has been fulfilled
                        if( (terminationSettings->useAsLowerLimit_ && rit->second[accumulator] <= terminationSettings->limitValue_) ||
@@ -303,7 +303,7 @@ double MissionSegmentSettings::getFinalSimulationEpoch(){
                    }
                    else
                        // otherwise progress in the vector of saved variables
-                       accumulator += propagators::getDependentVariableSize( depVarSave[j]->variableType_ );
+                       accumulator += propagators::getDependentVariableSize( listOfVariablesToSave[j]->dependentVariableType_ );
                 }
             }
         }
@@ -430,7 +430,7 @@ void MissionSegmentSettings::resetInitialOrbitalStates( std::map< std::string, E
 
 void MissionSegmentSettings::resetStartEpoch( const double startEpoch ){
 
-    dynamicsSimulator_->integratorSettings_->initialTime_ = startEpoch;
+    dynamicsSimulator_->getIntegratorSettings( )->initialTime_ = startEpoch;
 
 }
 
@@ -500,7 +500,7 @@ void MissionSegmentSettings::setPropagationConditions( Eigen::VectorXd& newValue
 
         if( decisionVariableSettings_->decisionVariableSettings_[i]->decisionVariable_ == simulation_time_decision_variable )
         {
-           boost::shared_ptr< propagators::PropagatorSettings< > > propagatorSettings =
+           boost::shared_ptr< propagators::SingleArcPropagatorSettings< > > propagatorSettings =
                 dynamicsSimulator_->getPropagatorSettings();
 
            boost::shared_ptr< propagators::PropagationTimeTerminationSettings > timeTerminationSettings;

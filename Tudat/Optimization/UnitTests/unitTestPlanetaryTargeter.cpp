@@ -23,10 +23,7 @@ BOOST_AUTO_TEST_CASE( testSimplePlanetaryTargeter )
 
     pagmo::random_device::set_seed( 123456 );
 
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "naif0009.tls" );
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "pck00009.tpc" );
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "de-403-masses.tpc" );
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "de421.bsp" );
+    spice_interface::loadStandardSpiceKernels( );
 
     double departureEpoch = spice_interface::convertDateStringToEphemerisTime( "2013-11-18T18:28:00" );
 

@@ -82,10 +82,7 @@ BOOST_AUTO_TEST_CASE( testMissionLinker )
 
     //pagmo::random_device::set_seed(16);
 
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "naif0009.tls" );
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "pck00009.tpc" );
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "de-403-masses.tpc" );
-    spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "de421.bsp" );
+    spice_interface::loadStandardSpiceKernels( );
 
     //First segment
 
@@ -117,6 +114,9 @@ BOOST_AUTO_TEST_CASE( testMissionLinker )
     {
         bodyMap2[it->first] = boost::make_shared< simulation_setup::Body >(*(it->second));
     }
+
+    setGlobalFrameBodyEphemerides( bodyMap1, "SSB", "J2000" );
+    setGlobalFrameBodyEphemerides( bodyMap2, "SSB", "J2000" );
 
     double aInitial = spice_interface::getAverageRadius( "Earth" ) + 180.0E3;
 

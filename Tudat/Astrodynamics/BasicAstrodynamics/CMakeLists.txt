@@ -52,13 +52,10 @@ set(BASICASTRODYNAMICS_HEADERS
   "${SRCROOT}${BASICASTRODYNAMICSDIR}/sphericalStateConversions.h"
   "${SRCROOT}${BASICASTRODYNAMICSDIR}/unifiedStateModelElementConversions.h"
   "${SRCROOT}${BASICASTRODYNAMICSDIR}/stateRepresentationConversions.h"
-<<<<<<< HEAD
   "${SRCROOT}${BASICASTRODYNAMICSDIR}/orbitalstateparameters.h"
-=======
   "${SRCROOT}${BASICASTRODYNAMICSDIR}/empiricalAcceleration.h"
   "${SRCROOT}${BASICASTRODYNAMICSDIR}/torqueModel.h"
   "${SRCROOT}${BASICASTRODYNAMICSDIR}/torqueModelTypes.h"
->>>>>>> master
 )
 
 # Add static libraries.

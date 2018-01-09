@@ -34,12 +34,12 @@ set(OPTIMIZATION_UNITTESTS
   "${SRCROOT}${OPTIMIZATIONDIR}/UnitTests/unitTestPlanetaryTargeter.cpp"
 )
 
-find_package(PaGMO2)
-if(NOT APPLE)
-  include_directories(SYSTEM AFTER "${PAGMO_INCLUDE_DIR}")
-else( )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${PAGMO_INCLUDE_DIR}\"")
-endif( )
+#find_package(PaGMO2)
+#if(NOT APPLE)
+#  include_directories(SYSTEM AFTER "${PAGMO_INCLUDE_DIR}")
+#else( )
+#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem \"${PAGMO_INCLUDE_DIR}\"")
+#endif( )
 
 # Add static libraries.
 add_library(tudat_optimization STATIC ${OPTIMIZATION_SOURCES} ${OPTIMIZATION_HEADERS})

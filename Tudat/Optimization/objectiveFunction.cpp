@@ -99,7 +99,7 @@ int ObjectiveFunctionFromFinalDependentVariableSettings::getPositionInDependentV
                 dynamicsSimulator->getPropagatorSettings() );
 
     propagators::PropagationDependentVariables desiredDependentVariableType =
-            dependentVariableSaveSettings_->variableType_;
+            dependentVariableSaveSettings_->dependentVariableType_;
 
     if( indexInVectorialVariable_ >= propagators::getDependentVariableSize( desiredDependentVariableType  ) )
         throw std::runtime_error( "The desired position in the chosen variable is higher than its size" );
@@ -112,7 +112,7 @@ int ObjectiveFunctionFromFinalDependentVariableSettings::getPositionInDependentV
     do{
         propagators::PropagationDependentVariables currentDependentVariableType =
                 propagatorSettings->getDependentVariablesToSave()->
-                            dependentVariables_[i]->variableType_;
+                            dependentVariables_[ i ]->dependentVariableType_;
         found = compareSingleDependentVariableSettings( dependentVariableSaveSettings_,
                                                         propagatorSettings->getDependentVariablesToSave()->
                                                                    dependentVariables_[i]);

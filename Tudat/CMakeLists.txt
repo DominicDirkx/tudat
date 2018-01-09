@@ -272,13 +272,13 @@ option(COMPILE_PROPAGATION_TESTS "Compiling unit tests involving long (> 30 s) p
 # Set whether to use the GSL library integration with Tudat or not. If it not supplied by the
 # user (either directly as an argument or through the "UserSettings.txt" file, the default setting
 # is "OFF").
-if(NOT USE_PAGMO OR NOT USE_OPTIMIZATION_PACKAGE)
+if(NOT USE_PAGMO AND NOT USE_OPTIMIZATION_PACKAGE)
   message(STATUS "PaGMO disabled!")
   add_definitions(-DUSE_PAGMO=0)
 else()
   message(STATUS "PaGMO enabled!")
   add_definitions(-DUSE_PAGMO=1)
-  find_package(PaGMO)
+  find_package(PaGMO2)
 
   # Include PaGMO directories.
   if(NOT APPLE OR APPLE_INCLUDE_FORCE)
@@ -350,18 +350,17 @@ endif()
 # Set sub-directories.
 set(SUBDIRS ${APPLICATIONSDIR} ${ASTRODYNAMICSDIR} ${BASICSDIR} ${INPUTOUTPUTDIR} ${MATHEMATICSDIR} ${EXTERNALDIR} ${SIMULATIONSETUPDIR})
 
-<<<<<<< HEAD
 # add optimization
 if(USE_OPTIMIZATION_PACKAGE)
   list(APPEND SUBDIRS ${OPTIMIZATIONDIR})
-=======
+endif()
+
 if(USE_JSON)
   # Set JSON interface directory.
   set(JSONINTERFACEDIR "/JsonInterface")
 
   # Add subdirectories.
   list(APPEND SUBDIRS ${JSONINTERFACEDIR})
->>>>>>> master
 endif()
 
 # Add sub-directories to CMake process.

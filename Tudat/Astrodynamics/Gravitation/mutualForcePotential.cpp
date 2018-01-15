@@ -264,7 +264,7 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
     // Convert from spherical gradient to Cartesian gradient (which equals acceleration vector) and
     // return the resulting acceleration vector.
 
-    return accelerationRotation * ( transformationToCartesianCoordinates * positionOfBodySubjectToAcceleration );
+    return accelerationRotation * ( transformationToCartesianCoordinates * sphericalGradient );
 }
 
 //! Compute gravitational acceleration due to multiple spherical harmonics terms, defined using

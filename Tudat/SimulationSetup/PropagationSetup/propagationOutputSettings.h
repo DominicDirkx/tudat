@@ -285,6 +285,7 @@ public:
             mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable, bodyUndergoingAcceleration, bodyExertingAcceleration,
             componentIndex )
     {
+        int counter = 0;
         for( int i = 0; i <= maximumDegreeOfBody1; i++ )
         {
             for( int j = 0; ( j <= maximumOrderOfBody1 && j <= i ); j++ )
@@ -293,7 +294,9 @@ public:
                 {
                     for( int l = 0; ( l <= maximumOrderOfBody2 && l <= k ); l++ )
                     {
+                        std::cout<<"entry :"<<counter<<" "<<i<<" "<<j<<" "<<k<<" "<<l<<std::endl;
                         coefficientCombinationsToUse_.push_back( boost::make_tuple( i, j, k, l ) );
+                        counter++;
                     }
                 }
             }

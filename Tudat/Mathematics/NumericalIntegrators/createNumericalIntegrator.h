@@ -366,17 +366,17 @@ DependentVariableType, TimeStepType > > createIntegrator(
         {
             integrator = boost::make_shared<
                     BulirschStoerVariableStepSizeIntegrator
-                    < IndependentVariableType, DependentVariableType, DependentVariableType > >
+                    < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >
                     ( getBulirschStoerStepSequence( bulirschStoerIntegratorSettings->extrapolationSequence_,
                                                     bulirschStoerIntegratorSettings->maximumNumberOfSteps_ ),
                       stateDerivativeFunction, integratorSettings->initialTime_, initialState,
-                      static_cast< TimeStepType >( bulirschStoerIntegratorSettings->minimumStepSize_ ),
-                      static_cast< TimeStepType >( bulirschStoerIntegratorSettings->maximumStepSize_ ),
+                      bulirschStoerIntegratorSettings->minimumStepSize_,
+                      bulirschStoerIntegratorSettings->maximumStepSize_,
                       bulirschStoerIntegratorSettings->relativeErrorTolerance_,
                       bulirschStoerIntegratorSettings->absoluteErrorTolerance_,
-                      bulirschStoerIntegratorSettings->safetyFactorForNextStepSize_,
-                      bulirschStoerIntegratorSettings->maximumFactorIncreaseForNextStepSize_,
-                      bulirschStoerIntegratorSettings->minimumFactorDecreaseForNextStepSize_ );
+                      static_cast< TimeStepType >( bulirschStoerIntegratorSettings->safetyFactorForNextStepSize_ ),
+                      static_cast< TimeStepType >( bulirschStoerIntegratorSettings->maximumFactorIncreaseForNextStepSize_ ),
+                      static_cast< TimeStepType >( bulirschStoerIntegratorSettings->minimumFactorDecreaseForNextStepSize_ ) );
         }
         break;
     }

@@ -137,9 +137,9 @@ public:
     //                        coefficientCombinationsToUse_, sphericalHarmonicsCache_ );
             }
 
-            std::cout<<"Acc. : "<<currentAccelerationInBodyFixedFrame_.transpose( )<<" "<<currentAcceleration_.transpose( )<<std::endl;
 
-            currentAccelerationInBodyFixedFrame_ = currentRotationFromInertialToBody1 * currentAcceleration_;
+            currentAccelerationInBodyFixedFrame_ = currentRotationFromInertialToBody1 * currentAcceleration_ ;
+
             currentTime_ = currentTime;
         }
     }

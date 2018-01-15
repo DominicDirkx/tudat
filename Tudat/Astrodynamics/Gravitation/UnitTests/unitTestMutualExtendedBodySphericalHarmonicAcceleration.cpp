@@ -1,4 +1,4 @@
-//#define BOOST_TEST_MAIN
+#define BOOST_TEST_MAIN
 
 #include <string>
 #include <thread>
@@ -11,11 +11,11 @@
 #include "Tudat/Mathematics/Statistics/randomVariableGenerator.h"
 
 
-//namespace tudat
-//{
+namespace tudat
+{
 
-//namespace unit_tests
-//{
+namespace unit_tests
+{
 
 using namespace tudat::basic_astrodynamics;
 using namespace tudat::simulation_setup;
@@ -209,10 +209,9 @@ Eigen::Matrix2d getEffectiveMutualPotentialCoefficientWrtBody2Coefficient(
 
 }
 
-//BOOST_AUTO_TEST_SUITE( test_mutual_spherical_harmonic_gravity )
+BOOST_AUTO_TEST_SUITE( test_mutual_spherical_harmonic_gravity )
 
-//BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
-int main( )
+BOOST_AUTO_TEST_CASE( testMutualSphericalHarmonicGravity )
 {
     // Load spice kernels.
     spice_interface::loadStandardSpiceKernels( { input_output::getSpiceKernelPath( ) + "de430_jup310_small.bsp" } );
@@ -345,7 +344,7 @@ int main( )
 
             for( unsigned int i = 0; i < 3; i++ )
             {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
+                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
             }
         }
 
@@ -364,7 +363,7 @@ int main( )
 
             for( unsigned int i = 0; i < 3; i++ )
             {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
+                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
             }
         }
 
@@ -382,7 +381,7 @@ int main( )
 
             for( unsigned int i = 0; i < 3; i++ )
             {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
+                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
             }
         }
 
@@ -403,7 +402,7 @@ int main( )
 
             for( unsigned int i = 0; i < 3; i++ )
             {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
+                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
             }
         }
 
@@ -421,7 +420,7 @@ int main( )
 
             for( unsigned int i = 0; i < 3; i++ )
             {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
+                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
             }
         }
 
@@ -442,7 +441,7 @@ int main( )
 
             for( unsigned int i = 0; i < 3; i++ )
             {
-//                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
+                BOOST_CHECK_SMALL( std::fabs( accelerationDifference( i ) ), 1.0E-15 );
             }
 
         }
@@ -480,9 +479,9 @@ int main( )
 
     }
 }
-//BOOST_AUTO_TEST_SUITE_END( )
+BOOST_AUTO_TEST_SUITE_END( )
 
-//}
+}
 
-//}
+}
 

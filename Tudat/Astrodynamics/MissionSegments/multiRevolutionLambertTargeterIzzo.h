@@ -104,6 +104,8 @@ public:
           maximumNumberOfRevolutions( NO_MAXIMUM_REVOLUTIONS ) // Signifies it's not calculated yet
     { }
 
+    virtual ~MultiRevolutionLambertTargeterIzzo( ){ }
+
     //! Flag indicating that the maximum number of revolutions has not yet been calculated!
     /*!
      * When maximumNumberOfRevolutions is this amount of revolutions, it has not yet been

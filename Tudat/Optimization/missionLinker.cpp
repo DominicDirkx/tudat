@@ -11,6 +11,7 @@
 #include"missionLinker.h"
 
 #include"pagmo/algorithms/de1220.hpp"
+#include"pagmo/algorithms/de1220.hpp"
 #include"pagmo/algorithms/compass_search.hpp"
 #include"pagmo/island.hpp"
 #include"pagmo/problem.hpp"
@@ -377,7 +378,13 @@ void MissionLinker::optimize( void )
                     // Show results according to verbosity
                     if( counter % optimizationSettings_->verbosity_ == 0)
                     {
-                        std::cout << "Evolution n: " << counter << " Objective Function: " << isl.get_population().champion_f()[0] << "\n";
+                        std::vector< double > parameters = isl.get_population().champion_x( );
+                        std::cout << "Evolution n: " << counter << " Objective Function: " << isl.get_population().champion_f()[0]<<" ";
+                        for( unsigned int ii = 0; ii < parameters.size( ); ii++ )
+                        {
+                            std::cout<<parameters.at( ii )<<" ";
+                        }
+                        std::cout<<std::endl;
                         fflush(stdout);
                     }
                 }

@@ -42,6 +42,9 @@ install_manifest.txt
 *.app
 *.sh
 
+# Data files
+*.dat
+
 #
 # Build and doxygen related
 #

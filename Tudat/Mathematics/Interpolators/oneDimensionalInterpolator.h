@@ -77,6 +77,12 @@ public:
     virtual DependentVariableType
             interpolate( const IndependentVariableType independentVariableValue ) = 0;
 
+    DependentVariableType
+            interpolateNonConst( IndependentVariableType independentVariableValue )
+    {
+        return interpolate( independentVariableValue );
+    }
+
     //! Function to return the number of independent variables of the interpolation.
     /*!
      *  Function to return the number of independent variables of the interpolation, which is always

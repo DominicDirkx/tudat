@@ -42,10 +42,6 @@ std::pair< Eigen::MatrixXd, Eigen::MatrixXd > generateCosineSineCoefficients(
             }
         }
     }
-
-    //cosineCoefficients( 1, 0 ) = randomNumberGenerator->getRandomVariableValue( );
-    //    sineCoefficients( 2, 1 ) = randomNumberGenerator->getRandomVariableValue( );
-
     cosineCoefficients( 0, 0 ) = 1.0;
 
 
@@ -69,27 +65,41 @@ boost::shared_ptr< tudat::simulation_setup::GravityFieldSettings > getDummyJovia
         boost::shared_ptr< RandomVariableGenerator< double > > randomCoefficientGenerator = createBoostContinuousRandomVariableGenerator(
                     normal_boost_distribution, randomNumberSettings , 0.0 );
         coefficients = generateCosineSineCoefficients( randomCoefficientGenerator, 10, 10 );
+
+        Eigen::Matrix3d cosineCoefficients = Eigen::Matrix3d::Zero( );
+        cosineCoefficients( 0, 0 ) = 1.0;
+        cosineCoefficients( 2, 0 ) = 0.5;
+        cosineCoefficients( 2, 2 ) = 0.25;
+
         gravityFieldSettings = boost::make_shared< SphericalHarmonicsGravityFieldSettings >
                 ( getBodyGravitationalParameter( "Jupiter" ), getAverageRadius( "Jupiter" ),
-                  coefficients.first, coefficients.second, "IAU_Jupiter_SIMPLIFIED" );
+                  cosineCoefficients, Eigen::Matrix3d::Zero( ), "IAU_Jupiter_SIMPLIFIED" );
     }
     else if( bodyName == "Io" )
     {
+        Eigen::Matrix3d cosineCoefficients = Eigen::Matrix3d::Zero( );
+        cosineCoefficients( 0, 0 ) = 1.0;
+        cosineCoefficients( 2, 0 ) = 0.25;
+
         boost::shared_ptr< RandomVariableGenerator< double > > randomCoefficientGenerator = createBoostContinuousRandomVariableGenerator(
                     normal_boost_distribution, randomNumberSettings , 1.0 );
         coefficients = generateCosineSineCoefficients( randomCoefficientGenerator, 10, 10 );
         gravityFieldSettings = boost::make_shared< SphericalHarmonicsGravityFieldSettings >
                 ( 5.959916033410404E012, getAverageRadius( "Io" ),
-                  coefficients.first, coefficients.second, "IAU_Io_SIMPLIFIED" );
+                  cosineCoefficients, Eigen::Matrix3d::Zero( ), "IAU_Io_SIMPLIFIED" );
     }
     else if( bodyName == "Europa" )
     {
+        Eigen::Matrix3d cosineCoefficients = Eigen::Matrix3d::Zero( );
+        cosineCoefficients( 0, 0 ) = 1.0;
+        cosineCoefficients( 2, 0 ) = 0.75;
+
         boost::shared_ptr< RandomVariableGenerator< double > > randomCoefficientGenerator = createBoostContinuousRandomVariableGenerator(
                     normal_boost_distribution, randomNumberSettings , 2.0 );
         coefficients = generateCosineSineCoefficients( randomCoefficientGenerator, 10, 10 );
         gravityFieldSettings = boost::make_shared< SphericalHarmonicsGravityFieldSettings >
                 ( 3.202738774922892E12, getAverageRadius( "Europa" ),
-                  coefficients.first, coefficients.second, "IAU_Europa_SIMPLIFIED" );
+                  cosineCoefficients, Eigen::Matrix3d::Zero( ), "IAU_Europa_SIMPLIFIED" );
     }
 
     return gravityFieldSettings;
@@ -240,20 +250,37 @@ int main( )
         bodySettings[ "Io" ]->gravityFieldSettings = getDummyJovianSystemGravityField( "Io", isNormalized );
         bodySettings[ "Europa" ]->gravityFieldSettings = getDummyJovianSystemGravityField( "Europa", isNormalized );
 
-        bodySettings[ "Jupiter" ]->rotationModelSettings = boost::make_shared<
-                SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Jupiter_SIMPLIFIED", Eigen::Quaterniond(
-                                                   Eigen::AngleAxisd( -1.4, Eigen::Vector3d::UnitZ( ) ) *
-                                                   Eigen::AngleAxisd( 0.4, Eigen::Vector3d::UnitX( ) ) *
-                                                   Eigen::AngleAxisd( 2.6, Eigen::Vector3d::UnitZ( ) ) ), 0.0, 0.0 );
+//        bodySettings[ "Jupiter" ]->rotationModelSettings = boost::make_shared<
+//                SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Jupiter_SIMPLIFIED", Eigen::Quaterniond(
+//                                                   Eigen::AngleAxisd( -1.4, Eigen::Vector3d::UnitZ( ) ) *
+//                                                   Eigen::AngleAxisd( 0.4, Eigen::Vector3d::UnitX( ) ) *
+//                                                   Eigen::AngleAxisd( 2.6, Eigen::Vector3d::UnitZ( ) ) ), 0.0, 0.0 );
+
+//        bodySettings[ "Io" ]->rotationModelSettings = boost::make_shared<
+        //                SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Io_SIMPLIFIED", Eigen::Quaterniond(
+        //                                                   Eigen::AngleAxisd( mathematical_constants::PI * 3.0 / 8.0, Eigen::Vector3d::UnitZ( ) ) *
+        //                                                   Eigen::AngleAxisd( mathematical_constants::PI * 5.0 / 8.0, Eigen::Vector3d::UnitX( ) ) *
+        //                                                   Eigen::AngleAxisd( mathematical_constants::PI * -2.5 / 8.0, Eigen::Vector3d::UnitZ( ) ) ), 0.0, 0.0 );
+        //        bodySettings[ "Europa" ]->rotationModelSettings = boost::make_shared<
+        //                SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Europa_SIMPLIFIED", Eigen::Quaterniond(
+        //                                                   Eigen::AngleAxisd( mathematical_constants::PI * 3.0 / 8.0, Eigen::Vector3d::UnitZ( ) ) ), 0.0, 0.0 );
+
+                bodySettings[ "Jupiter" ]->rotationModelSettings = boost::make_shared<
+                        SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Jupiter_SIMPLIFIED", Eigen::Quaterniond(
+                                                           Eigen::AngleAxisd( 0.0, Eigen::Vector3d::UnitZ( ) ) *
+                                                           Eigen::AngleAxisd( 0.0, Eigen::Vector3d::UnitX( ) ) *
+                                                           Eigen::AngleAxisd( 0.0, Eigen::Vector3d::UnitZ( ) ) ), 0.0, 0.0 );
+
+//        bodySettings[ "Jupiter" ]->rotationModelSettings = boost::make_shared<
+//                SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Jupiter_SIMPLIFIED", Eigen::Quaterniond(
+//                                                   Eigen::Matrix3d::Identity( ) ), 0.0, 0.0 );
 
         bodySettings[ "Io" ]->rotationModelSettings = boost::make_shared<
                 SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Io_SIMPLIFIED", Eigen::Quaterniond(
-                                                   Eigen::AngleAxisd( mathematical_constants::PI * 3.0 / 8.0, Eigen::Vector3d::UnitZ( ) ) *
-                                                   Eigen::AngleAxisd( mathematical_constants::PI * 5.0 / 8.0, Eigen::Vector3d::UnitX( ) ) *
-                                                   Eigen::AngleAxisd( mathematical_constants::PI * -2.5 / 8.0, Eigen::Vector3d::UnitZ( ) ) ), 0.0, 0.0 );
+                                                   Eigen::Matrix3d::Identity( ) ), 0.0, 0.0 );
         bodySettings[ "Europa" ]->rotationModelSettings = boost::make_shared<
                 SimpleRotationModelSettings >( "ECLIPJ2000", "IAU_Europa_SIMPLIFIED", Eigen::Quaterniond(
-                                                   Eigen::AngleAxisd( mathematical_constants::PI * 3.0 / 8.0, Eigen::Vector3d::UnitZ( ) ) ), 0.0, 0.0 );
+                                                   Eigen::Matrix3d::Identity( ) ), 0.0, 0.0 );
 
         // Create bodies needed in simulation
         NamedBodyMap bodyMap = createBodies( bodySettings );
@@ -281,19 +308,22 @@ int main( )
             boost::shared_ptr< TorqueSettings > sphericalHarmonicTorqueSettings = boost::make_shared< SphericalHarmonicTorqueSettings >(
                         2, 2 );
             boost::shared_ptr< TorqueSettings > extendedBodyTorqueSettings = boost::make_shared< MutualExtendedBodySphericalHarmonicTorqueSettings >(
-                        getExtendedSinglePointMassInteractions( 1, 1, 0, 0, false ) );
+                        //2, 2, 2, 2, false );
+                        getExtendedCoefficientExtendedInteractions( 2, 0, 2 ) );
             boost::shared_ptr< TorqueSettings > oppositeExtendedBodyTorqueSettings = boost::make_shared< MutualExtendedBodySphericalHarmonicTorqueSettings >(
-                        getExtendedSinglePointMassInteractions( 0, 0, 1, 1, false ) );
+                        getExtendedCoefficientExtendedInteractions( 2, 0, 2 ) );
 
             boost::shared_ptr< MutualExtendedBodySphericalHarmonicTorque > extendedGravityTorque =
                     boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicTorque >(
                         createTorqueModel( bodyMap.at( "Jupiter" ), bodyMap.at( "Io" ),  extendedBodyTorqueSettings, "Jupiter", "Io" ) );
+
+            std::cout<<" ***************** Updating "<<std::endl;
             extendedGravityTorque->updateMembers( );
 
-            boost::shared_ptr< MutualExtendedBodySphericalHarmonicTorque > oppositeExtendedGravityTorque =
-                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicTorque >(
-                        createTorqueModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ),  oppositeExtendedBodyTorqueSettings, "Io", "Jupiter" ) );
-            oppositeExtendedGravityTorque->updateMembers( );
+//            boost::shared_ptr< MutualExtendedBodySphericalHarmonicTorque > oppositeExtendedGravityTorque =
+//                    boost::dynamic_pointer_cast< MutualExtendedBodySphericalHarmonicTorque >(
+//                        createTorqueModel( bodyMap.at( "Io" ), bodyMap.at( "Jupiter" ),  oppositeExtendedBodyTorqueSettings, "Io", "Jupiter" ) );
+            //oppositeExtendedGravityTorque->updateMembers( );
 
             boost::shared_ptr< SphericalHarmonicGravitationalTorqueModel > sphericalHarmonicTorque =
                     boost::dynamic_pointer_cast< SphericalHarmonicGravitationalTorqueModel >(
@@ -301,21 +331,30 @@ int main( )
             sphericalHarmonicTorque->updateMembers( );
 
 
+            std::cout<<" Sh. torque: "<<sphericalHarmonicTorque->getTorque( ).transpose( )<<std::endl;
+            std::cout<<" Full torque: "<<extendedGravityTorque->getCurrentAngularMomentumOpertorOfMutualPotential( ).transpose( )<<std::endl;
+//            std::cout<<" Torque ratio: "<<std::setprecision( 16 )<<
+//                       ( ( extendedGravityTorque->getTorque( ) - sphericalHarmonicTorque->getTorque( ) ).cwiseQuotient(
+//                                               sphericalHarmonicTorque->getTorque( ) ) )<<std::endl;
+            Eigen::Vector3d torqueDifference =
+                    extendedGravityTorque->getTorque( ) - sphericalHarmonicTorque->getTorque( );
+           //std::cout<<" Torque difference: "<<torqueDifference.transpose( )<<std::endl;
 
-            std::cout<<"Sh. torque: "<<sphericalHarmonicTorque->getTorque( ).transpose( )<<std::endl;
+            double relativeLongitude = extendedGravityTorque->getAccelerationBetweenBodies( )->getSphericalHarmonicsCache( )->getCurrentLongitude( );
+            std::cout<<"Torque. "<<extendedGravityTorque->getCurrentAngularMomentumOpertorOfMutualPotential( ).transpose( )<<std::endl;
 
-            std::cout<<"Full torque: "<<extendedGravityTorque->getTorque( ).transpose( )<<std::endl;
+            std::cout<<"term com. "<<extendedGravityTorque->getCurrentAngularMomentumOpertorOfMutualPotential( )( 0 ) /
+                       extendedGravityTorque->getCurrentAngularMomentumOpertorOfMutualPotential( )( 1 )<<" "<<-std::tan( relativeLongitude )<<" "<<
+                       relativeLongitude<<std::endl;
 
-            std::cout<<"Torque ratio: "<<std::setprecision( 16 )<<
-                       ( ( extendedGravityTorque->getTorque( ) - sphericalHarmonicTorque->getTorque( ) ).cwiseQuotient(
-                                               sphericalHarmonicTorque->getTorque( ) ) )<<std::endl;
+            std::cout<<extendedGravityTorque->getAccelerationBetweenBodies( )->getSphericalHarmonicsCache( )->getCurrentLongitude( )<<std::endl;
 
             std::cout<<"E"<<std::endl;
-            std::cout<<oppositeExtendedGravityTorque->getTorque( )<<std::endl;
-            std::cout<<oppositeExtendedGravityTorque->getTorqueOnBodyExertingTorque( )<<std::endl<<std::endl;
+//            std::cout<<oppositeExtendedGravityTorque->getTorque( )<<std::endl;
+//            std::cout<<oppositeExtendedGravityTorque->getTorqueOnBodyExertingTorque( )<<std::endl<<std::endl;
 
-            std::cout<<extendedGravityTorque->getTorque( )<<std::endl;
-            std::cout<<extendedGravityTorque->getTorqueOnBodyExertingTorque( )<<std::endl;
+//            std::cout<<extendedGravityTorque->getTorque( )<<std::endl;
+//            std::cout<<extendedGravityTorque->getTorqueOnBodyExertingTorque( )<<std::endl;
 
 
         }

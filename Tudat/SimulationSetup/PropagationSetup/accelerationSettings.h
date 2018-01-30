@@ -155,6 +155,11 @@ std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned in
         const int maximumOrderOfBodyExertingAcceleration,
         const bool includePointMass = true );
 
+std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > getExtendedCoefficientExtendedInteractions(
+        const int degreeOfBodyUndergoingAcceleration,
+        const int orderOfBodyUndergoingAcceleration,
+        const int degreeOfBodyExertingAcceleration );
+
 //! Class for providing acceleration settings for full two-body spherical harmonic acceleration
 class MutualExtendedBodySphericalHarmonicAccelerationSettings: public AccelerationSettings
 {

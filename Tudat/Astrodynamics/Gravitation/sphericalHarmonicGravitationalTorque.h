@@ -83,11 +83,11 @@ public:
                 ( ( sphericalHarmonicAcceleration_->getCurrentRelativePosition( ) ).cross(
                       sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ) ) );
 
-        std::cout<<"Torque cross-product sh: "<<std::endl<<
-                   sphericalHarmonicAcceleration_->getCurrentRelativePosition( ).norm( )<<" "<<
-                   sphericalHarmonicAcceleration_->getCurrentRelativePosition( ).transpose( )<<std::endl<<
-                   sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ).norm( )<<" "<<
-                   sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ).transpose( )<<std::endl;
+//        std::cout<<"Torque cross-product sh: "<<std::endl<<
+//                   sphericalHarmonicAcceleration_->getCurrentRelativePosition( ).norm( )<<" "<<
+//                   sphericalHarmonicAcceleration_->getCurrentRelativePosition( ).transpose( )<<std::endl<<
+//                   sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ).norm( )<<" "<<
+//                   sphericalHarmonicAcceleration_->getAccelerationInBodyFixedFrame( ).transpose( )<<std::endl;
     }
 
 protected:

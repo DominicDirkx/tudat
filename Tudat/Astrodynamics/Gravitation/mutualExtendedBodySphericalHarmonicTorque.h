@@ -50,6 +50,17 @@ public:
                 currentAngularMomentumOpertorOfMutualPotential_ );
     }
 
+    boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > getAccelerationBetweenBodies( )
+    {
+        return accelerationBetweenBodies_;
+    }
+
+    Eigen::Vector3d getCurrentAngularMomentumOpertorOfMutualPotential( )
+    {
+        return currentAngularMomentumOpertorOfMutualPotential_;
+    }
+
+
 private:
 
     Eigen::Vector3d currentTorque_;

@@ -16,6 +16,7 @@
 #ifndef TUDAT_WIGNER_D_MATRIXRES_H
 #define TUDAT_WIGNER_D_MATRIXRES_H
 
+#include <iostream>
 #include <map>
 
 #include <Eigen/Core>
@@ -116,6 +117,7 @@ private:
 
     std::map< int, std::map< int, Eigen::Matrix3cd > > angularMomentumOperatorCoefficients_;
 
+    Eigen::Matrix3cd polarToCartesianCoordinates_;
 
     //! Maximum degree for which Wigner-D matrix is to be computed
     int maximumDegree_;

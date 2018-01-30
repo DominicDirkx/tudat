@@ -257,8 +257,6 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
                 }
             }
         }
-
-
     }
 
     // Convert from spherical gradient to Cartesian gradient (which equals acceleration vector) and
@@ -601,7 +599,7 @@ Eigen::Vector3d EffectiveMutualSphericalHarmonicsField::getAngularMomentumOperto
         const Eigen::Vector3d& bodyFixedPosition,
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
 {
-
+    std::cout<<"Computing ang. mom. op.********************** "<<std::endl;
     return computeMutualForcePotential< Eigen::Vector3d >(
                 bodyFixedPosition, gravitationalParameterFunction_( ), equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
                 maximumDegree1_, maximumDegree2_,

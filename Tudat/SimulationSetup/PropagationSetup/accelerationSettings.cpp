@@ -40,6 +40,24 @@ std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned in
     return coefficientCombinationsToUse;
 }
 
+//! Function to get the full list of combinations of degrees/orders of two bodies for full two-body potential
+std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > getExtendedCoefficientExtendedInteractions(
+        const int degreeOfBodyUndergoingAcceleration,
+        const int orderOfBodyUndergoingAcceleration,
+        const int degreeOfBodyExertingAcceleration )
+{
+    std::vector< boost::tuple< unsigned int, unsigned int, unsigned int, unsigned int > > coefficientCombinationsToUse;
+
+    for( int i = 0; i <= degreeOfBodyExertingAcceleration; i++ )
+    {
+        coefficientCombinationsToUse.push_back(
+                    boost::make_tuple( degreeOfBodyUndergoingAcceleration, orderOfBodyUndergoingAcceleration,
+                                       degreeOfBodyExertingAcceleration, i ) );
+    }
+
+    return coefficientCombinationsToUse;
+}
+
 //! Constructor
 MutualExtendedBodySphericalHarmonicAccelerationSettings::MutualExtendedBodySphericalHarmonicAccelerationSettings(
         const int maximumDegreeOfBodyUndergoingAcceleration,
@@ -56,7 +74,7 @@ MutualExtendedBodySphericalHarmonicAccelerationSettings::MutualExtendedBodySpher
         {
             for( int k = 0; k <= maximumDegreeOfBodyExertingAcceleration; k++ )
             {
-                for( int l = 0; ( l <= maximumOrderOfBodyExertingAcceleration && l <= k ); l++ )
+                for( int l = 0; ( l <= maximumDegreeOfBodyExertingAcceleration && l <= k ); l++ )
                 {
                     coefficientCombinationsToUse_.push_back( boost::make_tuple( i, j, k, l ) );
                 }

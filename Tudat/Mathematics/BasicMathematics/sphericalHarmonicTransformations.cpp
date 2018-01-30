@@ -145,7 +145,6 @@ void SphericalHarmonicTransformationCache::transformCoefficientsAtDegree(
                                   orderMinusKAngularMomentumOperator.real( ) ) *
                                 originalSineCoefficients( l, k ) );
 
-
                 }
             }
 

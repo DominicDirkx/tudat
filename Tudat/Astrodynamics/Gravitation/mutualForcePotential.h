@@ -89,6 +89,15 @@ CoefficientType computeSingleMutualForcePotentialTerm(
         const int degreeOfBody2,
         const int orderOfBody2 )
 {
+    std::cout<<"Computing single term "<<"D/O: "<<degreeOfBody1 + degreeOfBody2<<" "<<orderOfBody1 + orderOfBody2<<std::endl<<
+             "Cos/Sin multiple order, Legendre term "<<sphericalHarmonicsCache->getCosineOfMultipleLongitude(
+                                std::abs( orderOfBody1 + orderOfBody2 ) )<<" "<<
+               sphericalHarmonicsCache->getSineOfMultipleLongitude(
+                                std::abs( orderOfBody1 + orderOfBody2 ) )<<" "<<
+               sphericalHarmonicsCache->getLegendreCache( )->getLegendrePolynomial(
+                   degreeOfBody1 + degreeOfBody2, std::abs( orderOfBody1 + orderOfBody2 ) )<<std::endl<<"Eff. cos. term "<<
+               effectiveCosineCoefficient<<std::endl<<
+               "Eff. sin. term "<<effectiveSineCoefficient<<std::endl;
     return ( effectiveCosineCoefficient * sphericalHarmonicsCache->getCosineOfMultipleLongitude(
                  std::abs( orderOfBody1 + orderOfBody2 ) ) +
              effectiveSineCoefficient * sphericalHarmonicsCache->getSineOfMultipleLongitude(
@@ -145,7 +154,6 @@ CoefficientType computeMutualForcePotential(
     CoefficientType currentTerm = utilities::getZeroEntry< CoefficientType >( );
     for(  unsigned int i = 0; i < coefficientCombinationsToUse.size( ); i++ )
     {
-        std::cout<<i<<std::endl;
         degreeOfBody1 = coefficientCombinationsToUse.at( i ).get< 0 >( );
         orderOfBody1 = coefficientCombinationsToUse.at( i ).get< 1 >( );
         degreeOfBody2 = coefficientCombinationsToUse.at( i ).get< 2 >( );
@@ -157,10 +165,9 @@ CoefficientType computeMutualForcePotential(
                     effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
                     effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 ),
                     sphericalHarmonicsCache, degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 );
-        std::cout<<"Current D/O: "<<degreeOfBody1<<" "<<orderOfBody1<<" "<<degreeOfBody2<<" "<<orderOfBody2<<" "<<std::endl;
-        std::cout<<"Current term: "<<std::endl<<effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<
-                   std::endl<<std::endl<<
-                effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<std::endl;
+
+        std::cout<<"Current term "<<degreeOfBody1<<" "<<orderOfBody1<<" "<<degreeOfBody2<<" "<<orderOfBody2<<std::endl<<
+                   currentTerm<<std::endl<<std::endl;
 
         if( orderOfBody1 != 0 )
         {
@@ -169,9 +176,8 @@ CoefficientType computeMutualForcePotential(
                         effectiveSineCoefficientFunction( degreeOfBody1, -orderOfBody1, degreeOfBody2, orderOfBody2 ),
                         sphericalHarmonicsCache, degreeOfBody1, -orderOfBody1, degreeOfBody2, orderOfBody2 );
 
-            std::cout<<"Current term A: "<<std::endl<<effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<
-                       std::endl<<std::endl<<
-                    effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<std::endl;
+            std::cout<<"Current term neg. order 1 "<<degreeOfBody1<<" "<<-orderOfBody1<<" "<<degreeOfBody2<<" "<<orderOfBody2<<std::endl<<
+                       currentTerm<<std::endl<<std::endl;
         }
 
         if( orderOfBody2 != 0 )
@@ -180,6 +186,8 @@ CoefficientType computeMutualForcePotential(
                         effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2 ),
                         effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2 ),
                         sphericalHarmonicsCache, degreeOfBody1, orderOfBody1, degreeOfBody2, -orderOfBody2 );
+            std::cout<<"Current term neg. order 2 "<<degreeOfBody1<<" "<<orderOfBody1<<" "<<degreeOfBody2<<" "<<-orderOfBody2<<std::endl<<
+                       currentTerm<<std::endl<<std::endl;
         }
 
         if( ( orderOfBody1 != 0 ) && ( orderOfBody2 != 0 ) )
@@ -188,13 +196,15 @@ CoefficientType computeMutualForcePotential(
                         effectiveCosineCoefficientFunction( degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2 ),
                         effectiveSineCoefficientFunction( degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2 ),
                         sphericalHarmonicsCache, degreeOfBody1, -orderOfBody1, degreeOfBody2, -orderOfBody2 );
+            std::cout<<"Current term neg. order 1 and 2 "<<degreeOfBody1<<" "<<-orderOfBody1<<" "<<degreeOfBody2<<" "<<-orderOfBody2<<std::endl<<
+                       currentTerm<<std::endl<<std::endl;
         }
 
         currentTerm *= radiusRatioOfBody1List.at( degreeOfBody1 );
         currentTerm *= radiusRatioOfBody2List.at( degreeOfBody2 );
 
+
         potential += currentTerm;
-         std::cout<<"Current potential: "<<std::endl<<potential<<std::endl<<std::endl<<std::endl;
 
     }
 

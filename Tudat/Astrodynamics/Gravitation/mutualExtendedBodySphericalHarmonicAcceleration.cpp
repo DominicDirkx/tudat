@@ -38,6 +38,8 @@ MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarm
     // Determine maximum degrees and orders to be evaluated.
     maximumDegree_ = 0;
     maximumOrder_ = 0;
+    int maximumDegreeBody2 = 0;
+    int maximumOrderBody2 = 0;
     unsigned int degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2;
     for( unsigned int i = 0; i < coefficientCombinationsToUse_.size( ); i++ )
     {
@@ -55,11 +57,26 @@ MutualExtendedBodySphericalHarmonicAcceleration::MutualExtendedBodySphericalHarm
         {
             maximumOrder_ = orderOfBody1 + orderOfBody2;
         }
+
+        if( degreeOfBody2 > maximumDegreeBody2 )
+        {
+            maximumDegreeBody2 = degreeOfBody2;
+        }
+
+        if( orderOfBody2 > maximumOrderBody2 )
+        {
+            maximumOrderBody2 = orderOfBody2;
+        }
+    }
+
+    if( maximumDegreeBody2 > maximumOrderBody2 )
+    {
+        maximumOrder_ += ( maximumDegreeBody2 - maximumOrderBody2 );
     }
 
     // Create objects used to transform spherical harmonic coefficients, and to compute effective one-body coefficients
     sphericalHarmonicsCache_ = boost::make_shared< basic_mathematics::SphericalHarmonicsCache >(
-                maximumOrder_ + 1, maximumDegree_ + 1 );
+                maximumDegree_ + 1, maximumDegree_ + 1 );
     effectiveMutualPotentialField_ =  boost::make_shared< EffectiveMutualSphericalHarmonicsField >(
                 coefficientCombinationsToUse_,
                 cosineHarmonicCoefficientsOfBody1Function, sineHarmonicCoefficientsOfBody1Function,

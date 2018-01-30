@@ -18,11 +18,13 @@ void MutualExtendedBodySphericalHarmonicTorque::updateMembers( const double curr
                 accelerationBetweenBodies_->getCurrentRelativePosition( ),
                 accelerationBetweenBodies_->getSphericalHarmonicsCache( ) );
 
-    std::cout<<"Torque cross-product extended: "<<std::endl<<
-               accelerationBetweenBodies_->getCurrentRelativePosition( ).norm( )<<" "<<
-               accelerationBetweenBodies_->getCurrentRelativePosition( ).transpose( )<<std::endl<<
-               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).norm( )<<" "<<
-               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).transpose( )<<std::endl;
+    std::cout<<"Ang. mom. op "<<currentAngularMomentumOpertorOfMutualPotential_<<std::endl;
+
+//    std::cout<<"Torque cross-product extended: "<<std::endl<<
+//               accelerationBetweenBodies_->getCurrentRelativePosition( ).norm( )<<" "<<
+//               accelerationBetweenBodies_->getCurrentRelativePosition( ).transpose( )<<std::endl<<
+//               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).norm( )<<" "<<
+//               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).transpose( )<<std::endl;
 
     currentTorque_ = currentAngularMomentumOpertorOfMutualPotential_ -
             accelerationBetweenBodies_->getCurrentBodyFixedRelativePosition( ).cross(

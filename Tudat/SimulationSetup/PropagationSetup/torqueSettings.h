@@ -91,18 +91,19 @@ public:
             const int maximumDegreeOfBodyUndergoingAcceleration,
             const int maximumOrderOfBodyUndergoingAcceleration,
             const int maximumDegreeOfBodyExertingAcceleration,
-            const int maximumOrderOfBodyExertingAcceleration ):
+            const int maximumOrderOfBodyExertingAcceleration,
+            const bool includePointMassInteractions = true ):
     TorqueSettings( basic_astrodynamics::mutual_extended_body_spherical_harmonic_gravitational_torque ),
     maximumDegreeOfBody1_( maximumDegreeOfBodyUndergoingAcceleration ),
     maximumDegreeOfBody2_( maximumDegreeOfBodyExertingAcceleration )
 {
-    for( int i = 0; i <= maximumDegreeOfBodyUndergoingAcceleration; i++ )
+    for( int i = ( !includePointMassInteractions ); i <= maximumDegreeOfBodyUndergoingAcceleration; i++ )
     {
         for( int j = 0; ( j <= maximumOrderOfBodyUndergoingAcceleration && j <= i ); j++ )
         {
-            for( int k = 0; k <= maximumDegreeOfBodyExertingAcceleration; k++ )
+            for( int k = ( !includePointMassInteractions ); k <= maximumDegreeOfBodyExertingAcceleration; k++ )
             {
-                for( int l = 0; ( l <= maximumOrderOfBodyExertingAcceleration && l <= k ); l++ )
+                for( int l = 0; ( l <= maximumDegreeOfBodyExertingAcceleration && l <= k ); l++ )
                 {
                     coefficientCombinationsToUse_.push_back( boost::make_tuple( i, j, k, l ) );
                 }
@@ -123,7 +124,6 @@ public:
         TorqueSettings( basic_astrodynamics::mutual_extended_body_spherical_harmonic_gravitational_torque ),
         coefficientCombinationsToUse_( coefficientCombinationsToUse )
     {
-
         maximumDegreeOfBody1_ = 0;
         maximumDegreeOfBody2_ = 0;
 

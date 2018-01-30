@@ -47,7 +47,7 @@ public:
     Eigen::Vector3d getTorqueOnBodyExertingTorque( )
     {
         return - ( accelerationBetweenBodies_->getCurrentRotationFromBody2ToBody1( ).inverse( ) *
-                currentAngularMomentumOpertorOfMutualPotential_ );
+                -currentAngularMomentumOpertorOfMutualPotential_ );
     }
 
     boost::shared_ptr< MutualExtendedBodySphericalHarmonicAcceleration > getAccelerationBetweenBodies( )

@@ -26,7 +26,7 @@ void MutualExtendedBodySphericalHarmonicTorque::updateMembers( const double curr
 //               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).norm( )<<" "<<
 //               accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ).transpose( )<<std::endl;
 
-    currentTorque_ = currentAngularMomentumOpertorOfMutualPotential_ -
+    currentTorque_ = -currentAngularMomentumOpertorOfMutualPotential_ -
             accelerationBetweenBodies_->getCurrentBodyFixedRelativePosition( ).cross(
                 gravitationalParameterFunctionOfBodyUndergoingTorque_( ) / physical_constants::GRAVITATIONAL_CONSTANT *
                 accelerationBetweenBodies_->getAccelerationInBodyFixedFrame( ) );

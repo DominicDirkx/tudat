@@ -202,7 +202,7 @@ void WignerDMatricesCache::computeCoefficients( )
 
             angularMomentumOperatorMultiplier( 0, 0 ) = -mathematical_constants::COMPLEX_I * angularMomentumScalingEntry0;
             angularMomentumOperatorMultiplier( 2, 2 ) = mathematical_constants::COMPLEX_I * angularMomentumScalingEntry2;
-            angularMomentumOperatorMultiplier( 1, 1 ) = -static_cast< double >( m );
+            angularMomentumOperatorMultiplier( 1, 1 ) = -mathematical_constants::COMPLEX_I * static_cast< double >( m );
 
             angularMomentumOperatorCoefficients_[ l ][ i ] = angularMomentumOperatorMultiplier;
 

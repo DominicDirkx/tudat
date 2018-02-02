@@ -883,6 +883,7 @@ std::pair< Eigen::VectorXd, bool > executeEarthOrbiterBiasEstimation(
             createParametersToEstimate( parameterNames, bodyMap );
 
     printEstimatableParameterEntries( parametersToEstimate );
+    std::cout<<"Current parameter values "<<parametersToEstimate->template getFullParameterValues< double >( ).transpose( )<<std::endl;
 
     observation_models::ObservationSettingsMap observationSettingsMap;
     for( std::map< ObservableType, std::vector< LinkEnds > >::iterator linkEndIterator = linkEndsPerObservable.begin( );

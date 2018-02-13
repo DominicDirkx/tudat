@@ -20,6 +20,7 @@
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicAcceleration.h"
 #include "Tudat/SimulationSetup/PropagationSetup/accelerationSettings.h"
 #include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureAcceleration.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/orientablePanelRadiationPressureAcceleration.h"
 #include "Tudat/Astrodynamics/Gravitation/thirdBodyPerturbation.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/empiricalAcceleration.h"
 #include "Tudat/Astrodynamics/Ephemerides/frameManager.h"
@@ -304,6 +305,14 @@ createCannonballRadiationPressureAcceleratioModel(
         const boost::shared_ptr< Body > bodyExertingAcceleration,
         const std::string& nameOfBodyUndergoingAcceleration,
         const std::string& nameOfBodyExertingAcceleration );
+
+boost::shared_ptr< electro_magnetism::OrientablePanelRadiationPressureAcceleration >
+createOrientablePanelRadiationPressureAcceleratioModel(
+        const boost::shared_ptr< Body > bodyUndergoingAcceleration,
+        const boost::shared_ptr< Body > bodyExertingAcceleration,
+        const std::string& nameOfBodyUndergoingAcceleration,
+        const std::string& nameOfBodyExertingAcceleration,
+        const boost::shared_ptr< AccelerationSettings > accelerationSettings );
 
 //! Function to create a thrust acceleration model.
 /*!

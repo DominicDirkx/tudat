@@ -768,6 +768,54 @@ createCannonballRadiationPressureAcceleratioModel(
 
 }
 
+//! Function to create a cannonball radiation pressure acceleration model.
+boost::shared_ptr< OrientablePanelRadiationPressureAcceleration >
+createOrientablePanelRadiationPressureAcceleratioModel(
+        const boost::shared_ptr< Body > bodyUndergoingAcceleration,
+        const boost::shared_ptr< Body > bodyExertingAcceleration,
+        const std::string& nameOfBodyUndergoingAcceleration,
+        const std::string& nameOfBodyExertingAcceleration,
+        const boost::shared_ptr< AccelerationSettings > accelerationSettings )
+{
+    // Retrieve radiation pressure interface
+    if( bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).count(
+                nameOfBodyExertingAcceleration ) == 0 )
+    {
+        throw std::runtime_error(
+                    "Error when making orientable panel radiation pressure, no radiation pressure interface found  in " +
+                    nameOfBodyUndergoingAcceleration +
+                    " for body " + nameOfBodyExertingAcceleration );
+    }
+    else
+    {
+        boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface =
+                bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).at(
+                    nameOfBodyExertingAcceleration );
+
+        boost::shared_ptr< OrientablePanelRadiationPressureAccelerationSettings >
+                orientablePanelRadiationPressureAccelerationSettings = boost::dynamic_pointer_cast<
+                OrientablePanelRadiationPressureAccelerationSettings >( accelerationSettings );
+        if( orientablePanelRadiationPressureAccelerationSettings == NULL )
+        {
+            throw std::runtime_error(
+                        "Error when making orientable panel radiation pressure, acceleration settings are incompatible" );
+        }
+        else
+        {
+            // Create acceleration model.
+            return boost::make_shared< OrientablePanelRadiationPressureAcceleration >(
+                        boost::bind( &Body::getPosition, bodyExertingAcceleration ),
+                        boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
+                        boost::bind( &RadiationPressureInterface::getCurrentRadiationPressure, radiationPressureInterface ),
+                        boost::bind( &RadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
+                        boost::bind( &RadiationPressureInterface::getArea, radiationPressureInterface ),
+                        boost::bind( &Body::getBodyMass, bodyUndergoingAcceleration ) );
+        }
+    }
+
+}
+
+
 //! Function to create an orbiter relativistic correction acceleration model
 boost::shared_ptr< relativity::RelativisticAccelerationCorrection > createRelativisticCorrectionAcceleration(
         const boost::shared_ptr< Body > bodyUndergoingAcceleration,
@@ -1209,6 +1257,14 @@ boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > createAccelerationMode
                     bodyExertingAcceleration,
                     nameOfBodyUndergoingAcceleration,
                     nameOfBodyExertingAcceleration );
+        break;
+    case orientable_panel_radiation_pressure:
+        accelerationModelPointer = createOrientablePanelRadiationPressureAcceleratioModel(
+                    bodyUndergoingAcceleration,
+                    bodyExertingAcceleration,
+                    nameOfBodyUndergoingAcceleration,
+                    nameOfBodyExertingAcceleration,
+                    accelerationSettings );
         break;
     case thrust_acceleration:
         accelerationModelPointer = createThrustAcceleratioModel(

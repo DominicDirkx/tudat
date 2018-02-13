@@ -56,7 +56,8 @@ enum AvailableAcceleration
     thrust_acceleration,
     relativistic_correction_acceleration,
     empirical_acceleration,
-    direct_tidal_dissipation_acceleration
+    direct_tidal_dissipation_acceleration,
+    orientable_panel_radiation_pressure
 };
 
 //! Function to get a string representing a 'named identification' of an acceleration type

@@ -22,6 +22,18 @@ namespace tudat
 namespace aerodynamics
 {
 
+enum AtmosphericSpecies
+{
+    helium_atmosphere_component = 0,
+    atomic_oxygen_atmosphere_component = 1,
+    molecular_nitrogen_atmosphere_component = 2,
+    molecular_oxygen_atmosphere_component = 3,
+    argon_atmosphere_component = 4,
+    atomic_hydrogen_atmosphere_component = 5,
+    atomic_nitrogen_atmosphere_component = 6,
+    anomalous_oxygen_atmosphere_component = 7
+};
+
 //! Atmosphere model class.
 /*!
  * Base class for all atmosphere models.
@@ -86,6 +98,7 @@ public:
     virtual double getSpeedOfSound( const double altitude, const double longitude,
                                     const double latitude, const double time ) = 0;
 
+<<<<<<< HEAD
     //! Function to retrieve the model describing the wind velocity vector of the atmosphere
     /*!
      * Function to retrieve the model describing the wind velocity vector of the atmosphere
@@ -104,6 +117,13 @@ public:
     void setWindModel( const boost::shared_ptr< WindModel > windModel )
     {
         windModel_ = windModel;
+=======
+    virtual double getSpecieNumberDensity(
+            const AtmosphericSpecies specieType, const double altitude, const double longitude,
+            const double latitude, const double time )
+    {
+        throw std::runtime_error( "Error, specie number density not implemented for this atmosphere model" );
+>>>>>>> dominic-origin/AerodynamicCoefficientsFromNumberDensities
     }
 
 protected:

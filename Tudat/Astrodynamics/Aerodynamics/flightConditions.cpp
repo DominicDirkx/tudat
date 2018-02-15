@@ -159,6 +159,119 @@ double FlightConditions::getAerodynamicCoefficientIndependentVariable(
         }
         currentIndependentVariable = getCurrentAltitude( );
         break;
+    case airspeed_dependent:
+        currentIndependentVariable = getCurrentAirspeed( );
+        break;
+    case he_number_density_dependent:
+    {
+        if( aerodynamicAngleCalculator_== NULL )
+        {
+            throw std::runtime_error( "Error, aerodynamic angle calculator is null, but require latitude and longitude" );
+        }
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                    aerodynamics::helium_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case o_number_density_dependent:
+    {
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                     aerodynamics::atomic_oxygen_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case n2_number_density_dependent:
+    {
+        if( aerodynamicAngleCalculator_== NULL )
+        {
+            throw std::runtime_error( "Error, aerodynamic angle calculator is null, but require latitude and longitude" );
+        }
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                    aerodynamics::molecular_nitrogen_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case o2_number_density_dependent:
+    {
+        if( aerodynamicAngleCalculator_== NULL )
+        {
+            throw std::runtime_error( "Error, aerodynamic angle calculator is null, but require latitude and longitude" );
+        }
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                    aerodynamics::molecular_oxygen_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case ar_number_density_dependent:
+    {
+        if( aerodynamicAngleCalculator_== NULL )
+        {
+            throw std::runtime_error( "Error, aerodynamic angle calculator is null, but require latitude and longitude" );
+        }
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                    aerodynamics::argon_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case h_number_density_dependent:
+    {
+        if( aerodynamicAngleCalculator_== NULL )
+        {
+            throw std::runtime_error( "Error, aerodynamic angle calculator is null, but require latitude and longitude" );
+        }
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                    aerodynamics::atomic_hydrogen_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case n_number_density_dependent:
+    {
+        if( aerodynamicAngleCalculator_== NULL )
+        {
+            throw std::runtime_error( "Error, aerodynamic angle calculator is null, but require latitude and longitude" );
+        }
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                    aerodynamics::atomic_nitrogen_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case anomalous_oxygen_number_density_dependent:
+    {
+        if( aerodynamicAngleCalculator_== NULL )
+        {
+            throw std::runtime_error( "Error, aerodynamic angle calculator is null, but require latitude and longitude" );
+        }
+
+        currentIndependentVariable = atmosphereModel_->getSpecieNumberDensity(
+                    aerodynamics::anomalous_oxygen_atmosphere_component, getCurrentAltitude( ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::longitude_angle ),
+                    aerodynamicAngleCalculator_->getAerodynamicAngle( reference_frames::latitude_angle ), currentTime_ );
+        break;
+    }
+    case temperature_dependent:
+    {
+        currentIndependentVariable = getCurrentFreestreamTemperature( );
+        break;
+    }
+    case density_dependent:
+    {
+        currentIndependentVariable = getCurrentDensity( );
+        break;
+    }
     case control_surface_deflection_dependent:
     {
         try

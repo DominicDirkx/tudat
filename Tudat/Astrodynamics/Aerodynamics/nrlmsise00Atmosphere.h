@@ -18,6 +18,7 @@
 
 #include <boost/function.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/lexical_cast.hpp>
 
 #include "Tudat/Astrodynamics/BasicAstrodynamics/physicalConstants.h"
 #include "Tudat/Astrodynamics/Aerodynamics/atmosphereModel.h"
@@ -54,11 +55,11 @@ struct GasComponentProperties
      *
      */
     GasComponentProperties( ):
-    diameterArgon(340E-12), diameterAtomicHydrogen(260E-12), diameterHelium(256E-12),
-      diameterNitrogen(370E-12), diameterOxygen(358E-12), diameterAtomicNitrogen(290E-12),
-      diameterAtomicOxygen(280E-12), molarMassArgon(39.948E-3), molarMassAtomicHydrogen(1.008E-3),
-      molarMassHelium(4.002602E-3), molarMassNitrogen(2.0*14.007E-3), molarMassOxygen(2.0*15.999E-3),
-      molarMassAtomicNitrogen(14.007E-3), molarMassAtomicOxygen(15.999E-3)
+        diameterArgon(340E-12), diameterAtomicHydrogen(260E-12), diameterHelium(256E-12),
+        diameterNitrogen(370E-12), diameterOxygen(358E-12), diameterAtomicNitrogen(290E-12),
+        diameterAtomicOxygen(280E-12), molarMassArgon(39.948E-3), molarMassAtomicHydrogen(1.008E-3),
+        molarMassHelium(4.002602E-3), molarMassNitrogen(2.0*14.007E-3), molarMassOxygen(2.0*15.999E-3),
+        molarMassAtomicNitrogen(14.007E-3), molarMassAtomicOxygen(15.999E-3)
     { }
 
     //! Molecular colision diameter of Argon in m
@@ -181,14 +182,14 @@ struct NRLMSISE00Input
  */
 class NRLMSISE00Atmosphere : public AtmosphereModel
 {
- public:
+public:
 
     //! NRLMSISEInput function
     /*!
      * Boost function that accepts (altitude, longitude, latitude, time ) and returns NRLMSISEInput data.
      */
     typedef boost::function< NRLMSISE00Input( double, double, double, double ) >
-        NRLMSISE00InputFunction;
+    NRLMSISE00InputFunction;
 
     //! Default constructor.
     /*!
@@ -198,7 +199,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
      * \param useIdealGasLaw Variable denoting whether to use the ideal gas law for computation of pressure.
      */
     NRLMSISE00Atmosphere( const NRLMSISE00InputFunction nrlmsise00InputFunction,
-                         const bool useIdealGasLaw = true )
+                          const bool useIdealGasLaw = true )
         :nrlmsise00InputFunction_(nrlmsise00InputFunction)
     {
         resetHashKey( );
@@ -207,6 +208,15 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
         GasComponentProperties gasProperties;
         gasComponentProperties_ = gasProperties; // Default gas properties
         useIdealGasLaw_ = useIdealGasLaw;
+
+        specieIndices_[ helium_atmosphere_component ] = 0;
+        specieIndices_[ atomic_oxygen_atmosphere_component ] = 1;
+        specieIndices_[ molecular_nitrogen_atmosphere_component ] = 2;
+        specieIndices_[ molecular_oxygen_atmosphere_component ] = 3;
+        specieIndices_[ argon_atmosphere_component ] = 4;
+        specieIndices_[ atomic_hydrogen_atmosphere_component ] = 5;
+        specieIndices_[ atomic_nitrogen_atmosphere_component ] = 6;
+        specieIndices_[ anomalous_oxygen_atmosphere_component ] = 7;
     }
 
     //! Constructor
@@ -219,9 +229,9 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
      * \param useIdealGasLaw Boolean denoting whether the ideal gas law is to be used.
      */
     NRLMSISE00Atmosphere( const NRLMSISE00InputFunction nrlmsise00InputFunction,
-                         const double specificHeatRatio,
-                         const GasComponentProperties gasProperties,
-                         const bool useIdealGasLaw = true)
+                          const double specificHeatRatio,
+                          const GasComponentProperties gasProperties,
+                          const bool useIdealGasLaw = true)
         : nrlmsise00InputFunction_(nrlmsise00InputFunction)
     {
         resetHashKey( );
@@ -308,7 +318,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
     * \return Speed of sound.
     */
     double getSpeedOfSound( const double altitude, const double longitude,
-                          const double latitude, const double time )
+                            const double latitude, const double time )
     {
         computeProperties(altitude, longitude, latitude, time );
         return speedOfSound_;
@@ -324,7 +334,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
     * \return Mean free path.
     */
     double getMeanFreePath( const double altitude, const double longitude,
-                          const double latitude, const double time )
+                            const double latitude, const double time )
     {
         computeProperties(altitude, longitude, latitude, time );
         return meanFreePath_;
@@ -340,7 +350,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
     * \return mean molar mass.
     */
     double getMeanMolarMass( const double altitude, const double longitude,
-                          const double latitude, const double time )
+                             const double latitude, const double time )
     {
         computeProperties(altitude, longitude, latitude, time );
         return meanMolarMass_;
@@ -356,10 +366,25 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
     * \return Number densities of gas components
     */
     std::vector< double > getNumberDensities( const double altitude, const double longitude,
-                                           const double latitude, const double time )
+                                              const double latitude, const double time )
     {
         computeProperties( altitude, longitude, latitude, time );
         return numberDensities_;
+    }
+
+    virtual double getSpecieNumberDensity(
+            const AtmosphericSpecies specieType, const double altitude, const double longitude,
+            const double latitude, const double time )
+    {
+        computeProperties( altitude, longitude, latitude, time );
+
+        if( specieIndices_.count( specieType ) == 0 )
+        {
+            std::string errorMessage = "Error, specie " + boost::lexical_cast< std::string >( specieType ) + " number density not implemented for this atmosphere model";
+            throw std::runtime_error( errorMessage );
+        }
+
+        return numberDensities_.at( specieIndices_.at( specieType ) );
     }
 
     //! Get local average number density.
@@ -372,7 +397,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
     * \return average number density.
     */
     double getAverageNumberDensity( const double altitude, const double longitude,
-                          const double latitude, const double time )
+                                    const double latitude, const double time )
     {
         computeProperties(altitude, longitude, latitude, time );
         return averageNumberDensity_;
@@ -388,7 +413,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
     * \return weighted average collision diameter.
     */
     double getWeightedAverageCollisionDiameter( const double altitude, const double longitude,
-                          const double latitude, const double time )
+                                                const double latitude, const double time )
     {
         computeProperties(altitude, longitude, latitude, time );
         return weightedAverageCollisionDiameter_;
@@ -406,8 +431,8 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
     * \return Full density and temperature values
      */
     std::pair< std::vector< double >, std::vector< double > > getFullOutput(
-        const double altitude, const double longitude,
-        const double latitude, const double time );
+            const double altitude, const double longitude,
+            const double latitude, const double time );
 
     //! Reset the hash key
     /*!
@@ -430,10 +455,12 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
         return inputData_;
     }
 
- private:
+private:
 
     //! Shared pointer to solar activity function
     NRLMSISE00InputFunction nrlmsise00InputFunction_;
+
+    std::map< AtmosphericSpecies, int > specieIndices_;
 
     //! Use the ideal gas law for the computation of the pressure.
     bool useIdealGasLaw_;
@@ -498,10 +525,10 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
      *   2 : 3 hr AP index for 3 hrs before current time
      *   3 : 3 hr AP index for 6 hrs before current time
      *   4 : 3 hr AP index for 9 hrs before current time
-     *   5 : Average of eight 3 hr AP indicies from 12 to 33 hrs 
+     *   5 : Average of eight 3 hr AP indicies from 12 to 33 hrs
      *           prior to current time
-     *   6 : Average of eight 3 hr AP indicies from 36 to 57 hrs 
-     *           prior to current time 
+     *   6 : Average of eight 3 hr AP indicies from 36 to 57 hrs
+     *           prior to current time
      */
     ap_array aph_;
 
@@ -518,7 +545,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
      *      f107A  - 81 day average of F10.7 flux (centered on doy) (double)
      *      f107   - daily F10.7 flux for previous day (double)
      *      ap     - magnetic index (daily)            (double)
-     *      ap_a   - magnetic index struct (see above) (ap_array)       
+     *      ap_a   - magnetic index struct (see above) (ap_array)
      */
     nrlmsise_input input_;
 
@@ -529,14 +556,14 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
      *      d[1] - O NUMBER DENSITY(CM-3)
      *      d[2] - N2 NUMBER DENSITY(CM-3)
      *      d[3] - O2 NUMBER DENSITY(CM-3)
-     *      d[4] - AR NUMBER DENSITY(CM-3)                       
+     *      d[4] - AR NUMBER DENSITY(CM-3)
      *      d[5] - TOTAL MASS DENSITY(GM/CM3) [includes d[8] in td7d]
      *      d[6] - H NUMBER DENSITY(CM-3)
      *      d[7] - N NUMBER DENSITY(CM-3)
      *      d[8] - Anomalous oxygen NUMBER DENSITY(CM-3)
      *      t[0] - EXOSPHERIC TEMPERATURE
      *      t[1] - TEMPERATURE AT ALT
-     * 
+     *
      *
      *      O, H, and N are set to zero below 72.5 km
      *
@@ -544,7 +571,7 @@ class NRLMSISE00Atmosphere : public AtmosphereModel
      *      altitudes below 120 km. The 120 km gradient is left at global
      *      average value for altitudes below 72 km.
      *
-     *      d[5], TOTAL MASS DENSITY, is NOT the same for subroutines GTD7 
+     *      d[5], TOTAL MASS DENSITY, is NOT the same for subroutines GTD7
      *      and GTD7D
      *
      *        SUBROUTINE GTD7 -- d[5] is the sum of the mass densities of the

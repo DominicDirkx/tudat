@@ -215,8 +215,7 @@ public:
           getSineHarmonicsCoefficients( boost::lambda::constant(aSineHarmonicCoefficientMatrix ) ),
           rotationFromBodyFixedToIntegrationFrameFunction_(
               rotationFromBodyFixedToIntegrationFrameFunction ),
-          sphericalHarmonicsCache_( sphericalHarmonicsCache ),
-          currentAcceleration_( Eigen::Vector3d::Zero( ) )
+          sphericalHarmonicsCache_( sphericalHarmonicsCache )
 
     {
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
@@ -274,8 +273,7 @@ public:
           getCosineHarmonicsCoefficients( cosineHarmonicCoefficientsFunction ),
           getSineHarmonicsCoefficients( sineHarmonicCoefficientsFunction ),
           rotationFromBodyFixedToIntegrationFrameFunction_( rotationFromBodyFixedToIntegrationFrameFunction ),
-          sphericalHarmonicsCache_( sphericalHarmonicsCache ),
-          currentAcceleration_( Eigen::Vector3d::Zero( ) )
+          sphericalHarmonicsCache_( sphericalHarmonicsCache )
     {
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
                     std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
@@ -283,18 +281,6 @@ public:
 
 
         this->updateMembers( );
-    }
-
-    //! Get gravitational acceleration.
-    /*!
-     * Returns the gravitational acceleration computed using the input parameters provided to the
-     * class. This function serves as a wrapper for the
-     * computeGeodesyNormalizedGravitationalAccelerationSum() function.
-     * \return Computed gravitational acceleration vector.
-     */
-    Eigen::Vector3d getAcceleration( )
-    {
-        return currentAcceleration_;
     }
 
     //! Update class members.
@@ -311,7 +297,7 @@ public:
             sineHarmonicCoefficients = getSineHarmonicsCoefficients( );
             rotationToIntegrationFrame_ = rotationFromBodyFixedToIntegrationFrameFunction_( );
             this->updateBaseMembers( );
-            currentAcceleration_ = rotationToIntegrationFrame_ *
+            this->currentAcceleration_ = rotationToIntegrationFrame_ *
                     computeGeodesyNormalizedGravitationalAccelerationSum(
                         rotationToIntegrationFrame_.inverse( ) * (
                             this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ),
@@ -424,10 +410,6 @@ private:
 
     //!  Spherical harmonics cache for this acceleration
     boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache_;
-
-    //! Current acceleration, as computed by last call to updateMembers function
-    Eigen::Vector3d currentAcceleration_;
-
 };
 
 

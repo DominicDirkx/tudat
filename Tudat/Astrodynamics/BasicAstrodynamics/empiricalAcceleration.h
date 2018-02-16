@@ -117,16 +117,6 @@ public:
     //! Destructor
     ~EmpiricalAcceleration( ){ }
 
-    //! Function to retrieve current empirical acceleration
-    /*!
-     * Function to retrieve current empirical acceleration
-     * \return Current empirical acceleration, expressed in propagation frame
-     */
-    Eigen::Vector3d getAcceleration( )
-    {
-        return currentRotationFromRswToInertialFrame_ * currentLocalAcclereration_ ;
-    }
-
     //! Function to update constituent elements of empirical acceleration to current time
     /*!
      * Function to update constituent elements of empirical acceleration to current time
@@ -158,6 +148,8 @@ public:
             {
                 throw std::runtime_error( "Error when computing emprical acceleration, result is NaN" );
             }
+
+            this->currentAcceleration_ = currentRotationFromRswToInertialFrame_ * currentLocalAcclereration_;
 
             this->currentTime_ = currentTime;
         }

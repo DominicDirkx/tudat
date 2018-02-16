@@ -142,22 +142,6 @@ public:
     //! Destructor
     ~AerodynamicAcceleration( ){ }
 
-    //! Get acceleration.
-    /*!
-     * Returns the aerodynamic acceleration. All data required for the computation is taken
-     * from member variables, which are set to their latest values by the last call of the
-     * updateMembers function.
-     * The returned acceleration is in the same reference frame as the aerodynamic coefficients,
-     * with the coefficients assumed to be in  positive direction in the frame.
-     * \return Acceleration.
-     * \sa updateMembers().
-     */
-    Eigen::Vector3d getAcceleration( )
-    {
-        return computeAerodynamicAcceleration(
-                    0.5 * currentDensity_ * currentAirspeed_ * currentAirspeed_,
-                    currentReferenceArea_, currentForceCoefficients_, currentMass_ );
-    }
 
     //! Update member variables used by the aerodynamic acceleration model.
     /*!
@@ -176,6 +160,9 @@ public:
             currentMass_ = this->massFunction_( );
             currentAirspeed_ = this->airSpeedFunction_( );
             currentReferenceArea_ = this->referenceAreaFunction_( );
+            this->currentAcceleration_ = computeAerodynamicAcceleration(
+                        0.5 * currentDensity_ * currentAirspeed_ * currentAirspeed_,
+                        currentReferenceArea_, currentForceCoefficients_, currentMass_ );
 
             currentTime_ = currentTime;
         }

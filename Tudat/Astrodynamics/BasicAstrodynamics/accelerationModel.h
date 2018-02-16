@@ -60,7 +60,22 @@ public:
      * \return Acceleration.
      * \sa updateMembers().
      */
-    virtual AccelerationDataType getAcceleration( ) = 0;
+    AccelerationDataType getAcceleration( )
+    {
+        return currentAcceleration_;
+    }
+
+    void getAccelerationByReference( AccelerationDataType& acceleration )
+    {
+        acceleration = currentAcceleration_;
+    }
+
+    template< typename TotalAccelerationScalarType >
+    void addAcceleration( Eigen::Block< Eigen::Matrix< TotalAccelerationScalarType, Eigen::Dynamic, Eigen::Dynamic > >& totalAcceleration,
+                          const int addIndex )
+    {
+        totalAcceleration.block( addIndex, 0, 3, 1 ) += currentAcceleration_.template cast< TotalAccelerationScalarType >( );
+    }
 
     //! Update member variables used by the acceleration model.
     /*!
@@ -92,6 +107,8 @@ protected:
     double currentTime_;
 
 protected:
+
+    AccelerationDataType currentAcceleration_;
 
 private:
 };

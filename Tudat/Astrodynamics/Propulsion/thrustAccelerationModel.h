@@ -91,16 +91,6 @@ public:
     //! Destructor
     ~ThrustAcceleration( ){ }
 
-    //! Function to retrieve the current acceleration, as set by last call to updateMembers function.
-    /*!
-     * Function to retrieve the current acceleration, as set by last call to updateMembers function.
-     * \return Current thrust acceleration.
-     */
-    Eigen::Vector3d getAcceleration( )
-    {
-        return currentAcceleration_;
-    }
-
     //! Function to reset the current time
     /*!
      * Function to reset the current time of the acceleration model.
@@ -149,7 +139,7 @@ public:
             currentMassRate_ = -massRateFunction_( );
 
             // Compute acceleration due to thrust
-            currentAcceleration_ = currentAccelerationDirection_ * currentThrustMagnitude_ / bodyMassFunction_( );
+            this->currentAcceleration_ = currentAccelerationDirection_ * currentThrustMagnitude_ / bodyMassFunction_( );
 
             // Reset current time.
             currentTime_ = currentTime;
@@ -233,9 +223,6 @@ protected:
 
     //! Function used to update the thrust magnitude and direction to current time.
     boost::function< void( const double ) > thrustUpdateFunction_;
-
-    //! Current acceleration, as computed by last call to updateMembers function.
-    Eigen::Vector3d currentAcceleration_;
 
     //! Current acceleration direction, as computed by last call to updateMembers function.
     Eigen::Vector3d currentAccelerationDirection_;

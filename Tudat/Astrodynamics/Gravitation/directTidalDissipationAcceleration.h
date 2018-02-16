@@ -149,16 +149,6 @@ public:
     //! Destructor
     ~DirectTidalDissipationAcceleration( ){ }
 
-    //! Get acceleration.
-    /*!
-     * Returns the acceleration, as computed by updateMembers function.
-     * \return Current acceleration.
-     */
-    Eigen::Vector3d getAcceleration( )
-    {
-        return currentAcceleration_;
-    }
-
     //! Update member variables used by the acceleration model.
     /*!
     * Updates member variables used by the acceleration model.
@@ -373,10 +363,6 @@ private:
 
     //! True if object models tidal bulge on planet, false if on satellite
     bool modelTideOnPlanet_;
-
-
-    //! Current acceleration vector, as computed by last call to updateMembers function.
-    Eigen::Vector3d currentAcceleration_;
 
     //! Scalar multiplier that is common to all vector terms in acceleration model
     /*!

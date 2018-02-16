@@ -261,16 +261,6 @@ public:
     //! Destructor
     ~RelativisticAccelerationCorrection( ){ }
 
-    //! Function to return the current acceleration
-    /*!
-     * Returns the relativistic correction acceleration. Value is computed by updateMembers function
-     * \return Acceleration.
-     */
-    Eigen::Vector3d getAcceleration( )
-    {
-        return  currentAcceleration_;
-    }
-
     //! Update member variables used by the relativistic correction acceleration model.
     /*!
      * Updates member variables used by the relativistic correction acceleration model.
@@ -296,14 +286,14 @@ public:
                         gravitationalParameterOfCentralBody_,
                         stateOfAcceleratedBodyWrtCentralBody_.segment( 0, 3 ).norm( ) );
 
-            currentAcceleration_.setZero( );
+            this->currentAcceleration_.setZero( );
 
             double relativeDistance = stateOfAcceleratedBodyWrtCentralBody_.segment( 0, 3 ).norm( );
 
             // Compute Schwarzschild term (if requested)
             if( calculateSchwarzschildCorrection_ )
             {
-                currentAcceleration_ = calculateScharzschildGravitationalAccelerationCorrection(
+                this->currentAcceleration_ = calculateScharzschildGravitationalAccelerationCorrection(
                             gravitationalParameterOfCentralBody_,
                             stateOfAcceleratedBodyWrtCentralBody_.segment( 0, 3 ),
                             stateOfAcceleratedBodyWrtCentralBody_.segment( 3, 3 ),
@@ -315,7 +305,7 @@ public:
             if( calculateLenseThirringCorrection_ )
             {
                 centalBodyAngularMomentum_ = centalBodyAngularMomentumFunction_( );
-                currentAcceleration_ +=  calculateLenseThirringCorrectionAcceleration(
+                this->currentAcceleration_ +=  calculateLenseThirringCorrectionAcceleration(
                             stateOfAcceleratedBodyWrtCentralBody_.segment( 0, 3 ),
                             stateOfAcceleratedBodyWrtCentralBody_.segment( 3, 3 ),
                             relativeDistance, commonCorrectionTerm_, centalBodyAngularMomentum_,
@@ -338,7 +328,7 @@ public:
                         primaryDistance * primaryDistance * primaryDistance *
                             physical_constants::SPEED_OF_LIGHT * physical_constants::SPEED_OF_LIGHT );
 
-                currentAcceleration_ += calculateDeSitterCorrectionAcceleration(
+                this->currentAcceleration_ += calculateDeSitterCorrectionAcceleration(
                             stateOfAcceleratedBodyWrtCentralBody_.segment( 3, 3 ),
                             stateOfCentralBodyWrtPrimaryBody_.segment( 0, 3 ),
                             stateOfCentralBodyWrtPrimaryBody_.segment( 3, 3 ),
@@ -489,11 +479,6 @@ private:
 
     //! Boolean denoting wheter the Lense-Thirring term is used.
     bool calculateLenseThirringCorrection_;
-
-
-
-    //! Relativistic acceleration correction, as computed by last call to updateMembers function
-    Eigen::Vector3d currentAcceleration_;
 
 };
 

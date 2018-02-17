@@ -123,16 +123,16 @@ BOOST_AUTO_TEST_CASE( testComputationOfThirdBodyPerturbation )
         // Create central gravity acceleration objects.
         gravitation::CentralGravitationalAccelerationModel3dPointer directAccelerationModel =
                 boost::make_shared< gravitation::CentralGravitationalAccelerationModel3d >(
-                    boost::lambda::constant( positionOfBodyForTestCase[ 0 ] ),
+                    boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, positionOfBodyForTestCase[ 0 ] ),
                     gravitationalParameterOfPerturbingBodyForTestCase[ i ],
-                    boost::lambda::constant( positionOfBodyForTestCase[ i ] ) );
+                    boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, positionOfBodyForTestCase[ i ] ) );
 
         gravitation::CentralGravitationalAccelerationModel3dPointer
                 centralBodyAccelerationModel =
                 boost::make_shared< gravitation::CentralGravitationalAccelerationModel3d >(
-                    boost::lambda::constant( Eigen::Vector3d::Zero( ) ),
+                    boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, Eigen::Vector3d::Zero( ) ),
                     gravitationalParameterOfPerturbingBodyForTestCase[ i ],
-                    boost::lambda::constant( positionOfBodyForTestCase[ i ] ) );
+                    boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, positionOfBodyForTestCase[ i ] ) );
 
         // Create third body gravity acceleration objects.
         boost::shared_ptr<
@@ -259,16 +259,16 @@ BOOST_AUTO_TEST_CASE( testRealisticThirdBodyPerturbation )
     // Create central gravity acceleration objects.
     gravitation::CentralGravitationalAccelerationModel3dPointer directAccelerationModel =
             boost::make_shared< gravitation::CentralGravitationalAccelerationModel3d >(
-                boost::lambda::constant( realisticTestPosition ),
+                boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, realisticTestPosition ),
                 realisticGravitationalParameterOfPerturbingBody,
-                boost::lambda::constant( realisticPerturberPosition ) );
+                boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, realisticPerturberPosition ) );
 
     gravitation::CentralGravitationalAccelerationModel3dPointer
             centralBodyAccelerationModel =
             boost::make_shared< gravitation::CentralGravitationalAccelerationModel3d >(
-                boost::lambda::constant( barycentricEarthPosition ),
+                boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, barycentricEarthPosition ),
                 realisticGravitationalParameterOfPerturbingBody,
-                boost::lambda::constant( realisticPerturberPosition ) );
+                boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, realisticPerturberPosition ) );
 
     // Create third body gravity acceleration objects.
     boost::shared_ptr<

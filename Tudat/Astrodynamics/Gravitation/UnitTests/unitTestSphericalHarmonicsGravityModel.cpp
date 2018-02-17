@@ -35,6 +35,7 @@
 #include <Eigen/Core>
 
 #include "Tudat/Basics/testMacros.h"
+#include "Tudat/Basics/utilities.h"
 
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityModel.h"
 #include "Tudat/Mathematics/BasicMathematics/sphericalHarmonics.h"
@@ -281,15 +282,17 @@ BOOST_AUTO_TEST_CASE( test_SphericalHarmonicsGravitationalAccelerationWrapperCla
     // Declare spherical harmonics gravitational acceleration class object.
     SphericalHarmonicsGravitationalAccelerationModelPointer earthGravity
             = boost::make_shared< SphericalHarmonicsGravitationalAccelerationModel >(
-                boost::lambda::constant( position ), gravitationalParameter, planetaryRadius,
+                boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, position ),
+                gravitationalParameter, planetaryRadius,
                 cosineCoefficients, sineCoefficients );
 
     // Compute resultant acceleration [m s^-2].
+    earthGravity->updateMembers( 0.0 );
     const Eigen::Vector3d acceleration = earthGravity->getAcceleration( );
 
     // Define expected acceleration according to the MATLAB function 'gravitysphericalharmonic'
     // described by Mathworks [2012] [m s^-2].
-    const Eigen::Vector3d expectedAcceleration(
+        const Eigen::Vector3d expectedAcceleration(
                 -1.032215878106932, -1.179683946769393, -1.328040277155269 );
 
     // Check if expected result matches computed result.

@@ -142,7 +142,6 @@ Eigen::Matrix< double, 3, Eigen::Dynamic > calculateAccelerationWrtParameterPart
 
     Eigen::VectorXd unperturbedParameterValue = parameter->getParameterValue( );
 
-
     if( unperturbedParameterValue.size( ) != parameterPerturbation.size( ) )
     {
         throw std::runtime_error( "Error when calculating numerical parameter partial of acceleration, parameter and perturbations are not the same size" );

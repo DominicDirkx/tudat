@@ -266,6 +266,11 @@ public:
         currentState_ = state;
     }
 
+    void setStateFromBlock( const Eigen::Matrix< double, 6, 1 >& state )
+    {
+        currentState_ = state;
+    }
+
     //! Set current state of body manually in long double precision.
     /*!
      * Set current state of body manually in long double precision. State must be in the global

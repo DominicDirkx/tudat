@@ -169,6 +169,7 @@ public:
                         integratedStatesFromEnvironment_ );
         }
 
+
         if( evaluateVariationalEquations_ )
         {
             variationalEquations_->clearPartials( );

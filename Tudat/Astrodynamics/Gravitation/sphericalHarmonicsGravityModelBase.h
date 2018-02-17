@@ -33,7 +33,7 @@ class SphericalHarmonicsGravitationalAccelerationModelBase
 protected:
 
     //! Typedef for a position-returning function.
-    typedef boost::function< StateMatrix( ) > StateFunction;
+    typedef boost::function< void( StateMatrix& ) > StateFunction;
 
 public:
 
@@ -64,7 +64,7 @@ public:
           gravitationalParameterFunction( boost::lambda::constant( aGravitationalParameter ) ),
           sourcePositionFunction( positionOfBodyExertingAccelerationFunction ),
           isMutualAttractionUsed_( isMutualAttractionUsed )
-    { }
+    { gravitationalParameter = gravitationalParameterFunction( ); }
 
     //! Default constructor taking position of body subject to acceleration, variable
     //! gravitational parameter, and position of body exerting acceleration.
@@ -94,7 +94,7 @@ public:
           gravitationalParameterFunction( aGravitationalParameterFunction ),
           sourcePositionFunction( positionOfBodyExertingAccelerationFunction ),
           isMutualAttractionUsed_( isMutualAttractionUsed )
-    { }
+    { gravitationalParameter = gravitationalParameterFunction( ); }
 
     //! Virtual destructor.
     /*!
@@ -113,8 +113,8 @@ public:
     void updateBaseMembers( )
     {
         this->gravitationalParameter = this->gravitationalParameterFunction( );
-        this->positionOfBodySubjectToAcceleration = this->subjectPositionFunction( );
-        this->positionOfBodyExertingAcceleration  = this->sourcePositionFunction( );
+        this->subjectPositionFunction( this->positionOfBodySubjectToAcceleration );
+        this->sourcePositionFunction( this->positionOfBodyExertingAcceleration );
     }
 
     //! Function to return the function returning the relevant gravitational parameter.
@@ -130,7 +130,7 @@ public:
      * Function to return the function returning position of body exerting acceleration.
      * \return Function returning position of body exerting acceleration.
      */
-    boost::function< StateMatrix( ) > getStateFunctionOfBodyExertingAcceleration( )
+    boost::function< void( StateMatrix& ) > getStateFunctionOfBodyExertingAcceleration( )
     { return sourcePositionFunction; }
 
     //! Function to return the function returning position of body subject to acceleration.
@@ -138,7 +138,7 @@ public:
      * Function to return the function returning position of body subject to acceleration.
      * \return Function returning position of body subject to acceleration.
      */
-    boost::function< StateMatrix( ) > getStateFunctionOfBodyUndergoingAcceleration( )
+    boost::function< void( StateMatrix& ) > getStateFunctionOfBodyUndergoingAcceleration( )
     { return subjectPositionFunction; }
 
     //! Function to return whether the mutual attraction is used.

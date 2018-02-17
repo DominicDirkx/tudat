@@ -541,6 +541,12 @@ std::map< MapKey, Eigen::Array< ScalarType, Eigen::Dynamic, 1 > > convertSTLVect
     return eigenMap;
 }
 
+template< typename T >
+void returnValueByReference( T& returnValue, const T& value )
+{
+    returnValue = value;
+}
+
 } // namespace utilities
 
 } // namespace tudat

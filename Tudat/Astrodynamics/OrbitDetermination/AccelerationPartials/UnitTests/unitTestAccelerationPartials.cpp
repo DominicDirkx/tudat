@@ -1109,8 +1109,8 @@ BOOST_AUTO_TEST_CASE( testDirectDissipationAccelerationPartial )
                 // Calculate analytical partials.
                 accelerationModel->updateMembers( );
 
-                std::cout << "Current acceleration: " << useRadialTerm << " " << usePlanetTide << " "
-                          << accelerationModel->getAcceleration( ).transpose( ) << std::endl;
+//                std::cout << "Current acceleration: " << useRadialTerm << " " << usePlanetTide << " "
+//                          << accelerationModel->getAcceleration( ).transpose( ) << std::endl;
 
                 accelerationPartial->update( );
                 Eigen::MatrixXd partialWrtJupiterPosition = Eigen::Matrix3d::Zero( );

@@ -100,6 +100,32 @@ public:
     {
         currentCartesianLocalSoluton = internalSolution;
     }
+
+    //! Function to convert the propagator-specific form of the state to the conventional form in the global frame.
+    /*!
+     * Function to convert the propagator-specific form of the state to the conventional form in the
+     * global frame.  The conventional form for translational dynamics this is the Cartesian
+     * position and velocity).  The inertial frame is typically the barycenter with J2000/ECLIPJ2000
+     * orientation, but may differ depending on simulation settings.
+     * \param internalSolution State in propagator-specific form (i.e. form that is used in
+     * numerical integration).
+     * \param time Current time at which the state is valid.
+     * \param currentCartesianLocalSoluton State (internalSolution), converted to the Cartesian state in inertial coordinates
+     * (returned by reference).
+     */
+    void convertCurrentStateToGlobalRepresentation(
+            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& internalSolution, const TimeType& time,
+            Eigen::Block< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > currentCartesianLocalSoluton )
+    {
+        currentCartesianLocalSoluton = internalSolution;
+        this->centralBodyData_->getReferenceFrameOriginInertialStates(
+                    currentCartesianLocalSoluton, time, this->centralBodyStatesWrtGlobalOrigin_, true );
+
+        for( unsigned int i = 0; i < this->centralBodyStatesWrtGlobalOrigin_.size( ); i++ )
+        {
+            currentCartesianLocalSoluton.template segment< 6 >( i * 6 ) += this->centralBodyStatesWrtGlobalOrigin_[ i ];
+        }
+    }
 };
 
 } // namespace propagators

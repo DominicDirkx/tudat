@@ -71,6 +71,15 @@ public:
         // Set update function to be evaluated as dependent variables of state and time during each
         // integration time step.
         setUpdateFunctions( updateSettings );
+        if( integratedStates_.count( transational_state ) > 0 )
+        {
+            for( unsigned int i = 0; i < integratedStates_.at( transational_state ).size( ); i++ )
+            {
+                translationalStateSetFunctions_.push_back(
+                            boost::bind( &simulation_setup::Body::setTemplatedState< StateScalarType >,
+                                         bodyList_[ integratedStates_[ transational_state ][ i ].first ], _1 ) );
+            }
+        }
     }
 
     //! Function to update the environment to the current state and time.
@@ -147,11 +156,11 @@ private:
             case transational_state:
             {
                 // Set translational states for bodies provided as input.
-                for( unsigned int i = 0; i < integratedStates_[ transational_state ].size( ); i++ )
+                for( unsigned int i = 0; i < translationalStateSetFunctions_.size( ); i++ )
                 {
-                    bodyList_[ integratedStates_[ transational_state ][ i ].first ]->template
-                            setTemplatedState< StateScalarType >(
-                                integratedStateIterator_->second.segment( i * 6, 6 ) );
+                    //Eigen::Vector6d currentState = integratedStateIterator_->second.template segment< 6 >( i * 6 );
+                    translationalStateSetFunctions_[ i ](
+                            ( integratedStateIterator_->second.template segment< 6 >( i * 6 ) ) );
                 }
                 break;
             }
@@ -162,7 +171,7 @@ private:
                 for( unsigned int i = 0; i < bodiesWithIntegratedStates.size( ); i++ )
                 {
                     bodyList_[ bodiesWithIntegratedStates[ i ].first ]->setCurrentRotationalStateToLocalFrame(
-                                integratedStateIterator_->second.segment( i * 7, 7 ).template cast< double >( ) );
+                                integratedStateIterator_->second.template segment< 7 >( i * 7 ).template cast< double >( ) );
                 }
                 break;
             }
@@ -674,6 +683,8 @@ private:
      */
     std::map< IntegratedStateType, std::vector< std::pair< std::string, std::string > > >
     integratedStates_;
+
+    std::vector< boost::function< void( const Eigen::Matrix< StateScalarType, 6, 1 >& ) > > translationalStateSetFunctions_;
 
     //! List of time-dependent functions to call to update the environment.
     std::vector< boost::tuple< EnvironmentModelsToUpdate, std::string, boost::function< void( const double ) > > >

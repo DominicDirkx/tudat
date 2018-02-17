@@ -28,6 +28,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include "Tudat/Basics/utilities.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModel.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityModelBase.h"
 #include "Tudat/Mathematics/BasicMathematics/sphericalHarmonics.h"
@@ -197,8 +198,8 @@ public:
             const double anEquatorialRadius,
             const Eigen::MatrixXd aCosineHarmonicCoefficientMatrix,
             const Eigen::MatrixXd aSineHarmonicCoefficientMatrix,
-            const StateFunction positionOfBodyExertingAccelerationFunction
-            = boost::lambda::constant( Eigen::Vector3d::Zero( ) ),
+            const StateFunction positionOfBodyExertingAccelerationFunction =
+            boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, Eigen::Vector3d::Zero( ) ),
             const boost::function< Eigen::Quaterniond( ) >
             rotationFromBodyFixedToIntegrationFrameFunction =
             boost::lambda::constant( Eigen::Quaterniond( Eigen::Matrix3d::Identity( ) ) ),

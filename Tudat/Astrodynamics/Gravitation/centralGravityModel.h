@@ -14,9 +14,11 @@
 
 #include <boost/lambda/lambda.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/bind.hpp>
 
 #include <Eigen/Core>
 
+#include "Tudat/Basics/utilities.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModel.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityModelBase.h"
 
@@ -51,6 +53,15 @@ Eigen::Vector3d computeGravitationalAcceleration(
         const double massOfBodyExertingAcceleration,
         const Eigen::Vector3d& positionOfBodyExertingAcceleration = Eigen::Vector3d::Zero( )  );
 
+void computeGravitationalAccelerationByReference(
+        const Eigen::Vector3d& relativePositionOfBodySubjectToAcceleration,
+        const double gravitationalParameterOfBodyExertingAcceleration,
+        Eigen::Vector3d& acceleration );
+
+Eigen::Vector3d computeGravitationalAcceleration(
+        const Eigen::Vector3d& relativePositionOfBodySubjectToAcceleration,
+        const double gravitationalParameterOfBodyExertingAcceleration );
+
 //! Compute gravitational acceleration.
 /*!
  * Computes gravitational acceleration experienced by body1, due to its interaction with body2.
@@ -74,7 +85,7 @@ Eigen::Vector3d computeGravitationalAcceleration(
 Eigen::Vector3d computeGravitationalAcceleration(
         const Eigen::Vector3d& positionOfBodySubjectToAcceleration,
         const double gravitationalParameterOfBodyExertingAcceleration,
-        const Eigen::Vector3d& positionOfBodyExertingAcceleration = Eigen::Vector3d::Zero( ) );
+        const Eigen::Vector3d& positionOfBodyExertingAcceleration );
 
 //! Compute gravitational force.
 /*!
@@ -168,7 +179,7 @@ public:
             const typename Base::StateFunction positionOfBodySubjectToAccelerationFunction,
             const double aGravitationalParameter,
             const typename Base::StateFunction positionOfBodyExertingAccelerationFunction
-            = boost::lambda::constant( StateMatrix::Zero( ) ),
+            = boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, Eigen::Vector3d::Zero( ) ),
             const bool isMutualAttractionUsed = false )
         : Base( positionOfBodySubjectToAccelerationFunction,
                 boost::lambda::constant( aGravitationalParameter ),
@@ -202,7 +213,7 @@ public:
             const typename Base::StateFunction positionOfBodySubjectToAccelerationFunction,
             const boost::function< double( ) > aGravitationalParameterFunction,
             const typename Base::StateFunction positionOfBodyExertingAccelerationFunction
-            = boost::lambda::constant( StateMatrix::Zero( ) ),
+            = boost::bind( &utilities::returnValueByReference< Eigen::Vector3d >, _1, Eigen::Vector3d::Zero( ) ),
             const bool isMutualAttractionUsed = false )
         : Base( positionOfBodySubjectToAccelerationFunction,
                 aGravitationalParameterFunction,
@@ -224,10 +235,10 @@ public:
         if( !( this->currentTime_ == currentTime ) )
         {
             this->updateBaseMembers( );
-            this->currentAcceleration_ = computeGravitationalAcceleration(
-                        this->positionOfBodySubjectToAcceleration,
+            computeGravitationalAccelerationByReference(
+                        this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration,
                         this->gravitationalParameter,
-                        this->positionOfBodyExertingAcceleration );
+                        this->currentAcceleration_ );
         }
     }
 

@@ -198,14 +198,14 @@ public:
         for( unsigned int i = 0; i < updateOrder_.size( ); i++ )
         {
             getSingleReferenceFrameOriginInertialState(
-                        localInternalState_, time, updateOrder_.at( i ),
-                        referenceFrameOriginStates.at( updateOrder_.at( i ) ));
+                        time, updateOrder_.at( i ),
+                        referenceFrameOriginStates[ updateOrder_[ i ] ] );
 
             // Modify current input state to global frame if input is local (in propagation frame).
             if( areInputStateLocal )
             {
-                localInternalState_.segment( 6 * updateOrder_.at( i ), 6 ) +=
-                        referenceFrameOriginStates.at( updateOrder_.at( i ) );
+                localInternalState_.template segment< 6 >( 6 * updateOrder_.at( i ) ) +=
+                        referenceFrameOriginStates[ updateOrder_[ i ] ];
             }
         }
     }
@@ -266,9 +266,6 @@ private:
     /*!
      *  Function to get the global origin of the propagation center of a single body, where the
      *  origin may be inertial, from an ephemeris, or from one of the other propagated bodies.
-     *  \param internalSolution Full current state of the bodies being propagated, modified so that
-     *  the origin of the current body is already translated to the global origin (if from
-     *  integration)
      *  \sa getReferenceFrameOriginInertialStates
      *  \sa updateOrder
      *  \param time Current time.
@@ -276,7 +273,6 @@ private:
      *  \param originState Global origin state of the requested body (returned by reference).
      */
     void getSingleReferenceFrameOriginInertialState(
-            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& internalSolution,
             const TimeType time,
             const int bodyIndex,
             Eigen::Matrix< StateScalarType, 6, 1 >& originState )
@@ -291,7 +287,7 @@ private:
             originState = centralBodiesFromEphemerides_.at( bodyIndex )( static_cast< double >( time ) );
             break;
         case from_integration:
-            originState = internalSolution.segment( centralBodiesFromIntegration_.at( bodyIndex ) * 6, 6 );
+            originState = localInternalState_.template segment< 6 >( centralBodiesFromIntegration_.at( bodyIndex ) * 6 );
             break;
         default:
             throw std::runtime_error( "Error, do not recognize boy origin type " +

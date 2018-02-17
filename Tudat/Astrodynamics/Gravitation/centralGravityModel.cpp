@@ -31,16 +31,37 @@ Eigen::Vector3d computeGravitationalAcceleration(
                 positionOfBodyExertingAcceleration );
 }
 
+void computeGravitationalAccelerationByReference(
+        const Eigen::Vector3d& relativePositionOfBodySubjectToAcceleration,
+        const double gravitationalParameterOfBodyExertingAcceleration,
+        Eigen::Vector3d& acceleration )
+{
+
+    double distance = relativePositionOfBodySubjectToAcceleration.norm( );
+    acceleration = -( gravitationalParameterOfBodyExertingAcceleration / ( distance * distance * distance ) )
+            * ( relativePositionOfBodySubjectToAcceleration );
+}
+
+Eigen::Vector3d computeGravitationalAcceleration(
+        const Eigen::Vector3d& relativePositionOfBodySubjectToAcceleration,
+        const double gravitationalParameterOfBodyExertingAcceleration )
+{
+
+    double distance = relativePositionOfBodySubjectToAcceleration.norm( );
+    return -gravitationalParameterOfBodyExertingAcceleration
+            * ( relativePositionOfBodySubjectToAcceleration )
+            / ( distance * distance * distance );
+}
+
 //! Compute gravitational acceleration.
 Eigen::Vector3d computeGravitationalAcceleration(
         const Eigen::Vector3d& positionOfBodySubjectToAcceleration,
         const double gravitationalParameterOfBodyExertingAcceleration,
         const Eigen::Vector3d& positionOfBodyExertingAcceleration )
 {
-    double distance = ( positionOfBodySubjectToAcceleration - positionOfBodyExertingAcceleration ).norm( );
-    return -gravitationalParameterOfBodyExertingAcceleration
-            * ( positionOfBodySubjectToAcceleration - positionOfBodyExertingAcceleration )
-            / ( distance * distance * distance );
+    return computeGravitationalAcceleration(
+                positionOfBodySubjectToAcceleration - positionOfBodyExertingAcceleration,
+                gravitationalParameterOfBodyExertingAcceleration );
 }
 
 //! Compute gravitational force.

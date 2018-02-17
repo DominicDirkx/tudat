@@ -74,7 +74,7 @@ public:
     void addAcceleration( Eigen::Block< Eigen::Matrix< TotalAccelerationScalarType, Eigen::Dynamic, Eigen::Dynamic > >& totalAcceleration,
                           const int addIndex )
     {
-        totalAcceleration.block( addIndex, 0, 3, 1 ) += currentAcceleration_.template cast< TotalAccelerationScalarType >( );
+        totalAcceleration.template block< 3, 1 >( addIndex, 0 ) += currentAcceleration_.template cast< TotalAccelerationScalarType >( );
     }
 
     //! Update member variables used by the acceleration model.

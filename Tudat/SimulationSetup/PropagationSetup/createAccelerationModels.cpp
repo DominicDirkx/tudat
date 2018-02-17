@@ -247,9 +247,9 @@ boost::shared_ptr< CentralGravitationalAccelerationModel3d > createCentralGravit
         // Create acceleration object.
         accelerationModelPointer =
                 boost::make_shared< CentralGravitationalAccelerationModel3d >(
-                    boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
+                    boost::bind( &Body::getPositionByReference, bodyUndergoingAcceleration, _1 ),
                     gravitationalParameterFunction,
-                    boost::bind( &Body::getPosition, bodyExertingAcceleration ),
+                    boost::bind( &Body::getPositionByReference, bodyExertingAcceleration, _1 ),
                     useCentralBodyFixedFrame );
     }
 
@@ -345,7 +345,7 @@ createSphericalHarmonicsGravityAcceleration(
             // Create acceleration object.
             accelerationModel =
                     boost::make_shared< SphericalHarmonicsGravitationalAccelerationModel >
-                    ( boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
+                    ( boost::bind( &Body::getPositionByReference, bodyUndergoingAcceleration, _1 ),
                       gravitationalParameterFunction,
                       sphericalHarmonicsGravityField->getReferenceRadius( ),
                       boost::bind( &SphericalHarmonicsGravityField::getCosineCoefficients,
@@ -356,7 +356,7 @@ createSphericalHarmonicsGravityAcceleration(
                                    sphericalHarmonicsGravityField,
                                    sphericalHarmonicsSettings->maximumDegree_,
                                    sphericalHarmonicsSettings->maximumOrder_ ),
-                      boost::bind( &Body::getPosition, bodyExertingAcceleration ),
+                      boost::bind( &Body::getPositionByReference, bodyExertingAcceleration, _1 ),
                       boost::bind( &Body::getCurrentRotationToGlobalFrame,
                                    bodyExertingAcceleration ), useCentralBodyFixedFrame );
         }
@@ -457,8 +457,8 @@ createMutualSphericalHarmonicsGravityAcceleration(
             }
 
             accelerationModel = boost::make_shared< MutualSphericalHarmonicsGravitationalAccelerationModel >(
-                        boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
-                        boost::bind( &Body::getPosition, bodyExertingAcceleration ),
+                        boost::bind( &Body::getPositionByReference, bodyUndergoingAcceleration, _1 ),
+                        boost::bind( &Body::getPositionByReference, bodyExertingAcceleration, _1 ),
                         gravitationalParameterFunction,
                         sphericalHarmonicsGravityFieldOfBodyExertingAcceleration->getReferenceRadius( ),
                         sphericalHarmonicsGravityFieldOfBodyUndergoingAcceleration->getReferenceRadius( ),

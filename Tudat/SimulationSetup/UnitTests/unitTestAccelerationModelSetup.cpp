@@ -116,15 +116,15 @@ BOOST_AUTO_TEST_CASE( test_centralGravityModelSetup )
     boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >
             manualSunAcceleration =
             boost::make_shared< gravitation::CentralGravitationalAccelerationModel< > >(
-                boost::bind( &Body::getPosition, bodyMap[ "Mars" ] ),
+                boost::bind( &Body::getPositionByReference, bodyMap[ "Mars" ], _1 ),
             spice_interface::getBodyGravitationalParameter( "Sun" ),
-            boost::bind( &Body::getPosition, bodyMap[ "Sun" ] ) );
+            boost::bind( &Body::getPositionByReference, bodyMap[ "Sun" ], _1 ) );
     boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >
             manualJupiterAcceleration =
             boost::make_shared< gravitation::CentralGravitationalAccelerationModel< > >(
-                boost::bind( &Body::getPosition, bodyMap[ "Mars" ] ),
+                boost::bind( &Body::getPositionByReference, bodyMap[ "Mars" ], _1 ),
             spice_interface::getBodyGravitationalParameter( "Jupiter" ),
-            boost::bind( &Body::getPosition, bodyMap[ "Jupiter" ] ) );
+            boost::bind( &Body::getPositionByReference, bodyMap[ "Jupiter" ], _1 ) );
 
     // Test equivalence of two acceleration models.
     TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
@@ -149,10 +149,10 @@ BOOST_AUTO_TEST_CASE( test_centralGravityModelSetup )
     // since the integration is done w.r.t. the Sun, not the barycenter.
     manualSunAcceleration =
             boost::make_shared< gravitation::CentralGravitationalAccelerationModel< > >(
-                boost::bind( &Body::getPosition, bodyMap[ "Mars" ] ),
+                boost::bind( &Body::getPositionByReference, bodyMap[ "Mars" ], _1 ),
             spice_interface::getBodyGravitationalParameter( "Sun" ) +
             spice_interface::getBodyGravitationalParameter( "Mars" ),
-            boost::bind( &Body::getPosition, bodyMap[ "Sun" ] ) );
+            boost::bind( &Body::getPositionByReference, bodyMap[ "Sun" ], _1 ) );
 
     // Manually create Jupiter's acceleration on Mars, which now a third body acceleration,
     // with the Sun the central body.
@@ -160,13 +160,13 @@ BOOST_AUTO_TEST_CASE( test_centralGravityModelSetup )
             boost::make_shared< gravitation::ThirdBodyAcceleration<
             gravitation::CentralGravitationalAccelerationModel< > > >(
                 boost::make_shared< gravitation::CentralGravitationalAccelerationModel< > >(
-                    boost::bind( &Body::getPosition, bodyMap[ "Mars" ] ),
+                    boost::bind( &Body::getPositionByReference, bodyMap[ "Mars" ], _1 ),
                 spice_interface::getBodyGravitationalParameter( "Jupiter" ),
-                boost::bind( &Body::getPosition, bodyMap[ "Jupiter" ] ) ),
+                boost::bind( &Body::getPositionByReference, bodyMap[ "Jupiter" ], _1 ) ),
             boost::make_shared< gravitation::CentralGravitationalAccelerationModel< > >(
-                boost::bind( &Body::getPosition, bodyMap[ "Sun" ] ),
+                boost::bind( &Body::getPositionByReference, bodyMap[ "Sun" ], _1 ),
             spice_interface::getBodyGravitationalParameter( "Jupiter" ),
-            boost::bind( &Body::getPosition, bodyMap[ "Jupiter" ] ) ), "Jupiter" );
+            boost::bind( &Body::getPositionByReference, bodyMap[ "Jupiter" ], _1 ) ), "Jupiter" );
 
     // Test equivalence of two acceleration models.
     TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
@@ -250,10 +250,10 @@ BOOST_AUTO_TEST_CASE( test_shGravityModelSetup )
     boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >
             manualAcceleration =
             boost::make_shared< gravitation::SphericalHarmonicsGravitationalAccelerationModel >(
-                boost::bind( &Body::getPosition, bodyMap[ "Vehicle" ] ),
+                boost::bind( &Body::getPositionByReference, bodyMap[ "Vehicle" ], _1 ),
             gravitationalParameter,
             planetaryRadius, cosineCoefficients, sineCoefficients,
-            boost::bind( &Body::getPosition, bodyMap[ "Earth" ] ) );
+            boost::bind( &Body::getPositionByReference, bodyMap[ "Earth" ], _1 ) );
 
     // Test equivalence of two acceleration models.
     TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
@@ -274,10 +274,10 @@ BOOST_AUTO_TEST_CASE( test_shGravityModelSetup )
     // Manually create acceleration.
     manualAcceleration =
             boost::make_shared< gravitation::SphericalHarmonicsGravitationalAccelerationModel >(
-                boost::bind( &Body::getPosition, bodyMap[ "Vehicle" ] ),
+                boost::bind( &Body::getPositionByReference, bodyMap[ "Vehicle" ], _1 ),
             gravitationalParameter * 1.1,
             planetaryRadius, cosineCoefficients, sineCoefficients,
-            boost::bind( &Body::getPosition, bodyMap[ "Earth" ] ) );
+            boost::bind( &Body::getPositionByReference, bodyMap[ "Earth" ], _1 ) );
 
     // Test equivalence of two acceleration models.
     TUDAT_CHECK_MATRIX_CLOSE_FRACTION(

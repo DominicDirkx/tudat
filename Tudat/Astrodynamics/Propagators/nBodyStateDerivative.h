@@ -130,32 +130,6 @@ public:
             }
         }
 
-        // Correct order of propagated bodies.
-        for( outerAccelerationIterator = accelerationModelsPerBody_.begin( );
-             outerAccelerationIterator != accelerationModelsPerBody_.end( );
-             outerAccelerationIterator++ )
-        {
-            std::vector< std::string >::iterator findIterator =
-                    std::find( bodiesToBeIntegratedNumerically_.begin( ), bodiesToBeIntegratedNumerically_.end( ),
-                               outerAccelerationIterator->first );
-            bodyOrder_.push_back( std::distance( bodiesToBeIntegratedNumerically_.begin( ), findIterator ) );
-
-            std::vector< boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > > currentBodyAccelerationModelList_;
-
-            // Iterate over all accelerations acting on body
-            for( innerAccelerationIterator  = outerAccelerationIterator->second.begin( );
-                 innerAccelerationIterator != outerAccelerationIterator->second.end( );
-                 innerAccelerationIterator++ )
-            {
-                for( unsigned int i = 0; i < innerAccelerationIterator->second.size( ); i++ )
-                {
-                    currentBodyAccelerationModelList_.push_back( innerAccelerationIterator->second.at( i ) );
-                }
-            }
-            accelerationModelListPerBody_.push_back( currentBodyAccelerationModelList_ );
-
-        }
-
         createAccelerationModelList( );
     }
 
@@ -349,10 +323,20 @@ protected:
     void createAccelerationModelList( )
     {
         accelerationModelList_.clear( );
+        accelerationModelListPerBody_.clear( );
+        bodyOrder_.clear( );
+
         // Iterate over all accelerations and update their internal state.
         for( outerAccelerationIterator = accelerationModelsPerBody_.begin( );
              outerAccelerationIterator != accelerationModelsPerBody_.end( ); outerAccelerationIterator++ )
         {
+            std::vector< boost::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > > currentBodyAccelerationModelList_;
+
+            std::vector< std::string >::iterator findIterator =
+                    std::find( bodiesToBeIntegratedNumerically_.begin( ), bodiesToBeIntegratedNumerically_.end( ),
+                               outerAccelerationIterator->first );
+            bodyOrder_.push_back( std::distance( bodiesToBeIntegratedNumerically_.begin( ), findIterator ) );
+
             // Iterate over all accelerations acting on body
             for( innerAccelerationIterator  = outerAccelerationIterator->second.begin( );
                  innerAccelerationIterator != outerAccelerationIterator->second.end( );
@@ -362,8 +346,10 @@ protected:
                 for( unsigned int j = 0; j < innerAccelerationIterator->second.size( ); j++ )
                 {
                     accelerationModelList_.push_back( innerAccelerationIterator->second.at( j ) );
+                    currentBodyAccelerationModelList_.push_back( innerAccelerationIterator->second.at( j ) );
                 }
             }
+            accelerationModelListPerBody_.push_back( currentBodyAccelerationModelList_ );
         }
     }
 

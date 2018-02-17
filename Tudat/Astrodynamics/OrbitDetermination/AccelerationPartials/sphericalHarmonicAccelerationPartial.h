@@ -333,6 +333,8 @@ protected:
     //! Function to retrieve the current spherical harmonic acceleration.
     boost::function< Eigen::Matrix< double, 3, 1 >( ) > accelerationFunction_;
 
+    boost::function< Eigen::Vector3d( ) > accelerationFunctionInBodyFixedFrame_;
+
     //! Function to update the acceleration to the current state and time.
     /*!
      *  Function to update the acceleration to the current state and time.
@@ -432,6 +434,7 @@ protected:
      *  into account as an inertial effect.
      */
     bool accelerationUsesMutualAttraction_;
+
 
 };
 

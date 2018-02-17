@@ -267,6 +267,15 @@ protected:
     //! Function to set the state of the body undergoing the acceleration
     boost::function< void( const Eigen::Vector6d& ) > vehicleStateSetFunction_;
 
+    Eigen::Vector3d upperturbedAcceleration_;
+
+    Eigen::Vector3d downperturbedAcceleration_;
+
+    Eigen::Vector6d nominalState_;
+
+    Eigen::Vector6d perturbedState_;
+
+
 };
 
 } // namespace acceleration_partials

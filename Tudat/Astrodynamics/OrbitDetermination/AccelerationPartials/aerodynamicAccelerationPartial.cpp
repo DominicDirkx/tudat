@@ -20,51 +20,49 @@ namespace acceleration_partials
 //! Function for updating partial w.r.t. the bodies' positions
 void AerodynamicAccelerationPartial::update( const double currentTime )
 {
-    Eigen::Vector6d nominalState = vehicleStateGetFunction_( );
-    Eigen::Vector6d perturbedState;
+    nominalState_ = vehicleStateGetFunction_( );
 
     // Compute state partial by numerical difference
-    Eigen::Vector3d upperturbedAcceleration, downperturbedAcceleration;
     for( unsigned int i = 0; i < 6; i++ )
     {
         // Perturb state upwards
-        perturbedState = nominalState;
-        perturbedState( i ) += bodyStatePerturbations_( i );
+        perturbedState_ = nominalState_;
+        perturbedState_( i ) += bodyStatePerturbations_( i );
 
         // Update environment/acceleration to perturbed state.
         flightConditions_->resetCurrentTime( TUDAT_NAN );
         aerodynamicAcceleration_->resetTime( TUDAT_NAN );
-        vehicleStateSetFunction_( perturbedState );
+        vehicleStateSetFunction_( perturbedState_ );
         flightConditions_->updateConditions( currentTime );
         aerodynamicAcceleration_->updateMembers( currentTime );
 
         // Retrieve perturbed acceleration.
-        upperturbedAcceleration = aerodynamicAcceleration_->getAcceleration( );
+        upperturbedAcceleration_ = aerodynamicAcceleration_->getAcceleration( );
 
         // Perturb state downwards
-        perturbedState = nominalState;
-        perturbedState( i ) -= bodyStatePerturbations_( i );
+        perturbedState_ = nominalState_;
+        perturbedState_( i ) -= bodyStatePerturbations_( i );
 
         // Update environment/acceleration to perturbed state.
         flightConditions_->resetCurrentTime( TUDAT_NAN );
         aerodynamicAcceleration_->resetTime( TUDAT_NAN );
-        vehicleStateSetFunction_( perturbedState );
+        vehicleStateSetFunction_( perturbedState_ );
         flightConditions_->updateConditions( currentTime );
         aerodynamicAcceleration_->updateMembers( currentTime );
 
         // Retrieve perturbed acceleration.
-        downperturbedAcceleration = aerodynamicAcceleration_->getAcceleration( );
+        downperturbedAcceleration_ = aerodynamicAcceleration_->getAcceleration( );
 
         // Compute partial
         currentAccelerationStatePartials_.block( 0, i, 3, 1 ) =
-                ( upperturbedAcceleration - downperturbedAcceleration ) / ( 2.0 * bodyStatePerturbations_( i ) );
+                ( upperturbedAcceleration_ - downperturbedAcceleration_ ) / ( 2.0 * bodyStatePerturbations_( i ) );
     }
 
     // Reset environment/acceleration mode to nominal conditions
     flightConditions_->resetCurrentTime( TUDAT_NAN );
     aerodynamicAcceleration_->resetTime( TUDAT_NAN );
 
-    vehicleStateSetFunction_( nominalState );
+    vehicleStateSetFunction_( nominalState_ );
     flightConditions_->updateConditions( currentTime );
     aerodynamicAcceleration_->updateMembers( currentTime );
 }

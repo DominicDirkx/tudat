@@ -306,7 +306,13 @@ public:
                         equatorialRadius,
                         cosineHarmonicCoefficients,
                         sineHarmonicCoefficients, sphericalHarmonicsCache_ );
+            this->currentTime_ = currentTime;
         }
+    }
+
+    Eigen::Vector3d getAccelerationInBodyFixedFrame( )
+    {
+        return rotationToIntegrationFrame_.inverse( ) * this->currentAcceleration_;
     }
 
     //! Function to retrieve the spherical harmonics cache for this acceleration.

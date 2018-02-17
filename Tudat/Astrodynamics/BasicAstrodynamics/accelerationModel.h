@@ -65,6 +65,7 @@ public:
         return currentAcceleration_;
     }
 
+
     void getAccelerationByReference( AccelerationDataType& acceleration )
     {
         acceleration = currentAcceleration_;

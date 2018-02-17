@@ -186,7 +186,8 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const double gravitionalParameter,
         const Eigen::MatrixXd cosineHarmonicCoefficients,
         const Eigen::MatrixXd sineHarmonicCoefficients,
-        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
+        const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        const Eigen::Vector3d accelerationInBodyFixedFrame )
 {
     // Compute spherical position.
     Eigen::Vector3d sphericalPosition =
@@ -198,11 +199,17 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
             coordinate_conversions::getSphericalToCartesianGradientMatrix( cartesianPosition );
 
     // Compute spherical gradient.
-    Eigen::Vector3d sphericalPotentialGradient = gradientTransformationMatrix.inverse( ) *
-            gravitation::computeGeodesyNormalizedGravitationalAccelerationSum(
-                cartesianPosition, gravitionalParameter, referenceRadius, cosineHarmonicCoefficients,
-                sineHarmonicCoefficients, sphericalHarmonicsCache );
-
+    Eigen::Vector3d sphericalPotentialGradient;
+    if( !( accelerationInBodyFixedFrame == accelerationInBodyFixedFrame ) )
+    {
+        sphericalPotentialGradient = gradientTransformationMatrix.inverse( ) * accelerationInBodyFixedFrame;
+    }
+    else
+    {
+        sphericalPotentialGradient = gradientTransformationMatrix.inverse( ) *gravitation::computeGeodesyNormalizedGravitationalAccelerationSum(
+                    cartesianPosition, gravitionalParameter, referenceRadius, cosineHarmonicCoefficients,
+                    sineHarmonicCoefficients, sphericalHarmonicsCache );
+    }
     return computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
                 cartesianPosition, sphericalPosition, referenceRadius, gravitionalParameter, cosineHarmonicCoefficients,
                 sineHarmonicCoefficients, sphericalHarmonicsCache, sphericalPotentialGradient,

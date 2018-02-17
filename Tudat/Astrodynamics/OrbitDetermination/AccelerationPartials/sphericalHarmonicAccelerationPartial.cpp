@@ -44,6 +44,8 @@ SphericalHarmonicsGravityPartial::SphericalHarmonicsGravityPartial(
                                                            getCurrentRotationToIntegrationFrameMatrix, accelerationModel ) ),
     accelerationFunction_( boost::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::getAcceleration,
                                         accelerationModel ) ),
+    accelerationFunctionInBodyFixedFrame_( boost::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::getAccelerationInBodyFixedFrame,
+                                        accelerationModel ) ),
     updateFunction_( boost::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::updateMembers,
                                   accelerationModel, _1 ) ),
     rotationMatrixPartials_( rotationMatrixPartials ),
@@ -343,7 +345,7 @@ void SphericalHarmonicsGravityPartial::update( const double currentTime )
         // Calculate partial of acceleration wrt position of body undergoing acceleration.
         currentBodyFixedPartialWrtPosition_ = computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
                     bodyFixedPosition_, bodyReferenceRadius_( ), gravitationalParameterFunction_( ),
-                    currentCosineCoefficients_, currentSineCoefficients_, sphericalHarmonicCache_ );
+                    currentCosineCoefficients_, currentSineCoefficients_, sphericalHarmonicCache_, accelerationFunctionInBodyFixedFrame_( ) );
 
         currentPartialWrtVelocity_.setZero( );
         currentPartialWrtPosition_ =

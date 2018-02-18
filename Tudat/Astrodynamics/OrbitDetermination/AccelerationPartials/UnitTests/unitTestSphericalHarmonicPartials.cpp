@@ -415,6 +415,7 @@ BOOST_AUTO_TEST_CASE( testSphericalHarmonicPartials )
                 position, planetaryRadius, gravitationalParameter, cosineCoefficients, sineCoefficients,
                 sphericalHarmonicsCache );
 
+
     TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
                 totalGradientCartesianPartial, numericalTotalSphericalGradient, 1.0E-6 );
 }

@@ -222,11 +222,11 @@ public:
      */
     virtual StateType performIntegrationStep( const TimeStepType stepSize )
     {
-        StateType stateAtFirstPoint_;
-        StateType stateAtCenterPoint_;
-        StateType stateAtLastPoint_;
-
         bool stepSuccessful = 0;
+
+         stateAtFirstPoint_.setZero( );
+         stateAtCenterPoint_.setZero( );
+         stateAtLastPoint_.setZero( );
 
         // Compute sub steps to take.
         for ( unsigned int p = 0; p <  subSteps_.size( ); p++ )
@@ -490,6 +490,13 @@ private:
     unsigned int maximumStepIndex_;
 
     std::vector< double > subSteps_;
+
+    StateType stateAtFirstPoint_;
+
+    StateType stateAtCenterPoint_;
+
+    StateType stateAtLastPoint_;
+
 
 };
 

@@ -200,7 +200,7 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
 
     // Compute spherical gradient.
     Eigen::Vector3d sphericalPotentialGradient;
-    if( !( accelerationInBodyFixedFrame == accelerationInBodyFixedFrame ) )
+    if( ( accelerationInBodyFixedFrame == accelerationInBodyFixedFrame ) )
     {
         sphericalPotentialGradient = gradientTransformationMatrix.inverse( ) * accelerationInBodyFixedFrame;
     }

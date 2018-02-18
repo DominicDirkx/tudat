@@ -56,7 +56,15 @@ Eigen::Vector3d calculateInertialToPlanetFixedRotationAnglesFromMatrix(
 }
 
 //! Wrapper function to transform a vector to a different frame from a single rotation function.
-Eigen::Vector3d transformVectorFromQuaternionFunction(
+void transformVectorFromQuaternionFunction(
+        const Eigen::Vector3d& originalVector,
+        Eigen::Vector3d& multipliedVector,
+        const boost::function< Eigen::Quaterniond( ) > rotation )
+{
+    multipliedVector = rotation( ) * originalVector;
+}
+
+Eigen::Vector3d transformVectorFromQuaternionFunctionDirect(
         const Eigen::Vector3d& originalVector,
         const boost::function< Eigen::Quaterniond( ) > rotation )
 {
@@ -74,7 +82,7 @@ Eigen::Vector3d transformVectorFunctionFromVectorFunctions(
 //! Wrapper function to transform a vector to a different frame from a list of transformation function.
 Eigen::Vector3d transformVectorFromVectorFunctions(
         const Eigen::Vector3d& originalVector,
-        const std::vector< boost::function< Eigen::Vector3d( const Eigen::Vector3d& ) > >& rotationsList )
+        const std::vector< boost::function< void( const Eigen::Vector3d&, Eigen::Vector3d& ) > >& rotationsList )
 {
     Eigen::Vector3d currentVector = originalVector;
     Eigen::Vector3d newVector;
@@ -82,7 +90,7 @@ Eigen::Vector3d transformVectorFromVectorFunctions(
     // Apply each of the required tranformations.
     for( unsigned int i = 0; i < rotationsList.size( ); i++ )
     {
-        newVector = rotationsList.at( i )( currentVector );
+        rotationsList.at( i )( currentVector, newVector );
         currentVector = newVector;
     }
     return currentVector;

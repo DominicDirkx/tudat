@@ -67,6 +67,11 @@ FlightConditions::FlightConditions(
     {
         throw std::runtime_error( "Error when making flight conditions, angles are to be updated, but no calculator is set" );
     }
+
+    for( unsigned int i = 0; i < 11; i++ )
+    {
+        areScalarFlightConditionsComputed_[ static_cast< FlightConditionVariables >( i ) ] = false;
+    }
 }
 
 //! Function to set custom dependency of aerodynamic coefficients

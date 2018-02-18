@@ -455,7 +455,7 @@ getAerodynamicForceTransformationFunction(
     // If propagation frame is the inertial frame, use bodyFixedToInertialFrameFunction.
     if( propagationFrame == inertial_frame )
     {
-        std::vector< boost::function< Eigen::Vector3d( const Eigen::Vector3d& ) > > rotationsList;
+        std::vector< boost::function< void( const Eigen::Vector3d&, Eigen::Vector3d& ) > > rotationsList;
 
         // Get accelerationFrame to corotating frame transformation.
         boost::function< Eigen::Quaterniond( ) > firstRotation =
@@ -463,12 +463,12 @@ getAerodynamicForceTransformationFunction(
                              aerodynamicAngleCalculator, accelerationFrame, corotating_frame );
         rotationsList.push_back(
                     boost::bind( &transformVectorFromQuaternionFunction,
-                                 _1, firstRotation ) );
+                                 _1, _2, firstRotation ) );
 
         // Add corotating to inertial frame.
         rotationsList.push_back(
                     boost::bind( &transformVectorFromQuaternionFunction,
-                                 _1, bodyFixedToInertialFrameFunction ) );
+                                 _1, _2,bodyFixedToInertialFrameFunction ) );
 
         // Create transformation function.
         transformationFunction = boost::bind( &transformVectorFromVectorFunctions,
@@ -482,7 +482,7 @@ getAerodynamicForceTransformationFunction(
                              aerodynamicAngleCalculator, accelerationFrame, propagationFrame );
 
         // Create transformation function.
-        transformationFunction = boost::bind( &transformVectorFromQuaternionFunction, _1,
+        transformationFunction = boost::bind( &transformVectorFromQuaternionFunctionDirect, _1,
                                               rotationFunction );
     }
 

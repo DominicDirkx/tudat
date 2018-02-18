@@ -60,7 +60,12 @@ Eigen::Vector3d calculateInertialToPlanetFixedRotationAnglesFromMatrix(
  * \param rotation Function returning the current rotation to the new frame
  * \return Vector originalVector, transformed to new frame.
  */
-Eigen::Vector3d transformVectorFromQuaternionFunction(
+void transformVectorFromQuaternionFunction(
+        const Eigen::Vector3d& originalVector,
+        Eigen::Vector3d& multipliedVector,
+        const boost::function< Eigen::Quaterniond( ) > rotation );
+
+Eigen::Vector3d transformVectorFromQuaternionFunctionDirect(
         const Eigen::Vector3d& originalVector,
         const boost::function< Eigen::Quaterniond( ) > rotation );
 
@@ -85,7 +90,7 @@ Eigen::Vector3d transformVectorFunctionFromVectorFunctions(
  */
 Eigen::Vector3d transformVectorFromVectorFunctions(
         const Eigen::Vector3d& originalVector,
-        const std::vector< boost::function< Eigen::Vector3d( const Eigen::Vector3d& ) > >& rotationsList );
+        const std::vector< boost::function< void( const Eigen::Vector3d&, Eigen::Vector3d& ) > >& rotationsList );
 
 //! Get rotating planetocentric (R) to inertial (I) reference frame transformation matrix.
 /*!

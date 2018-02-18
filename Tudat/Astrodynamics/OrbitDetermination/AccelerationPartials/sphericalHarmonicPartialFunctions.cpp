@@ -126,8 +126,8 @@ Eigen::Matrix3d computeCumulativeSphericalHessian(
         const Eigen::Vector3d& sphericalPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const Eigen::MatrixXd cosineHarmonicCoefficients,
-        const Eigen::MatrixXd sineHarmonicCoefficients,
+        const Eigen::MatrixXd& cosineHarmonicCoefficients,
+        const Eigen::MatrixXd& sineHarmonicCoefficients,
         const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
 {
     double preMultiplier = gravitionalParameter / referenceRadius;
@@ -156,8 +156,8 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const Eigen::Vector3d& sphericalPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const Eigen::MatrixXd cosineHarmonicCoefficients,
-        const Eigen::MatrixXd sineHarmonicCoefficients,
+        const Eigen::MatrixXd& cosineHarmonicCoefficients,
+        const Eigen::MatrixXd& sineHarmonicCoefficients,
         const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         const Eigen::Vector3d& sphericalPotentialGradient,
         const Eigen::Matrix3d& sphericalToCartesianGradientMatrix )
@@ -184,10 +184,10 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const Eigen::Vector3d& cartesianPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const Eigen::MatrixXd cosineHarmonicCoefficients,
-        const Eigen::MatrixXd sineHarmonicCoefficients,
+        const Eigen::MatrixXd& cosineHarmonicCoefficients,
+        const Eigen::MatrixXd& sineHarmonicCoefficients,
         const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
-        const Eigen::Vector3d accelerationInBodyFixedFrame )
+        const Eigen::Vector3d& accelerationInBodyFixedFrame )
 {
     // Compute spherical position.
     Eigen::Vector3d sphericalPosition =

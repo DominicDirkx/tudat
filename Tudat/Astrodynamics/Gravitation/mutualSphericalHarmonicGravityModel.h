@@ -40,8 +40,9 @@ namespace gravitation
  *  coefficients is left untouched, not compromising the environment  model, while the C(0,0) term is not calculated doubly
  *  by the MutualSphericalHarmonicsGravitationalAccelerationModel class.
  */
-Eigen::MatrixXd setDegreeAndOrderCoefficientToZero( const boost::function< Eigen::MatrixXd( ) >
-                                                    originalCosineCoefficientFunction );
+void setDegreeAndOrderCoefficientToZero(
+        const boost::function< void( Eigen::MatrixXd& ) > originalCosineCoefficientFunction,
+        Eigen::MatrixXd& newCoefficients );
 
 //! Class to calculate the mutual spherical harmonic gravitational acceleration between two bodies.
 /*!
@@ -57,7 +58,7 @@ class MutualSphericalHarmonicsGravitationalAccelerationModel
 private:
 
     //! Typedef for coefficient-matrix-returning function.
-    typedef boost::function< Eigen::MatrixXd( ) > CoefficientMatrixReturningFunction;
+    typedef boost::function< void( Eigen::MatrixXd& ) > CoefficientMatrixReturningFunction;
 
     //! Typedef for function returning body position.
     typedef boost::function< void( Eigen::Vector3d& ) > StateFunction;
@@ -111,10 +112,10 @@ public:
             const DataReturningFunction& gravitationalParameterFunction,
             const double equatorialRadiusOfBodyExertingAcceleration,
             const double equatorialRadiusOfBodyUndergoingAcceleration,
-            const CoefficientMatrixReturningFunction& cosineHarmonicCoefficientsFunctionOfBodyExertingAcceleration,
-            const CoefficientMatrixReturningFunction& sineHarmonicCoefficientsFunctionOfBodyExertingAcceleration,
-            const CoefficientMatrixReturningFunction& cosineHarmonicCoefficientsFunctionOfBodyUndergoingAcceleration,
-            const CoefficientMatrixReturningFunction& sineHarmonicCoefficientsFunctionOfBodyUndergoingAcceleration,
+            const CoefficientMatrixReturningFunction cosineHarmonicCoefficientsFunctionOfBodyExertingAcceleration,
+            const CoefficientMatrixReturningFunction sineHarmonicCoefficientsFunctionOfBodyExertingAcceleration,
+            const CoefficientMatrixReturningFunction cosineHarmonicCoefficientsFunctionOfBodyUndergoingAcceleration,
+            const CoefficientMatrixReturningFunction sineHarmonicCoefficientsFunctionOfBodyUndergoingAcceleration,
             const boost::function< Eigen::Quaterniond( ) >& toLocalFrameOfBodyExertingAccelerationTransformation,
             const boost::function< Eigen::Quaterniond( ) >& toLocalFrameOfBodyUndergoingAccelerationTransformation,
             const bool useCentralBodyFixedFrame,
@@ -148,7 +149,7 @@ public:
                     positionOfBodyExertingAccelerationFunction, gravitationalParameterFunction,
                     equatorialRadiusOfBodyUndergoingAcceleration,
                     boost::bind( &setDegreeAndOrderCoefficientToZero,
-                                 cosineHarmonicCoefficientsFunctionOfBodyUndergoingAcceleration ),
+                                 cosineHarmonicCoefficientsFunctionOfBodyUndergoingAcceleration, _1 ),
                     sineHarmonicCoefficientsFunctionOfBodyUndergoingAcceleration,
                     positionOfBodySubjectToAccelerationFunction,
                     toLocalFrameOfBodyUndergoingAccelerationTransformation,

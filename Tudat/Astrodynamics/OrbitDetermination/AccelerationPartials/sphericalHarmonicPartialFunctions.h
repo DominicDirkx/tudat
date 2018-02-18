@@ -141,8 +141,8 @@ Eigen::Matrix3d computeCumulativeSphericalHessian(
         const Eigen::Vector3d& sphericalPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const Eigen::MatrixXd cosineHarmonicCoefficients,
-        const Eigen::MatrixXd sineHarmonicCoefficients,
+        const Eigen::MatrixXd& cosineHarmonicCoefficients,
+        const Eigen::MatrixXd& sineHarmonicCoefficients,
         const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
 
 //! Calculate partial of spherical harmonic acceleration w.r.t. position of body undergoing acceleration
@@ -170,8 +170,8 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const Eigen::Vector3d& sphericalPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const Eigen::MatrixXd cosineHarmonicCoefficients,
-        const Eigen::MatrixXd sineHarmonicCoefficients,
+        const Eigen::MatrixXd& cosineHarmonicCoefficients,
+        const Eigen::MatrixXd& sineHarmonicCoefficients,
         const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         const Eigen::Vector3d& sphericalPotentialGradient,
         const Eigen::Matrix3d& sphericalToCartesianGradientMatrix );
@@ -195,10 +195,10 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const Eigen::Vector3d& cartesianPosition,
         const double referenceRadius,
         const double gravitionalParameter,
-        const Eigen::MatrixXd cosineHarmonicCoefficients,
-        const Eigen::MatrixXd sineHarmonicCoefficients,
+        const Eigen::MatrixXd& cosineHarmonicCoefficients,
+        const Eigen::MatrixXd& sineHarmonicCoefficients,
         const boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
-        const Eigen::Vector3d accelerationInBodyFixedFrame = Eigen::Vector3d::Constant( TUDAT_NAN ) );
+        const Eigen::Vector3d& accelerationInBodyFixedFrame = Eigen::Vector3d::Constant( TUDAT_NAN ) );
 
 //! Calculate partial of spherical harmonic acceleration w.r.t. a set of cosine coefficients
 /*!

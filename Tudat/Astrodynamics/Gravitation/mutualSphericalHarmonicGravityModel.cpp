@@ -16,12 +16,12 @@ namespace gravitation
 {
 
 //! Function to manually remove the C(0,0) term from cosine coefficients,
-Eigen::MatrixXd setDegreeAndOrderCoefficientToZero(
-        const boost::function< Eigen::MatrixXd( ) > originalCosineCoefficientFunction )
+void setDegreeAndOrderCoefficientToZero(
+        const boost::function< void( Eigen::MatrixXd& ) > originalCosineCoefficientFunction,
+        Eigen::MatrixXd& newCoefficients )
 {
-    Eigen::MatrixXd newCoefficients = originalCosineCoefficientFunction( );
+    originalCosineCoefficientFunction( newCoefficients );
     newCoefficients( 0, 0 ) = 0.0;
-    return newCoefficients;
 }
 
 

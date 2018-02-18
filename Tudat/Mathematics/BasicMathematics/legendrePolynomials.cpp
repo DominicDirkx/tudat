@@ -399,7 +399,6 @@ double computeGeodesyLegendrePolynomialFromCache( const int degree,
     {
         throw std::runtime_error( "Error when computing Legendre polynomial, input uses no normalization" );
     }
-
     // If degree or order is negative...
     if ( degree < 0 || order < 0 )
     {
@@ -411,21 +410,18 @@ double computeGeodesyLegendrePolynomialFromCache( const int degree,
         // Throw a run-time error.
         throw std::runtime_error( errorMessage.str( ) );
     }
-
     // Else if order is greater than degree...
     else if ( order > degree && degree >= 0 )
     {
         // Return zero.
         return 0.0;
     }
-
     // Else if order and degree are lower than 2...
     else if ( degree <= 1 && order <= 1 )
     {
         // Compute polynomial explicitly.
         return computeGeodesyLegendrePolynomialExplicit( degree, order, geodesyLegendreCache.getCurrentPolynomialParameter( ) );
     }
-
     // Else if degree and order are sectoral...
     else if ( degree == order )
     {

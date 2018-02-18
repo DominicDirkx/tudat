@@ -163,6 +163,11 @@ public:
         return cosineCoefficients_.block( 0, 0, maximumDegree + 1, maximumOrder + 1 );
     }
 
+    void getCosineCoefficientsByReference( Eigen::MatrixXd& cosineCoefficients, const int maximumDegree, const int maximumOrder )
+    {
+        cosineCoefficients = cosineCoefficients_.block( 0, 0, maximumDegree + 1, maximumOrder + 1 );
+    }
+
     //! Function to get a sine spherical harmonic coefficient block (geodesy normalized)
     /*!
      *  Function to get a sine spherical harmonic coefficient block (geodesy normalized)
@@ -176,6 +181,12 @@ public:
     {
         return sineCoefficients_.block( 0, 0, maximumDegree + 1, maximumOrder + 1 );
     }
+
+    void getSineCoefficientsByReference( Eigen::MatrixXd& sineCoefficients, const int maximumDegree, const int maximumOrder )
+    {
+        sineCoefficients = sineCoefficients_.block( 0, 0, maximumDegree + 1, maximumOrder + 1 );
+    }
+
 
     //! Get maximum degree of spherical harmonics gravity field expansion.
     /*!

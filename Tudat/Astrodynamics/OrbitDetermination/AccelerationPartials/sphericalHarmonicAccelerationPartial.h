@@ -311,10 +311,10 @@ protected:
     boost::function< double( ) > bodyReferenceRadius_;
 
     //! Function to return the current cosine coefficients of the spherical harmonic gravity field.
-    boost::function< Eigen::MatrixXd( ) > cosineCoefficients_;
+    boost::function< void( Eigen::MatrixXd& ) > cosineCoefficients_;
 
     //! Function to return the current sine coefficients of the spherical harmonic gravity field.
-    boost::function< Eigen::MatrixXd( ) > sineCoefficients_;
+    boost::function< void( Eigen::MatrixXd& ) > sineCoefficients_;
 
     //! Cache object used for storing calculated values at current time and state for spherical harmonic gravity
     //! calculations.
@@ -361,6 +361,8 @@ protected:
      *  set by update( time ) function.
      */
     Eigen::Vector3d bodyFixedPosition_;
+
+    Eigen::Matrix3d currentRotationToBodyFixedFrame_;
 
 
     //! Current spherical coordinate of body undergoing acceleration

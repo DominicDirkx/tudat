@@ -316,7 +316,7 @@ public:
                 isMinimumStepSizeViolated_ = true;
                 throw std::runtime_error( "Error in BS integrator, minimum step size exceeded" );
             }
-            performIntegrationStep( stepSize_ );
+            return performIntegrationStep( stepSize_ );
         }
         else
         {

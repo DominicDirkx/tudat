@@ -159,7 +159,7 @@ private:
     typedef SphericalHarmonicsGravitationalAccelerationModelBase< Eigen::Vector3d > Base;
 
     //! Typedef for coefficient-matrix-returning function.
-    typedef boost::function< Eigen::MatrixXd( ) > CoefficientMatrixReturningFunction;
+    typedef boost::function< void( Eigen::MatrixXd& ) > CoefficientMatrixReturningFunction;
 
 public:
 
@@ -211,17 +211,19 @@ public:
                 positionOfBodyExertingAccelerationFunction,
                 isMutualAttractionUsed ),
           equatorialRadius( anEquatorialRadius ),
-          getCosineHarmonicsCoefficients(
-              boost::lambda::constant(aCosineHarmonicCoefficientMatrix ) ),
-          getSineHarmonicsCoefficients( boost::lambda::constant(aSineHarmonicCoefficientMatrix ) ),
+          getCosineHarmonicsCoefficients( boost::bind( &utilities::returnValueByReference< Eigen::MatrixXd >, _1,
+                                                       aCosineHarmonicCoefficientMatrix ) ),
+          getSineHarmonicsCoefficients( boost::bind( &utilities::returnValueByReference< Eigen::MatrixXd >, _1,
+                                                     aSineHarmonicCoefficientMatrix ) ),
           rotationFromBodyFixedToIntegrationFrameFunction_(
               rotationFromBodyFixedToIntegrationFrameFunction ),
           sphericalHarmonicsCache_( sphericalHarmonicsCache )
 
     {
+        getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) ), sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
+                    std::max< int >( static_cast< int >( cosineHarmonicCoefficients.rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
+                    std::max< int >( static_cast< int >( cosineHarmonicCoefficients.cols( ) ), sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
         this->updateMembers( );
     }
 
@@ -276,9 +278,10 @@ public:
           rotationFromBodyFixedToIntegrationFrameFunction_( rotationFromBodyFixedToIntegrationFrameFunction ),
           sphericalHarmonicsCache_( sphericalHarmonicsCache )
     {
+        getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
-                    std::max< int >( static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) ), sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
+                    std::max< int >( static_cast< int >( cosineHarmonicCoefficients.rows( ) ), sphericalHarmonicsCache_->getMaximumDegree( ) ),
+                    std::max< int >( static_cast< int >( cosineHarmonicCoefficients.cols( ) ), sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
 
 
         this->updateMembers( );
@@ -294,8 +297,8 @@ public:
     {
         if( !( this->currentTime_ == currentTime ) )
         {
-            cosineHarmonicCoefficients = getCosineHarmonicsCoefficients( );
-            sineHarmonicCoefficients = getSineHarmonicsCoefficients( );
+            getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
+            getSineHarmonicsCoefficients( sineHarmonicCoefficients );
             rotationToIntegrationFrame_ = rotationFromBodyFixedToIntegrationFrameFunction_( );
             this->updateBaseMembers( );
             this->currentAcceleration_ = rotationToIntegrationFrame_ *

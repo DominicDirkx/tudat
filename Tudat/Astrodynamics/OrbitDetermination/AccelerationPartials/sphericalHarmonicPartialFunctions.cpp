@@ -108,7 +108,7 @@ void computePotentialSphericalHessian(
         Eigen::Matrix3d& sphericalHessian )
 {
     computePotentialSphericalHessian(
-                sphericalPosition( 0 )  , sphericalHarmonicsCache->getReferenceRadiusRatioPowers( degree + 1 ),
+                sphericalPosition( 0 ), sphericalHarmonicsCache->getReferenceRadiusRatioPowers( degree + 1 ),
                 sphericalHarmonicsCache->getCosineOfMultipleLongitude( order ),
                 sphericalHarmonicsCache->getSineOfMultipleLongitude( order ),
                 sphericalHarmonicsCache->getLegendreCache( )->getCurrentPolynomialParameterComplement( ),

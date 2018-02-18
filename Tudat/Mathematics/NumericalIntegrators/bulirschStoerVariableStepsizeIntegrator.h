@@ -224,9 +224,9 @@ public:
     {
         bool stepSuccessful = 0;
 
-         stateAtFirstPoint_.setZero( );
-         stateAtCenterPoint_.setZero( );
-         stateAtLastPoint_.setZero( );
+        stateAtFirstPoint_.setZero( );
+        stateAtCenterPoint_.setZero( );
+        stateAtLastPoint_.setZero( );
 
         // Compute sub steps to take.
         for ( unsigned int p = 0; p <  subSteps_.size( ); p++ )
@@ -282,7 +282,7 @@ public:
                 double maximumErrorValue = ( integratedStates_.at( i ).at( i ) - integratedStates_.at( i ).at( i - 1 ) ).array( ).abs( ).maxCoeff( );
 
                 errorScaleTerm = safetyFactorForNextStepSize_ * std::pow( maximumAllowableErrorValue / maximumErrorValue,
-                                           ( 1.0 / static_cast< double >( 2 * i - 1 ) ) );
+                                                                          ( 1.0 / static_cast< double >( 2 * i - 1 ) ) );
 
                 if( maximumErrorValue < maximumAllowableErrorValue )
                 {
@@ -325,7 +325,7 @@ public:
                 this->stepSize_ = stepSize * maximumFactorIncreaseForNextStepSize_;
                 if(  std::fabs( this->stepSize_ ) >=  std::fabs( maximumStepSize_ ) )
                 {
-                   this->stepSize_ = stepSize / ( std::fabs( stepSize ) ) * maximumStepSize_ ;
+                    this->stepSize_ = stepSize / ( std::fabs( stepSize ) ) * maximumStepSize_ ;
                 }
             }
             else

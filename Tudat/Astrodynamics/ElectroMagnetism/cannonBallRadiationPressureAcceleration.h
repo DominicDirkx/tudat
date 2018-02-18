@@ -159,6 +159,7 @@ public:
             this->currentAcceleration_ = computeCannonBallRadiationPressureAcceleration(
                         currentRadiationPressure_, currentVectorToSource_, currentArea_,
                         currentRadiationPressureCoefficient_, currentMass_ );
+            this->currentTime_ = currentTime;
         }
     }
 

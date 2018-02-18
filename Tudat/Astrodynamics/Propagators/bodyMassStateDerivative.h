@@ -160,7 +160,7 @@ public:
     //! Function included for compatibility purposes with base class, local and global representation is equal for mass rate
     //! model. Function returns (by reference)  input internalSolution.
     void convertCurrentStateToGlobalRepresentation(
-            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& internalSolution, const TimeType& time,
+            const Eigen::Block< const Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic > > internalSolution, const TimeType& time,
             Eigen::Block< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > currentCartesianLocalSoluton )
     {
         currentCartesianLocalSoluton = internalSolution;

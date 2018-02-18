@@ -164,7 +164,7 @@ public:
      * in this case).
      */
     void convertCurrentStateToGlobalRepresentation(
-            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& internalSolution, const TimeType& time,
+            const Eigen::Block< const Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic > > internalSolution, const TimeType& time,
             Eigen::Block< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > currentRotationalState )
     {
         currentRotationalState = internalSolution;

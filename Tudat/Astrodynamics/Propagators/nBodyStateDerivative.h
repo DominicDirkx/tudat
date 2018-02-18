@@ -151,7 +151,7 @@ public:
     {
         for( unsigned int i = 0; i < accelerationModelList_.size( ); i++ )
         {
-            accelerationModelList_.at( i )->resetTime( TUDAT_NAN );
+            accelerationModelList_[ i ]->resetTime( TUDAT_NAN );
         }
     }
 
@@ -196,7 +196,7 @@ public:
      * (returned by reference).
      */
     virtual void convertCurrentStateToGlobalRepresentation(
-            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& internalSolution, const TimeType& time,
+            const Eigen::Block< const Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic > > internalSolution, const TimeType& time,
             Eigen::Block< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > currentCartesianLocalSoluton )
     {
         this->convertToOutputSolution( internalSolution, time, currentCartesianLocalSoluton );

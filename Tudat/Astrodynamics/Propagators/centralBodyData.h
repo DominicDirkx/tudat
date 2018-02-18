@@ -184,7 +184,7 @@ public:
      *   bodies, or the global frame.
      */
     void getReferenceFrameOriginInertialStates(
-            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& internalState, const TimeType time,
+            const Eigen::Block< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > internalState, const TimeType time,
             std::vector< Eigen::Matrix< StateScalarType, 6, 1 > >& referenceFrameOriginStates,
             const bool areInputStateLocal = true )
     {

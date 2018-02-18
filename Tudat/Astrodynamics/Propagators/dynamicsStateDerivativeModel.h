@@ -519,8 +519,8 @@ private:
                 // Set current block in split state (in global form)
                 stateDerivativeModelsIterator_->second.at( i )->convertCurrentStateToGlobalRepresentation(
                             state.block( currentIndices.first, startColumn, currentIndices.second, 1 ), time,
-                            currentStatesPerTypeInConventionalRepresentation_.at(
-                                stateDerivativeModelsIterator_->first ).block(
+                            currentStatesPerTypeInConventionalRepresentation_[
+                                stateDerivativeModelsIterator_->first ].block(
                                 currentStateTypeSize, 0, currentIndices.second, 1 ) );
             }
         }

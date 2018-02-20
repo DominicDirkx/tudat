@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -350,6 +350,13 @@ struct Keys
         static const std::string safetyFactorForNextStepSize;
         static const std::string maximumFactorIncreaseForNextStepSize;
         static const std::string minimumFactorDecreaseForNextStepSize;
+        static const std::string bandwidth;
+        static const std::string extrapolationSequence;
+        static const std::string maximumNumberOfSteps;
+        static const std::string minimumOrder;
+        static const std::string maximumOrder;
+
+
     };
 
     struct Interpolation

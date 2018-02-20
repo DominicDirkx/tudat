@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -93,8 +93,9 @@ enum PropagationDependentVariables
     single_torque_dependent_variable = 30,
     body_fixed_groundspeed_based_velocity_variable = 31,
     keplerian_state_dependent_variable = 32,
-    spherical_harmonic_acceleration_terms_dependent_variable = 33,
-    mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable = 34
+    modified_equinocial_state_dependent_variable = 33,
+    spherical_harmonic_acceleration_terms_dependent_variable = 34,
+    mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable = 35
 };
 
 

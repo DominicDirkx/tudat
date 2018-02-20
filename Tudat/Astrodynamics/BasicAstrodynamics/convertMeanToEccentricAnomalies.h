@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -271,7 +271,6 @@ ScalarType convertMeanAnomalyToEccentricAnomaly(
             eccentricAnomaly = bisectionRootfinder->execute( rootFunction, initialGuess );
         }
     }
-
     //  Eccentricity is invalid: eccentricity < 0.0 or eccentricity >= 1.0.
     else
     {

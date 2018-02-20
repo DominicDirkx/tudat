@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -74,7 +74,7 @@ BOOST_AUTO_TEST_CASE( testPositionObsevableModel )
     boost::shared_ptr< ObservationSettings > observableSettings = boost::make_shared< ObservationSettings >
             ( position_observable, std::vector< boost::shared_ptr< LightTimeCorrectionSettings > >( ),
               boost::make_shared< ConstantObservationBiasSettings >(
-                  ( Eigen::Vector3d( ) << 543.2454, -34.244, 3431.24345 ).finished( ) ) );
+                  ( Eigen::Vector3d( ) << 543.2454, -34.244, 3431.24345 ).finished( ), true ) );
 
     // Create observation model.
     boost::shared_ptr< ObservationModel< 3, double, double > > observationModel =

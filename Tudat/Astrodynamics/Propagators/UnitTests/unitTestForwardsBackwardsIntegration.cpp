@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -69,7 +69,7 @@ boost::shared_ptr< IntegratorSettings< TimeType > > getIntegrationSettings(
     }
     else if( integratorCase < 5 )
     {
-        RungeKuttaCoefficients::CoefficientSets coefficientSet;
+        RungeKuttaCoefficients::CoefficientSets coefficientSet = RungeKuttaCoefficients::undefinedCoefficientSet;
         if( integratorCase == 1 )
         {
             coefficientSet = RungeKuttaCoefficients::rungeKuttaFehlberg45;

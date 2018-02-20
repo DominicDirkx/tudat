@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -155,7 +155,10 @@ std::string getDependentVariableName( const PropagationDependentVariables propag
         variableName = "Total torque norm in body-fixed frame ";
         break;
     case keplerian_state_dependent_variable:
-        variableName = "Kepler elements  ";
+        variableName = "Kepler elements ";
+        break;
+    case modified_equinocial_state_dependent_variable:
+        variableName = "Modified equinoctial elements ";
         break;
     case spherical_harmonic_acceleration_terms_dependent_variable:
         variableName = "Spherical harmonic acceleration terms ";

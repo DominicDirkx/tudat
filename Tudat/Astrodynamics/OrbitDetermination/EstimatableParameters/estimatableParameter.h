@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -43,7 +43,9 @@ enum EstimatebleParametersEnum
     constant_rotation_rate,
     rotation_pole_position,
     constant_additive_observation_bias,
+    arcwise_constant_additive_observation_bias,
     constant_relative_observation_bias,
+    arcwise_constant_relative_observation_bias,
     ppn_parameter_gamma,
     ppn_parameter_beta,
     ground_station_position,

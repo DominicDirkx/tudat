@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE( testAngularPositionModel )
     boost::shared_ptr< ObservationSettings > observableSettings = boost::make_shared< ObservationSettings >
             ( angular_position, lightTimeCorrectionSettings,
               boost::make_shared< ConstantObservationBiasSettings >(
-                  ( Eigen::Vector2d( ) << 3.2E-9, -1.5E-8 ).finished( ) ) );
+                  ( Eigen::Vector2d( ) << 3.2E-9, -1.5E-8 ).finished( ), true ) );
 
     // Create observation model.
     boost::shared_ptr< ObservationModel< 2, double, double > > observationModel =

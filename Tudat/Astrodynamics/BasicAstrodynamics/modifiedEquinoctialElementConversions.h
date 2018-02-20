@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -352,6 +352,15 @@ Eigen::Matrix< ScalarType, 6, 1 > convertCartesianToModifiedEquinoctialElements(
     // Convert to modified equinoctial elements.
     return convertKeplerianToModifiedEquinoctialElements(
                 keplerianElements, flipSingularityToZeroInclination );
+}
+
+template< typename ScalarType = double >
+Eigen::Matrix< ScalarType, 6, 1 > convertCartesianToModifiedEquinoctialElementsFromStateFunction(
+        const boost::function< Eigen::Matrix< ScalarType, 6, 1 >(  ) >& cartesianElementsFunction,
+        const boost::function< ScalarType( ) > centralBodyGravitationalParameterFunction )
+{
+    return convertCartesianToModifiedEquinoctialElements(
+                cartesianElementsFunction( ), centralBodyGravitationalParameterFunction( ) );
 }
 
 //! Convert Cartesian to modified equinoctial orbital elements using explicit MEE equation set.

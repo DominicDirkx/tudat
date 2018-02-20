@@ -1,4 +1,4 @@
-/*    Copyright (c) 2010-2017, Delft University of Technology
+/*    Copyright (c) 2010-2018, Delft University of Technology
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -174,8 +174,8 @@ BOOST_AUTO_TEST_CASE( testOneWayDoppplerModel )
     {
         // Create observation and bias settings
         std::vector< boost::shared_ptr< ObservationBiasSettings > > biasSettingsList;
-        biasSettingsList.push_back( boost::make_shared< ConstantObservationBiasSettings >( Eigen::Vector1d( 1.0E-6 ) ) );
-        biasSettingsList.push_back( boost::make_shared< ConstantRelativeObservationBiasSettings >( Eigen::Vector1d( 2.5E-4 ) ) );
+        biasSettingsList.push_back( boost::make_shared< ConstantObservationBiasSettings >( Eigen::Vector1d( 1.0E-6 ), true ) );
+        biasSettingsList.push_back( boost::make_shared< ConstantObservationBiasSettings >( Eigen::Vector1d( 2.5E-4 ), false ) );
         boost::shared_ptr< ObservationBiasSettings > biasSettings = boost::make_shared< MultipleObservationBiasSettings >(
                     biasSettingsList );
 

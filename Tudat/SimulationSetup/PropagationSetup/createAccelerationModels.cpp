@@ -769,8 +769,8 @@ createCannonballRadiationPressureAcceleratioModel(
 }
 
 //! Function to create a cannonball radiation pressure acceleration model.
-boost::shared_ptr< OrientablePanelRadiationPressureAcceleration >
-createOrientablePanelRadiationPressureAcceleratioModel(
+boost::shared_ptr< PerfectReflectionSailAcceleration >
+createPerfectlyReflectingSailAcceleratioModel(
         const boost::shared_ptr< Body > bodyUndergoingAcceleration,
         const boost::shared_ptr< Body > bodyExertingAcceleration,
         const std::string& nameOfBodyUndergoingAcceleration,
@@ -792,25 +792,14 @@ createOrientablePanelRadiationPressureAcceleratioModel(
                 bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).at(
                     nameOfBodyExertingAcceleration );
 
-        boost::shared_ptr< OrientablePanelRadiationPressureAccelerationSettings >
-                orientablePanelRadiationPressureAccelerationSettings = boost::dynamic_pointer_cast<
-                OrientablePanelRadiationPressureAccelerationSettings >( accelerationSettings );
-        if( orientablePanelRadiationPressureAccelerationSettings == NULL )
-        {
-            throw std::runtime_error(
-                        "Error when making orientable panel radiation pressure, acceleration settings are incompatible" );
-        }
-        else
-        {
             // Create acceleration model.
-            return boost::make_shared< OrientablePanelRadiationPressureAcceleration >(
+            return boost::make_shared< PerfectReflectionSailAcceleration >(
                         boost::bind( &Body::getPosition, bodyExertingAcceleration ),
                         boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
                         boost::bind( &RadiationPressureInterface::getCurrentRadiationPressure, radiationPressureInterface ),
                         boost::bind( &RadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
                         boost::bind( &RadiationPressureInterface::getArea, radiationPressureInterface ),
                         boost::bind( &Body::getBodyMass, bodyUndergoingAcceleration ) );
-        }
     }
 
 }
@@ -1258,7 +1247,7 @@ boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > createAccelerationMode
                     nameOfBodyUndergoingAcceleration,
                     nameOfBodyExertingAcceleration );
         break;
-    case orientable_panel_radiation_pressure:
+    case perfectly_reflecting_sail_acceleration:
         accelerationModelPointer = createOrientablePanelRadiationPressureAcceleratioModel(
                     bodyUndergoingAcceleration,
                     bodyExertingAcceleration,

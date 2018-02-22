@@ -32,8 +32,8 @@ std::string getAccelerationModelName( const AvailableAcceleration accelerationTy
     case cannon_ball_radiation_pressure:
         accelerationName = "cannonball radiation pressure ";
         break;
-    case orientable_panel_radiation_pressure:
-        accelerationName = "orientable panel radiation pressure ";
+    case perfectly_reflecting_sail_acceleration:
+        accelerationName = "perfectly reflecting sail ";
         break;
     case spherical_harmonic_gravity:
         accelerationName = "spherical harmonic gravity ";

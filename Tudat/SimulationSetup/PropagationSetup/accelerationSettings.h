@@ -59,22 +59,6 @@ public:
 
 };
 
-class OrientablePanelRadiationPressureAccelerationSettings: public AccelerationSettings
-{
-public:
-
-    //! Constructor, sets type of acceleration.
-    /*!
-     *  Constructor, sets type of acceleration.
-     *  \param accelerationType Type of acceleration from AvailableAcceleration enum.
-     */
-    OrientablePanelRadiationPressureAccelerationSettings( ):
-        AccelerationSettings( basic_astrodynamics::orientable_panel_radiation_pressure ){ }
-
-    //! Destructor.
-    ~OrientablePanelRadiationPressureAccelerationSettings( ){ }
-};
-
 //! Class for providing settings for spherical harmonics acceleration model.
 /*!
  *  Class for providing settings for spherical harmonics acceleration model,

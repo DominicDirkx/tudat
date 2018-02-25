@@ -310,8 +310,14 @@ boost::shared_ptr< acceleration_partials::AccelerationPartial > createAnalytical
             }
             else
             {
-                boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface =
-                        radiationPressureInterfaces.at( acceleratingBody.first );
+                boost::shared_ptr< CannonBallRadiationPressureInterface > radiationPressureInterface =
+                        boost::dynamic_pointer_cast< CannonBallRadiationPressureInterface >(
+                            radiationPressureInterfaces.at( acceleratingBody.first ) );
+                if( radiationPressureInterface == NULL )
+                {
+                    throw std::runtime_error( "Error when making cannon-ball radiation pressure acceleration partial, no associated radiation pressure interface found" );
+                }
+
 
                 // Create partial-calculating object.
                 accelerationPartial = boost::make_shared< CannonBallRadiationPressurePartial >

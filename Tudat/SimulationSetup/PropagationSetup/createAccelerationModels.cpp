@@ -13,6 +13,8 @@
 #include <boost/make_shared.hpp>
 #include <boost/bind.hpp>
 #include "Tudat/Astrodynamics/Aerodynamics/flightConditions.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/soalrSailRadiationPressureInterface.h"
 #include "Tudat/Astrodynamics/Ephemerides/frameManager.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityField.h"
 #include "Tudat/Astrodynamics/Propulsion/thrustMagnitudeWrapper.h"
@@ -753,17 +755,24 @@ createCannonballRadiationPressureAcceleratioModel(
                     nameOfBodyUndergoingAcceleration +
                     " for body " + nameOfBodyExertingAcceleration );
     }
-    boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface =
-            bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).at(
-                nameOfBodyExertingAcceleration );
+
+    boost::shared_ptr< CannonBallRadiationPressureInterface > radiationPressureInterface =
+            boost::dynamic_pointer_cast< CannonBallRadiationPressureInterface >(
+                bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).at(
+                nameOfBodyExertingAcceleration ) );
+
+    if( radiationPressureInterface == NULL )
+    {
+        throw std::runtime_error( "Error when making cannon-ball radiation pressure acceleration, no associated radiation pressure interface found" );
+    }
 
     // Create acceleration model.
     return boost::make_shared< CannonBallRadiationPressureAcceleration >(
                 boost::bind( &Body::getPosition, bodyExertingAcceleration ),
                 boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
-                boost::bind( &RadiationPressureInterface::getCurrentRadiationPressure, radiationPressureInterface ),
-                boost::bind( &RadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
-                boost::bind( &RadiationPressureInterface::getArea, radiationPressureInterface ),
+                boost::bind( &CannonBallRadiationPressureInterface::getCurrentRadiationPressure, radiationPressureInterface ),
+                boost::bind( &CannonBallRadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
+                boost::bind( &CannonBallRadiationPressureInterface::getArea, radiationPressureInterface ),
                 boost::bind( &Body::getBodyMass, bodyUndergoingAcceleration ) );
 
 }
@@ -774,8 +783,7 @@ createPerfectlyReflectingSailAcceleratioModel(
         const boost::shared_ptr< Body > bodyUndergoingAcceleration,
         const boost::shared_ptr< Body > bodyExertingAcceleration,
         const std::string& nameOfBodyUndergoingAcceleration,
-        const std::string& nameOfBodyExertingAcceleration,
-        const boost::shared_ptr< AccelerationSettings > accelerationSettings )
+        const std::string& nameOfBodyExertingAcceleration )
 {
     // Retrieve radiation pressure interface
     if( bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).count(
@@ -788,18 +796,30 @@ createPerfectlyReflectingSailAcceleratioModel(
     }
     else
     {
-        boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface =
-                bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).at(
-                    nameOfBodyExertingAcceleration );
+        boost::shared_ptr< SolarSailRadiationPressureInterface > sailRadiationPressureInterface =
+                boost::dynamic_pointer_cast< SolarSailRadiationPressureInterface >( bodyUndergoingAcceleration->getRadiationPressureInterfaces( ).at(
+                    nameOfBodyExertingAcceleration ) );
+        if( sailRadiationPressureInterface == NULL )
+        {
+            throw std::runtime_error( "Error when making sail radiation acceleration model, no compatible radiation pressure interface found" );
+        }
+        else if( bodyExertingAcceleration->getGravityFieldModel( ) == NULL )
+        {
+            throw std::runtime_error( "Error when making sail radiation acceleration model, no source gravity field found" );
+        }
+        else
+        {
+            std::cout<<nameOfBodyExertingAcceleration<<" "<<nameOfBodyUndergoingAcceleration<<std::endl;
 
             // Create acceleration model.
             return boost::make_shared< PerfectReflectionSailAcceleration >(
-                        boost::bind( &Body::getPosition, bodyExertingAcceleration ),
-                        boost::bind( &Body::getPosition, bodyUndergoingAcceleration ),
-                        boost::bind( &RadiationPressureInterface::getCurrentRadiationPressure, radiationPressureInterface ),
-                        boost::bind( &RadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
-                        boost::bind( &RadiationPressureInterface::getArea, radiationPressureInterface ),
-                        boost::bind( &Body::getBodyMass, bodyUndergoingAcceleration ) );
+                        boost::bind( &Body::getState, bodyExertingAcceleration ),
+                        boost::bind( &Body::getState, bodyUndergoingAcceleration ),
+                        boost::bind( &SolarSailRadiationPressureInterface::getCurrentSailAngles, sailRadiationPressureInterface ),
+                        boost::bind( &SolarSailRadiationPressureInterface::getCurrentLightnessNumber, sailRadiationPressureInterface ),
+                        boost::bind( &GravityFieldModel::getGravitationalParameter, bodyExertingAcceleration->getGravityFieldModel( ) ),
+                        boost::bind( &SolarSailRadiationPressureInterface::getCurrentSailEfficiency, sailRadiationPressureInterface ) );
+        }
     }
 
 }
@@ -1248,12 +1268,11 @@ boost::shared_ptr< AccelerationModel< Eigen::Vector3d > > createAccelerationMode
                     nameOfBodyExertingAcceleration );
         break;
     case perfectly_reflecting_sail_acceleration:
-        accelerationModelPointer = createOrientablePanelRadiationPressureAcceleratioModel(
+        accelerationModelPointer = createPerfectlyReflectingSailAcceleratioModel(
                     bodyUndergoingAcceleration,
                     bodyExertingAcceleration,
                     nameOfBodyUndergoingAcceleration,
-                    nameOfBodyExertingAcceleration,
-                    accelerationSettings );
+                    nameOfBodyExertingAcceleration );
         break;
     case thrust_acceleration:
         accelerationModelPointer = createThrustAcceleratioModel(

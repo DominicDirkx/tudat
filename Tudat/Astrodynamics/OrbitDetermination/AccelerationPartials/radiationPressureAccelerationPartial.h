@@ -14,7 +14,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "Tudat/Astrodynamics/OrbitDetermination/AccelerationPartials/accelerationPartial.h"
-#include "Tudat/Astrodynamics/ElectroMagnetism/radiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/radiationPressureCoefficient.h"
 
 namespace tudat
@@ -53,18 +53,18 @@ public:
      * \param acceleratingBody Name of the body exerting acceleration.
      */
     CannonBallRadiationPressurePartial(
-            const boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface,
+            const boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface,
             const boost::function< double( ) > massFunction,
             const std::string& acceleratedBody, const std::string& acceleratingBody ):
         AccelerationPartial( acceleratedBody, acceleratingBody,
                              basic_astrodynamics::cannon_ball_radiation_pressure ),
         sourceBodyState_( radiationPressureInterface->getSourcePositionFunction( ) ),
         acceleratedBodyState_( radiationPressureInterface->getTargetPositionFunction( ) ),
-        areaFunction_( boost::bind( &electro_magnetism::RadiationPressureInterface::getArea, radiationPressureInterface ) ),
+        areaFunction_( boost::bind( &electro_magnetism::CannonBallRadiationPressureInterface::getArea, radiationPressureInterface ) ),
         radiationPressureCoefficientFunction_(
-            boost::bind( &electro_magnetism::RadiationPressureInterface::getRadiationPressureCoefficient,
+            boost::bind( &electro_magnetism::CannonBallRadiationPressureInterface::getRadiationPressureCoefficient,
                          radiationPressureInterface ) ),
-        radiationPressureFunction_( boost::bind( &electro_magnetism::RadiationPressureInterface::getCurrentRadiationPressure,
+        radiationPressureFunction_( boost::bind( &electro_magnetism::CannonBallRadiationPressureInterface::getCurrentRadiationPressure,
                                                  radiationPressureInterface ) ),
         acceleratedBodyMassFunction_( massFunction ){ }
 

@@ -203,9 +203,10 @@ BOOST_AUTO_TEST_CASE( testRadiationPressureAccelerationPartials )
             boost::bind( &Body::getState, vehicle );
 
     // Create radiation pressure properties of vehicle
-    boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface =
-            createRadiationPressureInterface( boost::make_shared< CannonBallRadiationPressureInterfaceSettings >(
-                                                  "Sun", mathematical_constants::PI * 0.3 * 0.3, 1.2 ), "Vehicle", bodyMap );
+    boost::shared_ptr< CannonBallRadiationPressureInterface > radiationPressureInterface =
+             boost::dynamic_pointer_cast< CannonBallRadiationPressureInterface >(
+                createRadiationPressureInterface( boost::make_shared< CannonBallRadiationPressureInterfaceSettings >(
+                                                  "Sun", mathematical_constants::PI * 0.3 * 0.3, 1.2 ), "Vehicle", bodyMap ) );
     radiationPressureInterface->updateInterface( 0.0 );
     vehicle->setRadiationPressureInterface( "Sun", radiationPressureInterface );
 
@@ -214,10 +215,10 @@ BOOST_AUTO_TEST_CASE( testRadiationPressureAccelerationPartials )
             boost::make_shared< CannonBallRadiationPressureAcceleration >(
                 boost::bind( &Body::getPosition, sun ),
                 boost::bind( &Body::getPosition, vehicle ),
-                boost::bind( &RadiationPressureInterface::getCurrentRadiationPressure,
+                boost::bind( &CannonBallRadiationPressureInterface::getCurrentRadiationPressure,
                              radiationPressureInterface ),
-                boost::bind( &RadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
-                boost::bind( &RadiationPressureInterface::getArea, radiationPressureInterface ),
+                boost::bind( &CannonBallRadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
+                boost::bind( &CannonBallRadiationPressureInterface::getArea, radiationPressureInterface ),
                 boost::bind( &Body::getBodyMass, vehicle ) );
 
     // Create partial-calculating object.
@@ -346,7 +347,7 @@ BOOST_AUTO_TEST_CASE( testRadiationPressureAccelerationPartials )
 
     // Calculate numerical partials.
     boost::function< void( ) > updateFunction =
-            boost::bind( &RadiationPressureInterface::updateInterface, radiationPressureInterface, 0.0 );
+            boost::bind( &CannonBallRadiationPressureInterface::updateInterface, radiationPressureInterface, 0.0 );
     testPartialWrtSunPosition = calculateAccelerationWrtStatePartials(
                 sunStateSetFunction, accelerationModel, sun->getState( ), positionPerturbation, 0, updateFunction );
     testPartialWrtVehiclePosition = calculateAccelerationWrtStatePartials(
@@ -357,6 +358,10 @@ BOOST_AUTO_TEST_CASE( testRadiationPressureAccelerationPartials )
                 vehicleStateSetFunction, accelerationModel, vehicle->getState( ), velocityPerturbation, 3, updateFunction );
     testPartialWrtRadiationPressureCoefficient = calculateAccelerationWrtParameterPartials(
                 radiationPressureCoefficient, accelerationModel, 1.0E-2, updateFunction );
+
+    std::cout<<testPartialWrtSunPosition<<std::endl<<partialWrtSunPosition<<std::endl<<std::endl;
+
+    std::cout<<testPartialWrtVehiclePosition<<std::endl<<partialWrtVehiclePosition<<std::endl<<std::endl;
 
 
     // Compare numerical and analytical results.

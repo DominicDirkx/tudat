@@ -13,6 +13,8 @@
 #include "Tudat/SimulationSetup/EnvironmentSetup/createRadiationPressureInterface.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/sphericalBodyShapeModel.h"
 #include "Tudat/Astrodynamics/ReferenceFrames/referenceFrameTransformations.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/soalrSailRadiationPressureInterface.h"
 
 namespace tudat
 {
@@ -57,6 +59,39 @@ boost::shared_ptr< electro_magnetism::RadiationPressureInterface > createRadiati
 {
     boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface;
 
+    boost::shared_ptr< Body > sourceBody =
+            bodyMap.at( radiationPressureInterfaceSettings->getSourceBody( ) );
+
+    // Get reqruied data for occulting bodies.
+    std::vector< std::string > occultingBodies = radiationPressureInterfaceSettings->getOccultingBodies( );
+    std::vector< boost::function< Eigen::Vector3d( ) > > occultingBodyPositions;
+    std::vector< double > occultingBodyRadii;
+    getOccultingBodiesInformation(
+                bodyMap, occultingBodies, occultingBodyPositions, occultingBodyRadii );
+
+    // Retrive radius of source if occultations are used.
+    double sourceRadius;
+    if( occultingBodyPositions.size( ) > 0 )
+    {
+        boost::shared_ptr< basic_astrodynamics::BodyShapeModel > sourceShapeModel =
+                sourceBody->getShapeModel( );
+
+        if( sourceShapeModel == NULL )
+        {
+            throw std::runtime_error( "Error when making occulted body, source body " +
+                                      radiationPressureInterfaceSettings->getSourceBody( ) +
+                                      " does not have a shape" );
+        }
+        else
+        {
+            sourceRadius = sourceShapeModel->getAverageRadius( );
+        }
+    }
+    else
+    {
+        sourceRadius = 0.0;
+    }
+
     // Check type of radiation pressure interface
     switch( radiationPressureInterfaceSettings->getRadiationPressureType( ) )
     {
@@ -77,38 +112,6 @@ boost::shared_ptr< electro_magnetism::RadiationPressureInterface > createRadiati
             throw std::runtime_error( "Error when making cannon ball radiation interface, source not found.");
         }
 
-        boost::shared_ptr< Body > sourceBody =
-                bodyMap.at( radiationPressureInterfaceSettings->getSourceBody( ) );
-
-        // Get reqruied data for occulting bodies.
-        std::vector< std::string > occultingBodies = cannonBallSettings->getOccultingBodies( );
-        std::vector< boost::function< Eigen::Vector3d( ) > > occultingBodyPositions;
-        std::vector< double > occultingBodyRadii;
-        getOccultingBodiesInformation(
-                    bodyMap, occultingBodies, occultingBodyPositions, occultingBodyRadii );
-
-        // Retrive radius of source if occultations are used.
-        double sourceRadius;
-        if( occultingBodyPositions.size( ) > 0 )
-        {
-            boost::shared_ptr< basic_astrodynamics::BodyShapeModel > sourceShapeModel =
-                    sourceBody->getShapeModel( );
-
-            if( sourceShapeModel == NULL )
-            {
-                throw std::runtime_error( "Error when making occulted body, source body " +
-                                          radiationPressureInterfaceSettings->getSourceBody( ) +
-                                          " does not have a shape" );
-            }
-            else
-            {
-                sourceRadius = sourceShapeModel->getAverageRadius( );
-            }
-        }
-        else
-        {
-            sourceRadius = 0.0;
-        }
 
         // Create function returning radiated power.
         boost::function< double( ) > radiatedPowerFunction;
@@ -127,7 +130,7 @@ boost::shared_ptr< electro_magnetism::RadiationPressureInterface > createRadiati
 
         // Create radiation pressure interface.
         radiationPressureInterface =
-                boost::make_shared< electro_magnetism::RadiationPressureInterface >(
+                boost::make_shared< electro_magnetism::CannonBallRadiationPressureInterface >(
                     radiatedPowerFunction,
                     boost::bind( &Body::getPosition, sourceBody ),
                     boost::bind( &Body::getPosition, bodyMap.at( bodyName ) ),
@@ -136,6 +139,30 @@ boost::shared_ptr< electro_magnetism::RadiationPressureInterface > createRadiati
                     sourceRadius );
         break;
 
+    }
+    case sail_radiation_pressure:
+    {
+        boost::shared_ptr< SailRadiationPressureInterfaceSettings > sailSettings =
+                boost::dynamic_pointer_cast< SailRadiationPressureInterfaceSettings >(
+                    radiationPressureInterfaceSettings );
+
+        if( sailSettings == NULL )
+        {
+            throw std::runtime_error( "Error when making sail radiation interface, type does not match object" );
+        }
+
+        radiationPressureInterface =
+                boost::make_shared< electro_magnetism::SolarSailRadiationPressureInterface >(
+                    sailSettings->getLightnessNumberFunction( ),
+                    boost::bind( &Body::getPosition, sourceBody ),
+                    boost::bind( &Body::getPosition, bodyMap.at( bodyName ) ),
+                    sailSettings->getSailAngleFunction( ),
+                    sailSettings->getSailEfficiency( ),
+                    occultingBodyPositions, occultingBodyRadii,
+                    sourceRadius );
+
+
+        break;
     }
     default:
         throw std::runtime_error(

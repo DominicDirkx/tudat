@@ -17,6 +17,7 @@
 #include "Tudat/Astrodynamics/BasicAstrodynamics/astrodynamicsFunctions.h"
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamics.h"
 #include "Tudat/Astrodynamics/Ephemerides/frameManager.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
 #include "Tudat/Astrodynamics/Propagators/dynamicsStateDerivativeModel.h"
 #include "Tudat/Astrodynamics/Propagators/rotationalMotionStateDerivative.h"
 #include "Tudat/SimulationSetup/EnvironmentSetup/body.h"
@@ -728,15 +729,27 @@ boost::function< double( ) > getDoubleDependentVariableFunction(
                                             bodyMap.at( bodyWithProperty )->getFlightConditions( ) );
             break;
         case radiation_pressure_dependent_variable:
+        {
             if( bodyMap.at( bodyWithProperty )->getRadiationPressureInterfaces( ).count( secondaryBody ) == 0 )
             {
                 std::string errorMessage = "Error, no radiation pressure interfaces when requesting radiation pressure output of " +
                         bodyWithProperty + "w.r.t." + secondaryBody;
                 throw std::runtime_error( errorMessage );
             }
-            variableFunction = boost::bind( &electro_magnetism::RadiationPressureInterface::getCurrentRadiationPressure,
-                                            bodyMap.at( bodyWithProperty )->getRadiationPressureInterfaces( ).at( secondaryBody ) );
+
+
+            boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface =
+                    boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+                        bodyMap.at( bodyWithProperty )->getRadiationPressureInterfaces( ).at( secondaryBody ) );
+            if( radiationPressureInterface == NULL )
+            {
+                throw std::runtime_error( "Error when requesting radiation pressure dependent variable, no cannon-ball model detected" );
+            }
+
+            variableFunction = boost::bind( &electro_magnetism::CannonBallRadiationPressureInterface::getCurrentRadiationPressure,
+                                            radiationPressureInterface );
             break;
+        }
         case relative_distance_dependent_variable:
         {
             // Retrieve functions for positions of two bodies.

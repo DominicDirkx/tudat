@@ -311,8 +311,7 @@ createPerfectlyReflectingSailAcceleratioModel(
         const boost::shared_ptr< Body > bodyUndergoingAcceleration,
         const boost::shared_ptr< Body > bodyExertingAcceleration,
         const std::string& nameOfBodyUndergoingAcceleration,
-        const std::string& nameOfBodyExertingAcceleration,
-        const boost::shared_ptr< AccelerationSettings > accelerationSettings );
+        const std::string& nameOfBodyExertingAcceleration );
 
 //! Function to create a thrust acceleration model.
 /*!

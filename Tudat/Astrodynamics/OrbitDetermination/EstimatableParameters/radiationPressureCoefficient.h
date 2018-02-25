@@ -18,7 +18,7 @@
 
 #include "Tudat/Basics/utilities.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/estimatableParameter.h"
-#include "Tudat/Astrodynamics/ElectroMagnetism/radiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
 #include "Tudat/Mathematics/Interpolators/piecewiseConstantInterpolator.h"
 
 namespace tudat
@@ -39,7 +39,7 @@ public:
      * \param associatedBody Name of body containing the radiationPressureInterface object
      */
     RadiationPressureCoefficient(
-            boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface,
+            boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface,
             std::string& associatedBody ):
         EstimatableParameter< double >( radiation_pressure_coefficient, associatedBody ),
         radiationPressureInterface_( radiationPressureInterface )
@@ -80,7 +80,7 @@ protected:
 private:
 
     //! Object containing the radiation pressure coefficient to be estimated.
-    boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface_;
+    boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface_;
 };
 
 //! Interface class for the estimation of an arc-wise (piecewise constant) radiation pressure coefficient
@@ -96,7 +96,7 @@ public:
      * \param associatedBody Name of body containing the radiationPressureInterface object
      */
     ArcWiseRadiationPressureCoefficient(
-            const boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface,
+            const boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface,
             const std::vector< double > timeLimits,
             const std::string& associatedBody ):
         EstimatableParameter< Eigen::VectorXd >( arc_wise_radiation_pressure_coefficient, associatedBody ),
@@ -177,7 +177,7 @@ protected:
 private:
 
     //! Object containing the radiation pressure coefficient to be estimated.
-    boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface_;
+    boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface_;
 
     //! Times at which the arcs are to start (including end time at maximum double value).
     std::vector< double > timeLimits_;

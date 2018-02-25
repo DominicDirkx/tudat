@@ -541,6 +541,14 @@ std::map< MapKey, Eigen::Array< ScalarType, Eigen::Dynamic, 1 > > convertSTLVect
     return eigenMap;
 }
 
+template< int T, int S >
+Eigen::Matrix< double, S, 1 > getVectorSegmentFromFunction(
+        const boost::function< Eigen::Matrix< double, T, 1 >( ) > originalFunction,
+        const int startIndex )
+{
+    return originalFunction( ).segment< S >( startIndex );
+}
+
 } // namespace utilities
 
 } // namespace tudat

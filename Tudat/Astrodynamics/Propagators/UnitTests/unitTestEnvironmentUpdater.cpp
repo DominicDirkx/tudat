@@ -570,8 +570,9 @@ BOOST_AUTO_TEST_CASE( test_NonConservativeForceEnvironmentUpdate )
         BOOST_CHECK_EQUAL( vehicleFlightConditions->getCurrentTime( ), testTime );
 
         // Check if radiation pressure update is updated.
-        boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface =
-                bodyMap.at( "Vehicle" )->getRadiationPressureInterfaces( ).at( "Sun" );
+        boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface =
+                boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+                    bodyMap.at( "Vehicle" )->getRadiationPressureInterfaces( ).at( "Sun" ) );
         BOOST_CHECK_EQUAL(
                     ( radiationPressureInterface->getCurrentTime( ) == radiationPressureInterface->getCurrentTime( ) ), 1 );
         BOOST_CHECK_EQUAL(
@@ -585,6 +586,121 @@ BOOST_AUTO_TEST_CASE( test_NonConservativeForceEnvironmentUpdate )
         updater->updateEnvironment(
                     0.5 * testTime, std::unordered_map< IntegratedStateType, Eigen::VectorXd >( ),
                     boost::assign::list_of( transational_state ) );
+
+
+    }
+}
+
+BOOST_AUTO_TEST_CASE( test_RadiationSailUpdate )
+{
+    double initialTime = 86400.0;
+    double finalTime = 2.0 * 86400.0;
+
+    using namespace tudat::simulation_setup;
+    using namespace tudat;
+
+    // Load Spice kernels
+    spice_interface::loadStandardSpiceKernels( );
+
+    // Get settings for celestial bodies
+    std::map< std::string, boost::shared_ptr< BodySettings > > bodySettings;
+    bodySettings[ "Earth" ] = getDefaultSingleBodySettings( "Earth", 0.0, 10.0 * 86400.0 );
+    bodySettings[ "Sun" ] = getDefaultSingleBodySettings( "Sun", 0.0,10.0 * 86400.0 );
+
+    // Get settings for vehicle
+    double lightnessNumber = 1.5;
+    double sailEfficiency = 0.5;
+
+    Eigen::Vector2d constantSailAngles;
+    constantSailAngles << 0.5, -0.2;
+
+    bodySettings[ "Vehicle" ] = boost::make_shared< BodySettings >( );
+    bodySettings[ "Vehicle" ]->radiationPressureSettings[ "Sun" ] =
+            boost::make_shared< SailRadiationPressureInterfaceSettings >(
+                "Sun",
+                boost::lambda::constant( lightnessNumber ),
+                boost::lambda::constant( constantSailAngles ),
+                sailEfficiency );
+    bodySettings[ "Vehicle" ]->ephemerisSettings =
+            boost::make_shared< KeplerEphemerisSettings >(
+                ( Eigen::Vector6d( ) << 7000.0E3, 0.05, 0.3, 0.0, 0.0, 0.0 ).finished( ),
+                0.0, spice_interface::getBodyGravitationalParameter( "Earth" ), "Earth", "ECLIPJ2000" );
+
+    // Create bodies
+    NamedBodyMap bodyMap = createBodies( bodySettings );
+
+    bodyMap[ "Vehicle" ]->setBodyMassFunction( &getBodyMass );
+    setGlobalFrameBodyEphemerides( bodyMap, "SSB", "ECLIPJ2000" );
+
+
+    // Define test time and state.
+    double testTime = 2.0 * 86400.0;
+    std::unordered_map< IntegratedStateType, Eigen::VectorXd > integratedStateToSet;
+    Eigen::VectorXd testState = 1.1 * bodyMap[ "Vehicle" ]->getEphemeris( )->getCartesianState( testTime ) +
+            bodyMap.at( "Earth" )->getEphemeris( )->getCartesianState( testTime );
+    integratedStateToSet[ transational_state ] = testState;
+
+    {
+        // Define settings for accelerations
+        SelectedAccelerationMap accelerationSettingsMap;
+        accelerationSettingsMap[ "Vehicle" ][ "Sun" ].push_back(
+                    boost::make_shared< AccelerationSettings >( perfectly_reflecting_sail_acceleration ) );
+
+        // Define origin of integration
+        std::map< std::string, std::string > centralBodies;
+        centralBodies[ "Vehicle" ] = "Earth";
+        std::vector< std::string > propagatedBodyList;
+        propagatedBodyList.push_back( "Vehicle" );
+        std::vector< std::string > centralBodyList;
+        centralBodyList.push_back( centralBodies[ "Vehicle" ] );
+
+        // Create accelerations
+        AccelerationMap accelerationsMap = createAccelerationModelsMap(
+                    bodyMap, accelerationSettingsMap, centralBodies );
+
+        boost::shared_ptr< SingleArcPropagatorSettings< double > > propagatorSettings =
+                boost::make_shared< TranslationalStatePropagatorSettings< double > >(
+                    centralBodyList, accelerationsMap, propagatedBodyList, getInitialStateOfBody(
+                        "Vehicle", centralBodies[ "Vehicle" ], bodyMap, initialTime ), finalTime );
+
+        // Create and call updater.
+        boost::shared_ptr< propagators::EnvironmentUpdater< double, double > > updater =
+                createEnvironmentUpdaterForDynamicalEquations< double, double >(
+                    propagatorSettings, bodyMap );
+        updater->updateEnvironment( testTime, integratedStateToSet );
+
+        std::cout<<bodyMap.at( "Sun" )->getState( ).transpose( )<<std::endl;
+        std::cout<<bodyMap.at( "Vehicle" )->getState( ).transpose( )<<std::endl<<std::endl;
+
+        // Test if Earth, Sun and Vehicle states are updated.
+        TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
+                    bodyMap.at( "Sun" )->getState( ),
+                    bodyMap.at( "Sun" )->getEphemeris( )->getCartesianState( testTime ),
+                    std::numeric_limits< double >::epsilon( ) );
+        TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
+                    bodyMap.at( "Vehicle" )->getState( ), testState,
+                    std::numeric_limits< double >::epsilon( ) );
+
+        // Test if body mass is updated
+        BOOST_CHECK_CLOSE_FRACTION(
+                    bodyMap.at( "Vehicle" )->getBodyMass( ), getBodyMass( testTime ),
+                    std::numeric_limits< double >::epsilon( ) );
+
+
+//        // Check if radiation pressure update is updated.
+//        boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface =
+//                boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+//                    bodyMap.at( "Vehicle" )->getRadiationPressureInterfaces( ).at( "Sun" ) );
+//        BOOST_CHECK_EQUAL(
+//                    ( radiationPressureInterface->getCurrentTime( ) == radiationPressureInterface->getCurrentTime( ) ), 1 );
+//        BOOST_CHECK_EQUAL(
+//                    ( radiationPressureInterface->getCurrentRadiationPressure( ) ==
+//                radiationPressureInterface->getCurrentRadiationPressure( ) ), 1 );
+//        TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
+//                    radiationPressureInterface->getCurrentSolarVector( ),
+//                    ( bodyMap.at( "Sun" )->getPosition( ) - bodyMap.at( "Vehicle" )->getPosition( ) ),
+//                    std::numeric_limits< double >::epsilon( ) );
+
 
 
     }

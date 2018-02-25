@@ -28,40 +28,5 @@ double calculateRadiationPressure( const double sourcePower, const double distan
                            distanceFromSource * physical_constants::SPEED_OF_LIGHT );
 }
 
-//! Function to update the current value of the radiation pressure
-void RadiationPressureInterface::updateInterface(
-        const double currentTime )
-{
-    currentTime_ = currentTime;
-
-    // Calculate current radiation pressure
-    currentSolarVector_ = sourcePositionFunction_( ) - targetPositionFunction_( );
-    double distanceFromSource = currentSolarVector_.norm( );
-    currentRadiationPressure_ = calculateRadiationPressure(
-                sourcePower_( ), distanceFromSource );
-
-    // Calculate total shadowing due to occulting body; note that multiple concurrent
-    // occultations are not completely correctly (prints warning).
-    double shadowFunction = 1.0;
-    double currentShadowFunction = 1.0;
-    for( unsigned int i = 0; i < occultingBodyPositions_.size( ); i++ )
-    {
-        currentShadowFunction *= mission_geometry::computeShadowFunction(
-                    sourcePositionFunction_( ), sourceRadius_, occultingBodyPositions_[ i ]( ),
-                    occultingBodyRadii_[ i ], targetPositionFunction_( ) );
-
-        if( currentShadowFunction != 1.0 && shadowFunction != 1.0 )
-        {
-            std::cerr << "Warning, multiple occultation occured in radiation pressure interface, results may be slightly in error" << std::endl;
-        }
-
-        shadowFunction *= currentShadowFunction;
-    }
-
-    currentRadiationPressure_ *= shadowFunction;
-
-    radiationPressureCoefficient_ = radiationPressureCoefficientFunction_( currentTime );
-}
-
 } // namespace electro_magnetism
 } // namespace tudat

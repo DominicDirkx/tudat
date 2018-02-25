@@ -107,8 +107,14 @@ boost::shared_ptr< EstimatableParameter< double > > createDoubleParameterToEstim
             }
             else
             {
+                if( boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+                            currentBody->getRadiationPressureInterfaces( ).begin( )->second ) == NULL )
+                {
+                    throw std::runtime_error( "Error when making radiation pressure coefficient parameter, cannonball interface not found" );
+                }
                 doubleParameterToEstimate = boost::make_shared< RadiationPressureCoefficient >(
-                            currentBody->getRadiationPressureInterfaces( ).begin( )->second,
+                            boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+                                                        currentBody->getRadiationPressureInterfaces( ).begin( )->second ),
                             currentBodyName );
             }
             break;
@@ -571,8 +577,16 @@ boost::shared_ptr< EstimatableParameter< Eigen::VectorXd > > createVectorParamet
                 }
                 else
                 {
+
+                    if( boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+                                currentBody->getRadiationPressureInterfaces( ).begin( )->second ) == NULL )
+                    {
+                        throw std::runtime_error( "Error when making arcwise radiation pressure coefficient parameter, cannonball interface not found" );
+                    }
+
                     vectorParameterToEstimate = boost::make_shared< ArcWiseRadiationPressureCoefficient >(
-                                currentBody->getRadiationPressureInterfaces( ).begin( )->second,
+                                boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+                                                                currentBody->getRadiationPressureInterfaces( ).begin( )->second ),
                                 radiationPressureCoefficientSettings->arcStartTimeList_,
                                 currentBodyName );
                 }

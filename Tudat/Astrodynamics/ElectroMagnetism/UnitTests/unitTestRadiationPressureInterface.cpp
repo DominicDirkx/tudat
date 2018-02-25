@@ -19,7 +19,7 @@
 
 #include <Eigen/Core>
 
-#include "Tudat/Astrodynamics/ElectroMagnetism/radiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
 
 namespace tudat
 {
@@ -45,8 +45,8 @@ BOOST_AUTO_TEST_CASE( testRadiationPressureCalculation )
     BOOST_CHECK_CLOSE_FRACTION( calculatedRadiationPressure, expectedRadiationPressure, 1.0E-4 );
 
     // Test calculation of radiation pressure from class interface.
-    boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface =
-            boost::make_shared< electro_magnetism::RadiationPressureInterface >(
+    boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > radiationPressureInterface =
+            boost::make_shared< electro_magnetism::CannonBallRadiationPressureInterface >(
                 boost::lambda::constant( totalSolarPower ),
                 boost::lambda::constant(
                     ( Eigen::Vector3d( ) <<
@@ -88,9 +88,9 @@ BOOST_AUTO_TEST_CASE( testShadowFunctionLink )
     const Eigen::Vector3d occultedBodyPosition = -149598000.0e3 * Eigen::Vector3d( 1.0, 0.0, 0.0 );
 
     // Create radiation pressure interface with occultation.
-    boost::shared_ptr< electro_magnetism::RadiationPressureInterface >
+    boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface >
             occultedRadiationPressureInterface =
-            boost::make_shared< electro_magnetism::RadiationPressureInterface >(
+            boost::make_shared< electro_magnetism::CannonBallRadiationPressureInterface >(
                 boost::lambda::constant( totalSolarPower ),
                 boost::lambda::constant( occultedBodyPosition ),
                 boost::lambda::constant( satellitePosition ),
@@ -99,9 +99,9 @@ BOOST_AUTO_TEST_CASE( testShadowFunctionLink )
     occultedRadiationPressureInterface->updateInterface( );
 
     // Create radiation pressure interface without occultation.
-    boost::shared_ptr< electro_magnetism::RadiationPressureInterface >
+    boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface >
             unoccultedRadiationPressureInterface =
-            boost::make_shared< electro_magnetism::RadiationPressureInterface >(
+            boost::make_shared< electro_magnetism::CannonBallRadiationPressureInterface >(
                 boost::lambda::constant( totalSolarPower ),
                 boost::lambda::constant( occultedBodyPosition ),
                 boost::lambda::constant( satellitePosition ),

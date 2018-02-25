@@ -22,6 +22,7 @@
 #include <boost/function.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/shared_ptr.hpp>
+#include <iostream>
 
 #include <Eigen/Core>
 
@@ -74,8 +75,6 @@ private:
 
 public:
 
-    // Ensure that correctly aligned pointers are generated (Eigen, 2013).
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     //! Constructor taking function pointers for all variables.
     /*!
@@ -92,15 +91,15 @@ public:
             const Vector6dReturningFunction acceleratedBodyStateFunction,
             const Vector2dReturningFunction controlAngleFunction,
             const DoubleReturningFunction lightnessNumberFunction,
-            const DoubleReturningFunction gravitationalParameterFunction )
+            const DoubleReturningFunction gravitationalParameterFunction,
+            const DoubleReturningFunction sailEfficiencyFunction )
         : sourceBodyStateFunction_( sourceBodyStateFunction ),
           acceleratedBodyStateFunction_( acceleratedBodyStateFunction ),
           controlAngleFunction_( controlAngleFunction ),
           lightnessNumberFunction_( lightnessNumberFunction ),
-          gravitationalParameterFunction_( gravitationalParameterFunction )
-    {
-        this->updateMembers( );
-    }
+          gravitationalParameterFunction_( gravitationalParameterFunction ),
+          sailEfficiencyFunction_( sailEfficiencyFunction )
+    { }
 
     //! Constructor taking functions pointers and constant values for parameters.
     /*!
@@ -118,16 +117,16 @@ public:
             const Vector6dReturningFunction acceleratedBodyStateFunction,
             const Vector2dReturningFunction controlAngleFunction,
             const double sailLightnessNumber,
-            const double sourceBodyGravitationalParameter)
+            const double sourceBodyGravitationalParameter,
+            const double sailEfficiency )
         : sourceBodyStateFunction_( sourceBodyStateFunction ),
           acceleratedBodyStateFunction_( acceleratedBodyStateFunction ),
           controlAngleFunction_( controlAngleFunction ),
           lightnessNumberFunction_(
               boost::lambda::constant( sailLightnessNumber ) ),
-          gravitationalParameterFunction_( boost::lambda::constant( sourceBodyGravitationalParameter ) )
-    {
-        this->updateMembers( );
-    }
+          gravitationalParameterFunction_( boost::lambda::constant( sourceBodyGravitationalParameter ) ),
+          sailEfficiencyFunction_( boost::lambda::constant( sailEfficiency ) )
+    { }
 
     //! Get radiation pressure acceleration.
     /*!
@@ -159,10 +158,12 @@ public:
             currentAcceleratedBodyState_ = acceleratedBodyStateFunction_( );
             currentDistanceToSource_ = ( currentSourceBodyState_.segment(0,3)
                                          - currentAcceleratedBodyState_.segment(0,3) ).norm( );
+
             currentControlAngles_ = controlAngleFunction_( );
             currentLightnessNumber_ = lightnessNumberFunction_( );
-            cuurentGravitationalParameter_ = gravitationalParameterFunction_( );
+            currentGravitationalParameter_ = gravitationalParameterFunction_( );
             currentAcceleration_ =
+                    sailEfficiencyFunction_( ) *
                     reference_frames::getInertialToRswSatelliteCenteredFrameRotationMatrx(
                         currentAcceleratedBodyState_ - currentSourceBodyState_ ).transpose( ) *
                     computePerfectReflectionSailAcceleration(
@@ -209,6 +210,8 @@ private:
      * Function pointer returning source body's gravitational parameter [m^3/s^2].
      */
     const DoubleReturningFunction gravitationalParameterFunction_;
+
+    const DoubleReturningFunction sailEfficiencyFunction_;
 
 
     //! Current distance from accelerated body to source.

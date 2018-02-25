@@ -32,7 +32,7 @@ Eigen::Vector3d computePerfectReflectionSailAcceleration(
 	sailAcceleration(0) = commonValue * std::cos(sailControlAngles(0)); //Radial direction (r)
 	sailAcceleration(1) = commonValue * std::sin(sailControlAngles(0)) * std::sin(sailControlAngles(1)); // In the orbital plane, normal to radial direction (v)
 	sailAcceleration(2) = commonValue * std::sin(sailControlAngles(0)) * std::cos(sailControlAngles(1)); // Perpendicular to orbital plane (h)
-    return sailAcceleration
+    return sailAcceleration;
 }
 
 } // namespace electro_magnetism

@@ -16,15 +16,19 @@ set(ELECTROMAGNETISM_SOURCES
   "${SRCROOT}${ELECTROMAGNETISMDIR}/lorentzStaticMagneticAcceleration.h"
   "${SRCROOT}${ELECTROMAGNETISMDIR}/radiationPressureInterface.h"
   "${SRCROOT}${ELECTROMAGNETISMDIR}/basicElectroMagnetism.h"
+  "${SRCROOT}${ELECTROMAGNETISMDIR}/perfectlyReflectingSailAcceleration.h"
+  "${SRCROOT}${ELECTROMAGNETISMDIR}/cannonBallRadiationPressureInterface.h"
 )
 
 # Set the header files.
 set(ELECTROMAGNETISM_HEADERS
   "${SRCROOT}${ELECTROMAGNETISMDIR}/cannonBallRadiationPressureAcceleration.cpp"
   "${SRCROOT}${ELECTROMAGNETISMDIR}/cannonBallRadiationPressureForce.cpp"
+  "${SRCROOT}${ELECTROMAGNETISMDIR}/cannonBallRadiationPressureInterface.cpp"
   "${SRCROOT}${ELECTROMAGNETISMDIR}/lorentzStaticMagneticForce.cpp"
   "${SRCROOT}${ELECTROMAGNETISMDIR}/lorentzStaticMagneticAcceleration.cpp"
   "${SRCROOT}${ELECTROMAGNETISMDIR}/radiationPressureInterface.cpp"
+  "${SRCROOT}${ELECTROMAGNETISMDIR}/perfectlyReflectingSailAcceleration.cpp"
 )
 
 # Add static libraries.

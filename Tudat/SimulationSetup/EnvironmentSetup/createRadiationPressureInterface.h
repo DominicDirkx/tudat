@@ -15,7 +15,7 @@
 #include <boost/make_shared.hpp>
 
 #include "Tudat/SimulationSetup/EnvironmentSetup/body.h"
-#include "Tudat/Astrodynamics/ElectroMagnetism/radiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
 
 
 namespace tudat
@@ -31,7 +31,8 @@ static const std::map< std::string, double > defaultRadiatedPowerValues =
 //! List of radiation pressure model types.
 enum RadiationPressureType
 {
-    cannon_ball
+    cannon_ball,
+    sail_radiation_pressure
 };
 
 //! Base class for radiation pressure interface settings.
@@ -140,6 +141,47 @@ private:
 
     //! Radiation pressure coefficient.
     double radiationPressureCoefficient_;
+};
+
+class SailRadiationPressureInterfaceSettings: public RadiationPressureInterfaceSettings
+{
+public:
+
+
+    SailRadiationPressureInterfaceSettings(
+            const std::string& sourceBody,
+            const boost::function< double( ) > lightnessNumberFunction,
+            const boost::function< Eigen::Vector2d( const double ) > sailAngleFunction,
+            const double sailEfficiency,
+            const std::vector< std::string > occultingBodies = std::vector< std::string >( ) ):
+        RadiationPressureInterfaceSettings( sail_radiation_pressure, sourceBody, occultingBodies ),
+        lightnessNumberFunction_( lightnessNumberFunction ), sailAngleFunction_( sailAngleFunction ),
+    sailEfficiency_( sailEfficiency ){ }
+
+
+    boost::function< double( ) > getLightnessNumberFunction( )
+    {
+        return lightnessNumberFunction_;
+    }
+
+    boost::function< Eigen::Vector2d( const double ) > getSailAngleFunction( )
+    {
+        return sailAngleFunction_;
+    }
+
+    double getSailEfficiency( )
+    {
+        return sailEfficiency_;
+    }
+
+
+private:
+
+    boost::function< double( ) > lightnessNumberFunction_;
+
+    boost::function< Eigen::Vector2d( const double ) > sailAngleFunction_;
+
+    double sailEfficiency_;
 };
 
 //! Function to obtain (by reference) the position functions and radii of occulting bodies

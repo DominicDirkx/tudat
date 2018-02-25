@@ -861,8 +861,9 @@ BOOST_AUTO_TEST_CASE( test_radiationPressureInterfaceSetup )
     bodyMap[ "Earth" ]->setStateFromEphemeris< double, double >( testTime );
     bodyMap[ "Vehicle" ]->setStateFromEphemeris< double, double >( testTime );
 
-    boost::shared_ptr< electro_magnetism::RadiationPressureInterface > vehicleRadiationPressureInterface =
-            bodyMap[ "Vehicle" ]->getRadiationPressureInterfaces( ).at( "Sun" );
+    boost::shared_ptr< electro_magnetism::CannonBallRadiationPressureInterface > vehicleRadiationPressureInterface =
+            boost::dynamic_pointer_cast< electro_magnetism::CannonBallRadiationPressureInterface >(
+                bodyMap[ "Vehicle" ]->getRadiationPressureInterfaces( ).at( "Sun" ) );
 
     vehicleRadiationPressureInterface->updateInterface( testTime );
     double sourceDistance = ( ( bodyMap[ "Vehicle" ]->getState( ) -  bodyMap[ "Sun" ]->getState( ) ).

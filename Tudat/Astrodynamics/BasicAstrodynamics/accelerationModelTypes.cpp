@@ -141,6 +141,10 @@ AvailableAcceleration getAccelerationModelType(
     {
         accelerationType = direct_tidal_dissipation_acceleration;
     }
+    else if( boost::dynamic_pointer_cast< electro_magnetism::PerfectReflectionSailAcceleration >( accelerationModel ) != NULL )
+    {
+        accelerationType = perfectly_reflecting_sail_acceleration;
+    }
     else
     {
         throw std::runtime_error(

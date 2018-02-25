@@ -174,6 +174,14 @@ BOOST_AUTO_TEST_CASE( testCentralGravityPartials )
                                        partialWrtSunGravitationalParameter, std::numeric_limits< double >::epsilon(  ) );
 }
 
+void updateRadiationPressureInterfaceWithPerturbedState(
+        const boost::shared_ptr< electro_magnetism::RadiationPressureInterface > radiationPressureInterface,
+        const double timeToUpdate )
+{
+    radiationPressureInterface->resetCurrentTime( TUDAT_NAN );
+    radiationPressureInterface->updateInterface( timeToUpdate );
+}
+
 BOOST_AUTO_TEST_CASE( testRadiationPressureAccelerationPartials )
 {
     // Create empty bodies, earth and sun.
@@ -347,7 +355,7 @@ BOOST_AUTO_TEST_CASE( testRadiationPressureAccelerationPartials )
 
     // Calculate numerical partials.
     boost::function< void( ) > updateFunction =
-            boost::bind( &CannonBallRadiationPressureInterface::updateInterface, radiationPressureInterface, 0.0 );
+            boost::bind( &updateRadiationPressureInterfaceWithPerturbedState, radiationPressureInterface, 0.0 );
     testPartialWrtSunPosition = calculateAccelerationWrtStatePartials(
                 sunStateSetFunction, accelerationModel, sun->getState( ), positionPerturbation, 0, updateFunction );
     testPartialWrtVehiclePosition = calculateAccelerationWrtStatePartials(
@@ -359,7 +367,6 @@ BOOST_AUTO_TEST_CASE( testRadiationPressureAccelerationPartials )
     testPartialWrtRadiationPressureCoefficient = calculateAccelerationWrtParameterPartials(
                 radiationPressureCoefficient, accelerationModel, 1.0E-2, updateFunction );
 
-    std::cout<<testPartialWrtSunPosition<<std::endl<<partialWrtSunPosition<<std::endl<<std::endl;
 
     std::cout<<testPartialWrtVehiclePosition<<std::endl<<partialWrtVehiclePosition<<std::endl<<std::endl;
 

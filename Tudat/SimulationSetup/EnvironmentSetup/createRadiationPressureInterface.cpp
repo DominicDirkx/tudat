@@ -14,7 +14,7 @@
 #include "Tudat/Astrodynamics/BasicAstrodynamics/sphericalBodyShapeModel.h"
 #include "Tudat/Astrodynamics/ReferenceFrames/referenceFrameTransformations.h"
 #include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
-#include "Tudat/Astrodynamics/ElectroMagnetism/soalrSailRadiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/solarSailRadiationPressureInterface.h"
 
 namespace tudat
 {

@@ -14,7 +14,7 @@
 #include <boost/bind.hpp>
 #include "Tudat/Astrodynamics/Aerodynamics/flightConditions.h"
 #include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureInterface.h"
-#include "Tudat/Astrodynamics/ElectroMagnetism/soalrSailRadiationPressureInterface.h"
+#include "Tudat/Astrodynamics/ElectroMagnetism/solarSailRadiationPressureInterface.h"
 #include "Tudat/Astrodynamics/Ephemerides/frameManager.h"
 #include "Tudat/Astrodynamics/Gravitation/sphericalHarmonicsGravityField.h"
 #include "Tudat/Astrodynamics/Propulsion/thrustMagnitudeWrapper.h"

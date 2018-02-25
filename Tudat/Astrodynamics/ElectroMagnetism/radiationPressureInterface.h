@@ -87,8 +87,7 @@ public:
      *  the positions of the bodies involved and the source power.
      * \param currentTime Time at which acceleration model is to be updated.
      */
-    virtual void updateInterface( const double currentTime = TUDAT_NAN ) = 0;
-
+    virtual void updateInterface( const double currentTime = TUDAT_NAN ) = 0;  
 
 
     //! Function to return the list of functions returning the positions of the bodies causing
@@ -145,9 +144,14 @@ public:
         return sourcePositionFunction_;
     }
 
+    void resetCurrentTime( const double currentTime = TUDAT_NAN )
+    {
+        currentTime_ = currentTime;
+    }
+
     void updateShadowFunction( const double currentTime )
     {
-        if( currentTime != currentTime_ )
+        //if( currentTime != currentTime_ )
         {
             currentShadowFunction_ = 1.0;
             double singleBodyShadowFunction = 1.0;

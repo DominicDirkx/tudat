@@ -635,6 +635,12 @@ private:
                                                             ::RadiationPressureInterface
                                                             ::updateInterface,
                                                             iterator->second, _1 ) ) );
+
+                            resetFunctionVector_.push_back(
+                                        boost::make_tuple(
+                                            radiation_pressure_interface_update, currentBodies.at( i ),
+                                            boost::bind( &electro_magnetism::RadiationPressureInterface::resetCurrentTime,
+                                                         iterator->second, TUDAT_NAN ) ) );
                         }
                         break;
                     }

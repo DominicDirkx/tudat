@@ -16,8 +16,8 @@
  *
  */
 
-#ifndef TUDAT_PERFECT_REFLECTION_SAIL_ACCELERATION_H
-#define TUDAT_PERFECT_REFLECTION_SAIL_ACCELERATION_H 
+#ifndef TUDAT_SOLAR_SAIL_ACCELERATION_H
+#define TUDAT_SOLAR_SAIL_ACCELERATION_H
 
 #include <boost/function.hpp>
 #include <boost/lambda/lambda.hpp>
@@ -152,7 +152,7 @@ public:
      */
     void updateMembers( const double currentTime = TUDAT_NAN )
     {
-        if( !( this->currentTime_ == currentTime ) )
+        //if( !( this->currentTime_ == currentTime ) )
         {
             currentSourceBodyState_ = sourceBodyStateFunction_( );
             currentAcceleratedBodyState_ = acceleratedBodyStateFunction_( );
@@ -169,6 +169,7 @@ public:
                     computePerfectReflectionSailAcceleration(
                         currentLightnessNumber_, currentDistanceToSource_, currentGravitationalParameter_,
                         currentControlAngles_ );
+            this->currentTime_ = currentTime;
         }
     }
 
@@ -265,4 +266,4 @@ typedef boost::shared_ptr< PerfectReflectionSailAcceleration > PerfectReflection
 } // namespace electro_magnetism
 } // namespace tudat
 
-#endif // TUDAT_PERFECT_REFLECTION_SAIL_ACCELERATION_H
+#endif // TUDAT_SOLAR_SAIL_ACCELERATION_H

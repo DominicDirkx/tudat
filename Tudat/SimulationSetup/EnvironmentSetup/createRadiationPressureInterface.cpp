@@ -135,7 +135,7 @@ boost::shared_ptr< electro_magnetism::RadiationPressureInterface > createRadiati
                     boost::bind( &Body::getPosition, sourceBody ),
                     boost::bind( &Body::getPosition, bodyMap.at( bodyName ) ),
                     cannonBallSettings->getRadiationPressureCoefficient( ),
-                    cannonBallSettings->getArea( ), occultingBodyPositions, occultingBodyRadii,
+                    cannonBallSettings->getArea( ), occultingBodies, occultingBodyPositions, occultingBodyRadii,
                     sourceRadius );
         break;
 
@@ -158,7 +158,7 @@ boost::shared_ptr< electro_magnetism::RadiationPressureInterface > createRadiati
                     boost::bind( &Body::getPosition, bodyMap.at( bodyName ) ),
                     sailSettings->getSailAngleFunction( ),
                     sailSettings->getSailEfficiency( ),
-                    occultingBodyPositions, occultingBodyRadii,
+                    occultingBodies, occultingBodyPositions, occultingBodyRadii,
                     sourceRadius );
 
 

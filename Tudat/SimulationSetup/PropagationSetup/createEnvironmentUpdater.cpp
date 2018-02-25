@@ -255,12 +255,51 @@ createTranslationalEquationsOfMotionEnvironmentUpdaterSettings(
                                 acceleratedBodyIterator->first );
                     singleAccelerationUpdateNeeds[ body_mass_update ].push_back(
                                 acceleratedBodyIterator->first );
+
+
+                    if( bodyMap.at( acceleratedBodyIterator->first )->getRadiationPressureInterfaces( ).count(
+                                accelerationModelIterator->first ) == 0 )
+                    {
+                        throw std::runtime_error(
+                                    "Error when setting updates for cannon_ball_radiation_pressure, no radiation pressure interface found." );
+                    }
+                    else
+                    {
+                        boost::shared_ptr< electro_magnetism::RadiationPressureInterface > bodyRadiationPressureInterface =
+                                bodyMap.at( acceleratedBodyIterator->first )->getRadiationPressureInterfaces( ).at(
+                                    accelerationModelIterator->first );
+                        std::vector< std::string > occultingBodies = bodyRadiationPressureInterface->getOccultingBodyNames( );
+                        for( unsigned int j = 0; j < occultingBodies.size( ); j++ )
+                        {
+                            singleAccelerationUpdateNeeds[ body_transational_state_update ].push_back(
+                                        occultingBodies.at( j ) );
+                        }
+                    }
                     break;
                 case perfectly_reflecting_sail_acceleration:
                     singleAccelerationUpdateNeeds[ radiation_pressure_interface_update ].push_back(
                                 acceleratedBodyIterator->first );
                     singleAccelerationUpdateNeeds[ body_mass_update ].push_back(
                                 acceleratedBodyIterator->first );
+
+                    if( bodyMap.at( acceleratedBodyIterator->first )->getRadiationPressureInterfaces( ).count(
+                                accelerationModelIterator->first ) == 0 )
+                    {
+                        throw std::runtime_error(
+                                    "Error when setting updates for perfectly_reflecting_sail_acceleration, no radiation pressure interface found." );
+                    }
+                    else
+                    {
+                        boost::shared_ptr< electro_magnetism::RadiationPressureInterface > bodyRadiationPressureInterface =
+                                bodyMap.at( acceleratedBodyIterator->first )->getRadiationPressureInterfaces( ).at(
+                                    accelerationModelIterator->first );
+                        std::vector< std::string > occultingBodies = bodyRadiationPressureInterface->getOccultingBodyNames( );
+                        for( unsigned int j = 0; j < occultingBodies.size( ); j++ )
+                        {
+                            singleAccelerationUpdateNeeds[ body_transational_state_update ].push_back(
+                                        occultingBodies.at( j ) );
+                        }
+                    }
                     break;
                 case spherical_harmonic_gravity:
                     singleAccelerationUpdateNeeds[ body_rotational_state_update ].push_back(

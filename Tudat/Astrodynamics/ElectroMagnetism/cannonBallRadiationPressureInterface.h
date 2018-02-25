@@ -60,11 +60,13 @@ public:
             const boost::function< Eigen::Vector3d( ) > targetPositionFunction,
             const double radiationPressureCoefficient,
             const double area,
+            const std::vector< std::string > occultingBodyNames = std::vector< std::string >( ),
             const std::vector< boost::function< Eigen::Vector3d( ) > > occultingBodyPositions =
             std::vector< boost::function< Eigen::Vector3d( ) > >( ),
             const std::vector< double > occultingBodyRadii = std::vector< double > ( ),
             const double sourceRadius = 0.0 ):
-        RadiationPressureInterface( sourcePositionFunction, targetPositionFunction, occultingBodyPositions, occultingBodyRadii, sourceRadius ),
+        RadiationPressureInterface( sourcePositionFunction, targetPositionFunction, occultingBodyNames,
+                                    occultingBodyPositions, occultingBodyRadii, sourceRadius ),
         sourcePower_( sourcePower ),
         radiationPressureCoefficient_( radiationPressureCoefficient ),
         radiationPressureCoefficientFunction_( boost::lambda::constant( radiationPressureCoefficient ) ),

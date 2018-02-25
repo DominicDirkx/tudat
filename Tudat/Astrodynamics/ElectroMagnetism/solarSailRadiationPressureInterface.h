@@ -56,13 +56,14 @@ public:
             const boost::function< Eigen::Vector3d( ) > targetPositionFunction,
             const boost::function< Eigen::Vector2d( const double ) > sailOrientationAnglesFunction,
             const double sailEfficiency,
+            const std::vector< std::string > occultingBodyNames = std::vector< std::string >( ),
             const std::vector< boost::function< Eigen::Vector3d( ) > > occultingBodyPositions =
             std::vector< boost::function< Eigen::Vector3d( ) > >( ),
             const std::vector< double > occultingBodyRadii = std::vector< double > ( ),
             const double sourceRadius = 0.0 ):
         RadiationPressureInterface(
             sourcePositionFunction, targetPositionFunction,
-            occultingBodyPositions, occultingBodyRadii, sourceRadius ),
+            occultingBodyNames, occultingBodyPositions, occultingBodyRadii, sourceRadius ),
         lightnessNumber_( lightnessNumber ), sailOrientationAnglesFunction_( sailOrientationAnglesFunction ),
         sailEfficiency_( sailEfficiency ){ }
 

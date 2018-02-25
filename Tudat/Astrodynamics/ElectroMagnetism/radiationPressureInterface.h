@@ -67,12 +67,14 @@ public:
     RadiationPressureInterface(
             const boost::function< Eigen::Vector3d( ) > sourcePositionFunction,
             const boost::function< Eigen::Vector3d( ) > targetPositionFunction,
+            const std::vector< std::string > occultingBodyNames = std::vector< std::string >( ),
             const std::vector< boost::function< Eigen::Vector3d( ) > > occultingBodyPositions =
             std::vector< boost::function< Eigen::Vector3d( ) > >( ),
             const std::vector< double > occultingBodyRadii = std::vector< double > ( ),
             const double sourceRadius = 0.0 ):
         sourcePositionFunction_( sourcePositionFunction ),
         targetPositionFunction_( targetPositionFunction ),
+        occultingBodyNames_( occultingBodyNames ),
         occultingBodyPositions_( occultingBodyPositions ),
         occultingBodyRadii_( occultingBodyRadii ),
         sourceRadius_( sourceRadius ),
@@ -171,6 +173,12 @@ public:
         }
     }
 
+    std::vector< std::string > getOccultingBodyNames( )
+    {
+        return occultingBodyNames_;
+    }
+
+
 protected:
 
 
@@ -179,6 +187,8 @@ protected:
 
     //! Function returning the current position of the target body.
     boost::function< Eigen::Vector3d( ) > targetPositionFunction_;
+
+    std::vector< std::string > occultingBodyNames_;
 
     //! List of functions returning the positions of the bodies causing occultations
     std::vector< boost::function< Eigen::Vector3d( ) > > occultingBodyPositions_;

@@ -81,6 +81,8 @@ BOOST_AUTO_TEST_CASE( testShadowFunctionLink )
     occultingBodyPositionFunctions.push_back( boost::lambda::constant( occultingBodyPosition ) );
     std::vector< double > occultingBodyRadii;
     occultingBodyRadii.push_back( occultingBodyRadius );
+    std::vector< std::string > occultingBodyNames;
+    occultingBodyNames.push_back( "Earth" );
 
     Eigen::Vector3d satelliteDirection( 0.018, 1.0, 0.0 );
     satelliteDirection.normalize( );
@@ -94,7 +96,7 @@ BOOST_AUTO_TEST_CASE( testShadowFunctionLink )
                 boost::lambda::constant( totalSolarPower ),
                 boost::lambda::constant( occultedBodyPosition ),
                 boost::lambda::constant( satellitePosition ),
-                1.0, 1.0, occultingBodyPositionFunctions, occultingBodyRadii,
+                1.0, 1.0, occultingBodyNames, occultingBodyPositionFunctions, occultingBodyRadii,
                 occultedBodyRadius );
     occultedRadiationPressureInterface->updateInterface( );
 

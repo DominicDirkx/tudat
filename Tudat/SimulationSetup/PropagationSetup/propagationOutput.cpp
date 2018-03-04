@@ -273,6 +273,12 @@ int getDependentVariableSize(
     case modified_equinocial_state_dependent_variable:
         variableSize = 6;
         break;
+    case body_fixed_relative_cartesian_position:
+        variableSize = 3;
+        break;
+    case body_fixed_relative_spherical_position:
+        variableSize = 3;
+        break;
     default:
         std::string errorMessage = "Error, did not recognize dependent variable size of type: " +
                 std::to_string( dependentVariableSettings->dependentVariableType_ );

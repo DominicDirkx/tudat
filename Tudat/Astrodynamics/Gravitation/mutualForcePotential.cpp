@@ -226,6 +226,11 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
                 // Compute the potential gradient of a single spherical harmonic term.
                 if( saveTermsSeparately )
                 {
+//                    std::cout<<"Computing "<<degreeOfBody1<<" "<<orderOfBody1<<" "<<degreeOfBody2<<" "<<orderOfBody2<<" "<<totalDegree<<" "<<totalOrder<<std::endl;
+//                    std::cout<<"(r/R) power "<<equatorialRadiusRatioPower<<" "<<radius1Powers[ degreeOfBody1 ]<<" "<radius2Powers[ degreeOfBody2 ]<<std::endl;
+//                    std::cout<<"C/S coefficients "<<effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<" "<<
+//                               effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<std::endl;
+
                     currentAcceleration =  basic_mathematics::computePotentialGradientWithManualRadiusRatioPower(
                                 sphericalpositionOfBodySubjectToAcceleration,
                                 preMultiplier,
@@ -239,6 +244,8 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
                                 sphericalHarmonicsCache );
                     accelerationPerTerm[ degreeOfBody1 ][ orderOfBody1 ][ degreeOfBody2 ][ orderOfBody2 ] +=
                             accelerationRotation * ( transformationToCartesianCoordinates * currentAcceleration );
+//                    std::cout<<"Acceleration "<<
+//                               accelerationRotation * ( transformationToCartesianCoordinates * currentAcceleration )<<std::endl<<std::endl;
                     sphericalGradient += currentAcceleration;
                 }
                 else
@@ -599,7 +606,7 @@ Eigen::Vector3d EffectiveMutualSphericalHarmonicsField::getAngularMomentumOperto
         const Eigen::Vector3d& bodyFixedPosition,
         boost::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache )
 {
-    std::cout<<"Computing ang. mom. op.********************** "<<std::endl;
+    //std::cout<<"Computing ang. mom. op.********************** "<<std::endl;
     return computeMutualForcePotential< Eigen::Vector3d >(
                 bodyFixedPosition, gravitationalParameterFunction_( ), equatorialRadiusOfBody1_, equatorialRadiusOfBody2_,
                 maximumDegree1_, maximumDegree2_,

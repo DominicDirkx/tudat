@@ -91,7 +91,7 @@ public:
             const unsigned int maximumNumberOfIterations = 5,
             const double minimumResidualChange = 0.0,
             const double minimumResidual = 1.0E-20,
-            const int numberOfIterationsWithoutImprovement = 2 ):
+            const int numberOfIterationsWithoutImprovement = 4 ):
         maximumNumberOfIterations_( maximumNumberOfIterations ), minimumResidualChange_( minimumResidualChange ),
         minimumResidual_( minimumResidual ),
         numberOfIterationsWithoutImprovement_( numberOfIterationsWithoutImprovement )

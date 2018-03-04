@@ -554,11 +554,6 @@ boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPart
                         parameterToEstimate );
             if( arcwiseBias == NULL )
             {
-<<<<<<< HEAD
-                std::cout<<"creating relative bias"<<std::endl;
-                observationPartial = boost::make_shared< ObservationPartialWrtConstantRelativeBias< ObservationSize > >(
-                            observableType, linkEnds );
-=======
                 throw std::runtime_error( "Error when making partial w.r.t. arcwise relative observation bias, type is inconsistent" );
             }
             else
@@ -572,7 +567,6 @@ boost::shared_ptr< ObservationPartial< ObservationSize > > createObservationPart
                                 arcwiseBias->getLinkEndIndex( ),
                                 arcwiseBias->getArcStartTimes( ).size( ) );
                 }
->>>>>>> master
             }
         }
         break;

@@ -95,7 +95,9 @@ enum PropagationDependentVariables
     keplerian_state_dependent_variable = 32,
     modified_equinocial_state_dependent_variable = 33,
     spherical_harmonic_acceleration_terms_dependent_variable = 34,
-    mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable = 35
+    mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable = 35,
+    body_fixed_relative_cartesian_position = 36,
+    body_fixed_relative_spherical_position = 37
 };
 
 

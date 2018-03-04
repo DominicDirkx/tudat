@@ -739,6 +739,38 @@ std::pair< boost::function< Eigen::VectorXd( ) >, int > getVectorDependentVariab
 
         break;
     }
+    case body_fixed_relative_cartesian_position:
+    {
+        boost::function< Eigen::Vector3d( ) > positionFunctionOfCentralBody =
+                boost::bind( &simulation_setup::Body::getPosition, bodyMap.at( bodyWithProperty ) );
+        boost::function< Eigen::Vector3d( ) > positionFunctionOfRelativeBody =
+                boost::bind( &simulation_setup::Body::getPosition, bodyMap.at( secondaryBody ) );
+        boost::function< Eigen::Quaterniond( ) > orientationFunctionOfCentralBody =
+                boost::bind( &simulation_setup::Body::getCurrentRotationToLocalFrame, bodyMap.at( secondaryBody ) );
+
+
+        variableFunction = boost::bind(
+                    &reference_frames::getBodyFixedCartesianPosition, positionFunctionOfCentralBody,
+                    positionFunctionOfRelativeBody, orientationFunctionOfCentralBody );
+        parameterSize = 3;
+        break;
+    }
+    case body_fixed_relative_spherical_position:
+    {
+        boost::function< Eigen::Vector3d( ) > positionFunctionOfCentralBody =
+                boost::bind( &simulation_setup::Body::getPosition, bodyMap.at( bodyWithProperty ) );
+        boost::function< Eigen::Vector3d( ) > positionFunctionOfRelativeBody =
+                boost::bind( &simulation_setup::Body::getPosition, bodyMap.at( secondaryBody ) );
+        boost::function< Eigen::Quaterniond( ) > orientationFunctionOfCentralBody =
+                boost::bind( &simulation_setup::Body::getCurrentRotationToLocalFrame, bodyMap.at( bodyWithProperty ) );
+
+
+        variableFunction = boost::bind(
+                    &reference_frames::getBodyFixedSphericalPosition, positionFunctionOfCentralBody,
+                    positionFunctionOfRelativeBody, orientationFunctionOfCentralBody );
+        parameterSize = 3;
+        break;
+    }
     default:
         std::string errorMessage =
                 "Error, did not recognize vector dependent variable type when making variable function: " +

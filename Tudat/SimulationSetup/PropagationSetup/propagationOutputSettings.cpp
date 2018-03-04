@@ -166,6 +166,12 @@ std::string getDependentVariableName( const PropagationDependentVariables propag
     case mutual_extended_spherical_harmonic_acceleration_terms_dependent_variable:
         variableName = "Mutual extended spherical harmonic acceleration terms ";
         break;
+    case body_fixed_relative_cartesian_position:
+        variableName = "Body-fixed relative Cartesian position ";
+        break;
+    case body_fixed_relative_spherical_position:
+        variableName = "Body-fixed relative spherical position ";
+        break;
     default:
         std::string errorMessage = "Error, dependent variable " +
                 std::to_string( propagationDependentVariables ) +

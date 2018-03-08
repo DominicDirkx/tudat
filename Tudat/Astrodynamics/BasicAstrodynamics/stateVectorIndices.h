@@ -40,6 +40,29 @@ enum KeplerianElementIndices
     semiLatusRectumIndex = 0
 };
 
+//! Equinoctial elements indices. [Semianalytic satellite theory, Danielson (1995), Section 2.1]
+enum EquinoctialElementIndices
+{
+    // semiMajorAxisIndex = 0,  // already defined by KeplerianElementIndices
+    hIndex = 1,
+    kIndex = 2,
+    pIndex = 3,
+    qIndex = 4,
+    fastVariableIndex = 5
+};
+
+//! Possible types for the fast variable.
+//! The class EquinoctialElements allows accessing a given component by using the () operator, with an int as input.
+//! When 5 is used, the current fastVariableType is used to determine which longitude will be returned.
+//! However, it is also possible to use 6, 7 or 8 to compute the requested longitude, if necessary, and return it.
+//! Thus, the values of FastVariableType must be different from those of EquinoctialElementIndices.
+enum FastVariableType
+{
+    meanType = 6,
+    eccentricType = 7,
+    trueType = 8
+};
+
 //! Modified equinoctial element vector indices.
 enum ModifiedEquinoctialElementVectorIndices
 {

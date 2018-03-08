@@ -788,6 +788,37 @@ private:
 
 
 
+//! MISSINGDOC
+template< typename StateScalarType = double >
+class DSSTTranslationalStatePropagatorSettings: public TranslationalStatePropagatorSettings< StateScalarType >
+{
+public:
+
+    //! Inherit constructors
+    using TranslationalStatePropagatorSettings< StateScalarType >::TranslationalStatePropagatorSettings;
+
+    void setForceModelSettings( sst::force_models::ForceIdentifier forceID,
+                                boost::shared_ptr< sst::force_models::ForceModelSettings > settings )
+    {
+        forceModelSettings[ forceID ] = settings;
+    }
+
+    boost::shared_ptr< sst::force_models::ForceModelSettings > getForceModelSettings(
+            sst::force_models::ForceIdentifier forceID )
+    {
+        if ( forceModelSettings.count( forceID ) )
+        {
+            return forceModelSettings.at( forceID );
+        }
+        return NULL;
+    }
+
+private:
+    std::unordered_map< sst::force_models::ForceIdentifier,
+                        boost::shared_ptr< sst::force_models::ForceModelSettings > > forceModelSettings;
+};
+
+
 //! Class for defining settings for propagating the mass of a body
 /*!
  *  Class for defining settings for propagating the mass of a body. The body masses are propagated in their natural
@@ -1219,6 +1250,12 @@ public:
 
         this->initialStates_ = createCombinedInitialState< StateScalarType >( propagatorSettingsMap_ );
 
+    }
+
+    Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > getInitialStates( )
+    {
+        this->initialStates_ = createCombinedInitialState< StateScalarType >( propagatorSettingsMap_ );
+        return this->initialStates_;
     }
 
     //! List of propagator settings to use

@@ -23,6 +23,8 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
+
+#include <boost/format.hpp>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
@@ -31,6 +33,8 @@
 #include <Eigen/Core>
 
 #include "Tudat/InputOutput/matrixTextFileReader.h"
+#include <boost/throw_exception.hpp>
+
 #include "Tudat/InputOutput/streamFilters.h"
 
 

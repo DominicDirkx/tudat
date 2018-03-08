@@ -629,6 +629,7 @@ public:
 
             std::map< TimeType, Eigen::VectorXd > dependentVariableHistory;
             std::map< TimeType, MatrixType > rawNumericalSolution;
+
             std::map< TimeType, double > cummulativeComputationTimeHistory;
 
             EquationIntegrationInterface< MatrixType, TimeType >::integrateEquations(
@@ -672,6 +673,7 @@ public:
             std::map< double, Eigen::MatrixXd > rawNumericalSolution;
             std::map< double, Eigen::VectorXd > dependentVariableHistory;
             std::map< double, double > cummulativeComputationTimeHistory;
+
 
             EquationIntegrationInterface< Eigen::MatrixXd, double >::integrateEquations(
                         dynamicsSimulator_->getDoubleStateDerivativeFunction( ), rawNumericalSolution, initialVariationalState,

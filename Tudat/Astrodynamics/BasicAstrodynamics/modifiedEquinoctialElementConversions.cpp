@@ -361,6 +361,91 @@ Eigen::Vector6d convertModifiedEquinoctialToCartesianElements(
     return convertedCartesianElements;
 }
 
+
+//! Convert equinoctial to modified equinoctial elements.
+Eigen::Vector6d convertEquinoctialToModifiedEquinoctialElements(
+        const Eigen::Vector6d& equinoctialElements, const bool retrogradeElements )
+{
+    using std::pow;
+    using namespace tudat::mathematical_constants;
+    using namespace tudat::basic_mathematics;
+
+    // Set tolerance.
+    // const double tolerance = 20.0 * std::numeric_limits< double >::epsilon( );
+
+    // Declare converted equinoctial elements.
+    Eigen::Matrix< double, 6, 1 > modifiedEquinoctialElements;
+
+    // Read equinoctial elements
+    const double a =      equinoctialElements( semiMajorAxisIndex );
+    const double h =      equinoctialElements( hIndex );
+    const double k =      equinoctialElements( kIndex );
+    const double p =      equinoctialElements( pIndex );
+    const double q =      equinoctialElements( qIndex );
+    // const double lambda = equinoctialElements( fastVariableIndex );
+
+    // Compute eccentricity
+    const double e2 = pow( h, 2 ) + pow( k, 2 );
+
+    // Store modified equinoctial elements
+    modifiedEquinoctialElements( semiParameterIndex ) = a * ( 1 - e2 );
+    modifiedEquinoctialElements( fElementIndex      ) = k;
+    modifiedEquinoctialElements( gElementIndex      ) = h;
+    modifiedEquinoctialElements( hElementIndex      ) = q;
+    modifiedEquinoctialElements( kElementIndex      ) = p;
+    modifiedEquinoctialElements( trueLongitudeIndex ) = getTrueLongitudeFromMean( equinoctialElements );
+
+    return modifiedEquinoctialElements;
+}
+
+
+//! Convert modified equinoctial to equinoctial elements.
+Eigen::Vector6d convertModifiedEquinoctialToEquinoctialElements(
+        const Eigen::Vector6d& modifiedEquinoctialElements, const bool retrogradeElements )
+{
+    using std::pow;
+    using std::sqrt;
+    using namespace tudat::mathematical_constants;
+    using namespace tudat::basic_mathematics;
+
+    // Set tolerance.
+    const double tolerance = 20.0 * std::numeric_limits< double >::epsilon( );
+
+    // Declare converted equinoctial elements.
+    Eigen::Matrix< double, 6, 1 > equinoctialElements;
+
+    // Read equinoctial elements
+    const double l = modifiedEquinoctialElements( semiParameterIndex );
+    const double f = modifiedEquinoctialElements( fElementIndex      );
+    const double g = modifiedEquinoctialElements( gElementIndex      );
+    const double h = modifiedEquinoctialElements( hElementIndex      );
+    const double k = modifiedEquinoctialElements( kElementIndex      );
+    const double L = modifiedEquinoctialElements( trueLongitudeIndex );
+
+    // Compute eccentricity
+    const double e2 = pow( f, 2 ) + pow( g, 2 );
+    const double e = sqrt( e2 );
+
+    // Get true anomaly and mean anomaly
+    Eigen::Vector6d keplerianElements = convertModifiedEquinoctialToKeplerianElements(
+                modifiedEquinoctialElements, retrogradeElements );
+    const double trueAnomaly = keplerianElements( trueAnomalyIndex );
+    const double E = convertTrueAnomalyToEllipticalEccentricAnomaly( trueAnomaly, e );
+    const double M = convertEllipticalEccentricAnomalyToMeanAnomaly( E, e );
+
+    // Store equinoctial elements
+    equinoctialElements( semiMajorAxisIndex ) = l / ( 1 - e2 );
+    equinoctialElements( hIndex             ) = g;
+    equinoctialElements( kIndex             ) = f;
+    equinoctialElements( pIndex             ) = k;
+    equinoctialElements( qIndex             ) = h;
+    equinoctialElements( fastVariableIndex ) = L - trueAnomaly + M;
+
+    return modifiedEquinoctialElements;
+}
+
+
+
 } // namespace orbital_element_conversions
 
 } // namespace tudat

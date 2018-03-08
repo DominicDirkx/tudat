@@ -599,6 +599,55 @@ Eigen::Matrix< ScalarType, 6, 1 > convertModifiedEquinoctialToCartesianElements(
 
 }
 
+
+//! Convert equinoctial to modified equinoctial elements.
+/*!
+ * Converts equinoctial to modified equinoctial orbital elements.
+ * \param equinoctialElements Vector containing equinoctial elements. Order of elements is important!
+ *          equinoctialElements( 0 ) = semi-major axis,                                         [m]
+ *          equinoctialElements( 1 ) = h component,                                             [-]
+ *          equinoctialElements( 2 ) = k component,                                             [-]
+ *          equinoctialElements( 3 ) = p component,                                             [-]
+ *          equinoctialElements( 4 ) = q component,                                             [-]
+ *          equinoctialElements( 5 ) = mean longitude.                                        [rad]
+ * \param retrogradeElements Whether to use the retrograde set of elements (to avoid singularities for orbits
+ * with inclinations of 180 degrees). Default is false, which avoids singularities for equatorial orbits.
+ * \return Converted state in modified equinoctial elements. The order of elements is fixed!
+ *          modifiedEquinoctialElements( 0 ) = semi-major axis,                                 [m]
+ *          modifiedEquinoctialElements( 1 ) = f component,                                     [-]
+ *          modifiedEquinoctialElements( 2 ) = g component,                                     [-]
+ *          modifiedEquinoctialElements( 3 ) = h component,                                     [-]
+ *          modifiedEquinoctialElements( 4 ) = k component,                                     [-]
+ *          modifiedEquinoctialElements( 5 ) = true longitude.                                [rad]
+ */
+Eigen::Vector6d convertEquinoctialToModifiedEquinoctialElements(
+        const Eigen::Vector6d& equinoctialElements, const bool retrogradeElements = false );
+
+
+//! Convert modified equinoctial to equinoctial elements.
+/*!
+ * Converts modified equinoctial to equinoctial orbital elements.
+ * \param modifiedEquinoctialElements Vector containing modified equinoctial elements. Order of elements is important!
+ *          modifiedEquinoctialElements( 0 ) = semi-major axis,                                 [m]
+ *          modifiedEquinoctialElements( 1 ) = f component,                                     [-]
+ *          modifiedEquinoctialElements( 2 ) = g component,                                     [-]
+ *          modifiedEquinoctialElements( 3 ) = h component,                                     [-]
+ *          modifiedEquinoctialElements( 4 ) = k component,                                     [-]
+ *          modifiedEquinoctialElements( 5 ) = true longitude.                                [rad]
+ * \param retrogradeElements Whether to use the retrograde set of elements (to avoid singularities for orbits
+ * with inclinations of 180 degrees). Default is false, which avoids singularities for equatorial orbits.
+ * \return Converted state in equinoctial elements. The order of elements is fixed!
+ *          equinoctialElements( 0 ) = semi-major axis,                                         [m]
+ *          equinoctialElements( 1 ) = h component,                                             [-]
+ *          equinoctialElements( 2 ) = k component,                                             [-]
+ *          equinoctialElements( 3 ) = p component,                                             [-]
+ *          equinoctialElements( 4 ) = q component,                                             [-]
+ *          equinoctialElements( 5 ) = mean longitude.                                        [rad]
+ */
+Eigen::Vector6d convertModifiedEquinoctialToEquinoctialElements(
+        const Eigen::Vector6d& modifiedEquinoctialElements, const bool retrogradeElements = false );
+
+
 } // namespace orbital_element_conversions
 
 } // namespace tudat

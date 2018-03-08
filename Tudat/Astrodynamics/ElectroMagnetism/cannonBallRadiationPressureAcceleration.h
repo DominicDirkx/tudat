@@ -23,6 +23,7 @@
 
 #include <Eigen/Core>
 
+#include "radiationPressureInterface.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModel.h"
 
 #include "Tudat/Astrodynamics/ElectroMagnetism/cannonBallRadiationPressureForce.h"
@@ -97,13 +98,15 @@ public:
             DoubleReturningFunction radiationPressureFunction,
             DoubleReturningFunction radiationPressureCoefficientFunction,
             DoubleReturningFunction areaFunction,
-            DoubleReturningFunction massFunction )
+            DoubleReturningFunction massFunction,
+            boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface = NULL )
         : sourcePositionFunction_( sourcePositionFunction ),
           acceleratedBodyPositionFunction_( acceleratedBodyPositionFunction ),
           radiationPressureFunction_( radiationPressureFunction ),
           radiationPressureCoefficientFunction_( radiationPressureCoefficientFunction ),
           areaFunction_( areaFunction ),
-          massFunction_( massFunction )
+          massFunction_( massFunction ),
+          radiationPressureInterface_( radiationPressureInterface )
     {
         this->updateMembers( );
     }
@@ -126,14 +129,16 @@ public:
             DoubleReturningFunction radiationPressureFunction,
             const double radiationPressureCoefficient,
             const double area,
-            const double mass )
+            const double mass,
+            boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface = NULL )
         : sourcePositionFunction_( sourcePositionFunction ),
           acceleratedBodyPositionFunction_( acceleratedBodyPositionFunction ),
           radiationPressureFunction_( radiationPressureFunction ),
           radiationPressureCoefficientFunction_(
               boost::lambda::constant( radiationPressureCoefficient ) ),
           areaFunction_( boost::lambda::constant( area ) ),
-          massFunction_( boost::lambda::constant( mass ) )
+          massFunction_( boost::lambda::constant( mass ) ),
+          radiationPressureInterface_( radiationPressureInterface )
     {
         this->updateMembers( );
     }
@@ -166,8 +171,9 @@ public:
     {
         if( !( this->currentTime_ == currentTime ) )
         {
-            currentVectorToSource_ = ( sourcePositionFunction_( )
-                                       - acceleratedBodyPositionFunction_( ) ).normalized( );
+            const Eigen::Vector3d vectorToSource = sourcePositionFunction_( ) - acceleratedBodyPositionFunction_( );
+            currentVectorToSource_ = vectorToSource.normalized( );
+            currentDistanceToSource_ = vectorToSource.norm( );
             currentRadiationPressure_ = radiationPressureFunction_( );
             currentRadiationPressureCoefficient_ = radiationPressureCoefficientFunction_( );
             currentArea_ = areaFunction_( );
@@ -184,6 +190,33 @@ public:
     {
         return massFunction_;
     }
+
+
+    double getCurrentMass() {
+        return currentMass_;
+    }
+
+    double getCurrentArea() {
+        return currentArea_;
+    }
+
+    double getCurrentRadiationPressureCoefficient() {
+        return currentRadiationPressureCoefficient_;
+    }
+
+    Eigen::Vector3d getCurrentVectorToSource() {
+        return currentVectorToSource_;
+    }
+
+    double getCurrentDistanceToSource() {
+        return currentDistanceToSource_;
+    }
+
+    boost::shared_ptr< RadiationPressureInterface > getRadiationPressureInterface() {
+        return radiationPressureInterface_;
+    }
+
+
 
 private:
 
@@ -223,11 +256,20 @@ private:
      */
     const DoubleReturningFunction massFunction_;
 
+    //! Pointer to the radiation pressure interface used to construct the acceleration model.
+    boost::shared_ptr< RadiationPressureInterface > radiationPressureInterface_;
+
     //! Current vector from accelerated body to source.
     /*!
      * Current vector from accelerated body to source (3D vector).
      */
     Eigen::Vector3d currentVectorToSource_;
+
+    //! Current distance from accelerated body to source.
+    /*!
+     * Current distance from accelerated body to source [m].
+     */
+    double currentDistanceToSource_;
 
     //! Current radiation pressure.
     /*!

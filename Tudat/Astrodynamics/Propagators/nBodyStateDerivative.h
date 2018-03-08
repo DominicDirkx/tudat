@@ -38,7 +38,8 @@ enum TranslationalPropagatorType
     cowell = 0,
     encke = 1,
     gauss_keplerian = 2,
-    gauss_modified_equinoctial = 3
+    gauss_modified_equinoctial = 3,
+    dsst = 4  // Draper Semianalytic Satellite Theory
 };
 
 //! Function to remove the central gravity acceleration from an AccelerationMap

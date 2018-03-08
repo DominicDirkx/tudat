@@ -471,6 +471,12 @@ public:
         functionEvaluationCounter_ = 0;
     }
 
+    //! Whether the propagation termination conditions should be evaluated during the intermediate state updates
+    //! performed by the integrator to compute the quantities necessary to integrate the state to a new epoch.
+    //! The default value is false, so the propagation termination condition is only checked at the end of each
+    //! integration step.
+    bool assessPropagationTerminationConditionDuringIntegrationSubsteps = false;
+
 private:
 
     //! Function to convert the to the conventional form in the global frame per dynamics type.

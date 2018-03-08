@@ -182,6 +182,13 @@ public:
         propagationTerminationFunction_ = terminationFunction;
     }
 
+    //! Function to return a boolean indicating whether the propagation should terminate, discarding the last
+    //! integrated state.
+    bool getPropagationShouldTerminate( )
+    {
+        return propagationShouldTerminate_;
+    }
+
     //! Function to toggle the use of step-size control
     /*!
      * Function to toggle the use of step-size control To be implemented in derived classes with variable step sizes
@@ -189,6 +196,7 @@ public:
      */
     virtual void setStepSizeControl( const bool useStepSizeControl )
     { }
+
 
 protected:
 
@@ -214,6 +222,11 @@ protected:
      *  checked during the integration subteps.
      */
     boost::function< bool( const double, const double ) > propagationTerminationFunction_ = boost::lambda::constant( false );
+
+    //! Whether the propagation should terminate silently (no error), without saving the last integrated state.
+    //! This variable can be modified by the propagator when a certain codition is reached.
+    bool propagationShouldTerminate_ = false;
+
 };
 
 //! Perform an integration to a specified independent variable value.

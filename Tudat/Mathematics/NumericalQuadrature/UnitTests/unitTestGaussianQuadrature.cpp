@@ -1,4 +1,5 @@
 /*    Copyright (c) 2010-2018, Delft University of Technology
+ *
  *    All rigths reserved
  *
  *    This file is part of the Tudat. Redistribution and use in source and
@@ -10,6 +11,8 @@
 
 #define BOOST_TEST_MAIN
 
+
+#include <iostream>
 #include <limits>
 
 #include <boost/test/floating_point_comparison.hpp>
@@ -174,7 +177,7 @@ BOOST_AUTO_TEST_CASE( testIntegralSineFunction )
     // Check if error is within bounds for order 2...4
     checkErrorWithinBounds( 2, 4, sinFunction, lowerLimit, upperLimit, dSinFunction, PI / 2, expectedSolution );
 
-    // Set to order 2
+    // Set to order 2S
     integrator.reset( sinFunction, lowerLimit, upperLimit, 2 );
     computedSolution = integrator.getQuadrature();
 
@@ -183,6 +186,7 @@ BOOST_AUTO_TEST_CASE( testIntegralSineFunction )
 
     // Check if computed solution matches expected value.
     BOOST_CHECK_CLOSE_FRACTION( computedSolution, expectedSolution, 1E-12 );
+
 }
 
 
@@ -219,6 +223,7 @@ BOOST_AUTO_TEST_CASE( testIntegralExpFunction )
 
     // Check if computed solution matches expected value.
     BOOST_CHECK_CLOSE_FRACTION( computedSolution, expectedSolution, 1E-12 );
+
 }
 
 

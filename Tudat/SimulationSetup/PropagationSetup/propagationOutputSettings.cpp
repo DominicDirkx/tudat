@@ -160,6 +160,15 @@ std::string getDependentVariableName( const PropagationDependentVariables propag
     case modified_equinocial_state_dependent_variable:
         variableName = "Modified equinoctial elements ";
         break;
+    case dsst_mean_element_rates:
+        variableName = "DSST propagator's mean element rates ";
+        break;
+    case dsst_short_period_terms:
+        variableName = "DSST propagator's short period terms ";
+        break;
+    case dsst_computation_times:
+        variableName = "DSST propagator's computation times ";
+        break;
     default:
         std::string errorMessage = "Error, dependent variable " +
                 std::to_string( propagationDependentVariables ) +

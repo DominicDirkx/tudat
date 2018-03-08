@@ -243,6 +243,15 @@ int getDependentVariableSize(
     case modified_equinocial_state_dependent_variable:
         variableSize = 6;
         break;
+    case dsst_mean_element_rates:
+        variableSize = 6;
+        break;
+    case dsst_short_period_terms:
+        variableSize = 6;
+        break;
+    case dsst_computation_times:
+        variableSize = 1;
+        break;
     default:
         std::string errorMessage = "Error, did not recognize dependent variable size of type: " +
                 std::to_string( dependentVariableSettings );

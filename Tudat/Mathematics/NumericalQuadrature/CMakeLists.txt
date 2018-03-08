@@ -17,6 +17,7 @@ set(NUMERICAL_QUADRATURE_HEADERS
 
 set(NUMERICAL_QUADRATURE_SOURCES
   "${SRCROOT}${MATHEMATICSDIR}/NumericalQuadrature/dummyNumericalQuadrature.cpp"
+  "${SRCROOT}${MATHEMATICSDIR}/NumericalQuadrature/gaussianQuadrature.cpp"
 )
 
 

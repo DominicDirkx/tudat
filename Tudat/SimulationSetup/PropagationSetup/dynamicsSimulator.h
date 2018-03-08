@@ -199,6 +199,7 @@ public:
         clearNumericalSolutions_( clearNumericalSolutions ),
         setIntegratedResult_( setIntegratedResult ){ }
 
+
     //! Virtual destructor
     virtual ~DynamicsSimulator( ) { }
 
@@ -284,6 +285,7 @@ protected:
 
     //! Boolean to determine whether to automatically use the integrated results to set ephemerides.
     bool setIntegratedResult_;
+
 };
 
 //! Class for performing full numerical integration of a dynamical system in a single arc.
@@ -439,6 +441,7 @@ public:
         dynamicsStateDerivative_->convertNumericalStateSolutionsToOutputSolutions(
                     equationsOfMotionNumericalSolution_, equationsOfMotionNumericalSolutionRaw_ );
 
+
         if( this->setIntegratedResult_ )
         {
             processNumericalEquationsOfMotionSolution( );
@@ -483,7 +486,7 @@ public:
     std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > > getEquationsOfMotionNumericalSolutionBase( )
     {
         return std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > >(
-                    { getEquationsOfMotionNumericalSolution( ) } );
+        { getEquationsOfMotionNumericalSolution( ) } );
     }
 
     //! Function to return the map of dependent variable history that was saved during numerical propagation(base class interface)
@@ -494,7 +497,7 @@ public:
     std::vector< std::map< TimeType, Eigen::VectorXd > > getDependentVariableNumericalSolutionBase( )
     {
         return std::vector< std::map< TimeType, Eigen::VectorXd > >(
-                    { getDependentVariableHistory( ) } );
+        { getDependentVariableHistory( ) } );
     }
 
     std::vector< std::map< TimeType, double > > getCummulativeComputationTimeHistoryBase( )
@@ -670,7 +673,7 @@ public:
     {
         propagationTerminationCondition_ = createPropagationTerminationConditions(
                     propagatorSettings_->getTerminationSettings(), bodyMap_,
-                            integratorSettings_->initialTimeStep_ );
+                    integratorSettings_->initialTimeStep_ );
     }
 
 protected:

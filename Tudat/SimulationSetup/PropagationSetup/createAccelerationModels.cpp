@@ -764,7 +764,8 @@ createCannonballRadiationPressureAcceleratioModel(
                 boost::bind( &RadiationPressureInterface::getCurrentRadiationPressure, radiationPressureInterface ),
                 boost::bind( &RadiationPressureInterface::getRadiationPressureCoefficient, radiationPressureInterface ),
                 boost::bind( &RadiationPressureInterface::getArea, radiationPressureInterface ),
-                boost::bind( &Body::getBodyMass, bodyUndergoingAcceleration ) );
+                boost::bind( &Body::getBodyMass, bodyUndergoingAcceleration ),
+                radiationPressureInterface );
 
 }
 

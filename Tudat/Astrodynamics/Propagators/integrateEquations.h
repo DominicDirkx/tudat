@@ -472,6 +472,7 @@ boost::shared_ptr< PropagationTerminationDetails > integrateEquationsFromIntegra
 
     propagationTerminationReason = boost::make_shared< PropagationTerminationDetails >(
                 unknown_propagation_termination_reason );
+
     bool breakPropagation = 0;
 
     // Perform numerical integration steps until end time reached.
@@ -586,6 +587,7 @@ boost::shared_ptr< PropagationTerminationDetails > integrateEquationsFromIntegra
             breakPropagation = 1;
             propagationTerminationReason = boost::make_shared< PropagationTerminationDetails >(
                         runtime_error_caught_in_propagation );
+
         }
     }
     while( !breakPropagation );
@@ -759,6 +761,7 @@ public:
                     integrator, integratorSettings->initialTimeStep_, propagationTerminationCondition, solutionHistory,
                     dependentVariableHistory,
                     cummulativeComputationTimeHistory,
+
                     dependentVariableFunction,
                     integratorSettings->saveFrequency_,
                     printInterval,

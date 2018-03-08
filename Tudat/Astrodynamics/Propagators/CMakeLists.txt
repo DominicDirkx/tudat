@@ -20,6 +20,22 @@ set(PROPAGATORS_SOURCES
   "${SRCROOT}${PROPAGATORSDIR}/singleStateTypeDerivative.cpp"
   "${SRCROOT}${PROPAGATORSDIR}/rotationalMotionStateDerivative.cpp"
   "${SRCROOT}${PROPAGATORSDIR}/stateDerivativeCircularRestrictedThreeBodyProblem.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/auxiliaryElements.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/coefficientsFactories.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/osculatingToMean.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/upperBounds.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/centralBodyPertubed.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/thirdBodyPertubed.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/conservative.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/sphericalHarmonicGravity.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/conservativeThirdBodyPertubed.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/nonConservative.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/forceIdentifier.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/zonalSphericalHarmonicGravity.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/thirdBodyCentralGravity.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/atmosphericDrag.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/conservativeRadiationPressure.cpp"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/radiationPressure.cpp"
 )
 
 # Add header files.
@@ -30,6 +46,7 @@ set(PROPAGATORS_HEADERS
   "${SRCROOT}${PROPAGATORSDIR}/nBodyEnckeStateDerivative.h"
   "${SRCROOT}${PROPAGATORSDIR}/nBodyGaussKeplerStateDerivative.h"
   "${SRCROOT}${PROPAGATORSDIR}/nBodyGaussModifiedEquinoctialStateDerivative.h"
+  "${SRCROOT}${PROPAGATORSDIR}/nBodyDSSTStateDerivative.h"
   "${SRCROOT}${PROPAGATORSDIR}/dynamicsStateDerivativeModel.h"
   "${SRCROOT}${PROPAGATORSDIR}/singleStateTypeDerivative.h"
   "${SRCROOT}${PROPAGATORSDIR}/integrateEquations.h"
@@ -40,6 +57,25 @@ set(PROPAGATORS_HEADERS
   "${SRCROOT}${PROPAGATORSDIR}/customStateDerivative.h"
   "${SRCROOT}${PROPAGATORSDIR}/rotationalMotionStateDerivative.h"
   "${SRCROOT}${PROPAGATORSDIR}/stateDerivativeCircularRestrictedThreeBodyProblem.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/auxiliaryElements.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/coefficientsFactories.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/osculatingToMean.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/upperBounds.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/utilities/vectors.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/forceModel.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/centralBodyPertubed.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/thirdBodyPertubed.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/conservative.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/sphericalHarmonicGravity.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/conservativeThirdBodyPertubed.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/abstract/nonConservative.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/forceIdentifier.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/zonalSphericalHarmonicGravity.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/thirdBodyCentralGravity.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/atmosphericDrag.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/conservativeRadiationPressure.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/radiationPressure.h"
+  "${SRCROOT}${PROPAGATORSDIR}/DSST/forces/availableForceModels.h"
 )
 
 # Add static libraries.
@@ -51,7 +87,6 @@ add_executable(test_CentralBodyData "${SRCROOT}${PROPAGATORSDIR}/UnitTests/unitT
 setup_custom_test_program(test_CentralBodyData "${SRCROOT}${PROPAGATORSDIR}")
 target_link_libraries(test_CentralBodyData tudat_propagators tudat_basic_mathematics ${Boost_LIBRARIES})
 
-if(USE_CSPICE)
 
 if( COMPILE_PROPAGATION_TESTS )
 
@@ -83,7 +118,10 @@ add_executable(test_DependentVariableOutput "${SRCROOT}${PROPAGATORSDIR}/UnitTes
 setup_custom_test_program(test_DependentVariableOutput "${SRCROOT}${PROPAGATORSDIR}")
 target_link_libraries(test_DependentVariableOutput ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
 
-endif( )
+
+add_executable(test_EnvironmentModelUpdater "${SRCROOT}${PROPAGATORSDIR}/UnitTests/unitTestEnvironmentUpdater.cpp")
+setup_custom_test_program(test_EnvironmentModelUpdater "${SRCROOT}${PROPAGATORSDIR}")
+target_link_libraries(test_EnvironmentModelUpdater ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(test_EnvironmentModelComputations "${SRCROOT}${PROPAGATORSDIR}/UnitTests/unitTestEnvironmentUpdater.cpp")
 setup_custom_test_program(test_EnvironmentModelComputations "${SRCROOT}${PROPAGATORSDIR}")
@@ -136,6 +174,12 @@ target_link_libraries(test_ForwardBackwardIntegration ${TUDAT_PROPAGATION_LIBRAR
 add_executable(test_ExactTermination "${SRCROOT}${PROPAGATORSDIR}/UnitTests/unitTestExactTermination.cpp")
 setup_custom_test_program(test_ExactTermination "${SRCROOT}${PROPAGATORSDIR}/")
 target_link_libraries(test_ExactTermination ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
+
+# DSST Unit Tests
+
+add_executable(test_DSST "${SRCROOT}${PROPAGATORSDIR}/DSST/unitTests/unitTestDSST.cpp")
+setup_custom_test_program(test_DSST "${SRCROOT}${PROPAGATORSDIR}")
+target_link_libraries(test_DSST ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES} )
 
 endif( )
 

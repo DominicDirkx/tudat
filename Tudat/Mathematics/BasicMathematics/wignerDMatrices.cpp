@@ -45,53 +45,65 @@ void WignerDMatricesCache::updateMatrices( const std::complex< double > cayleyKl
     currentCayleyKleinAConjugate_ = std::conj( currentCayleyKleinA_ );
     currentCayleyKleinBConjugate_ = std::conj( currentCayleyKleinB_ );
 
+    Eigen::MatrixXcd& degreeOneMatrix = wignerDMatrices_[ 1 ];
+
     // Explicitly compute coefficients at degree 1
     if( maximumDegree_ > 0 )
     {
-        wignerDMatrices_[ 1 ]( 2, 2 ) = currentCayleyKleinA_ * currentCayleyKleinA_;
-        wignerDMatrices_[ 1 ]( 2, 1 ) = -std::sqrt( 2.0 ) * currentCayleyKleinA_ * currentCayleyKleinBConjugate_;
-        wignerDMatrices_[ 1 ]( 2, 0 ) = currentCayleyKleinBConjugate_ * currentCayleyKleinBConjugate_;
-        wignerDMatrices_[ 1 ]( 1, 2 ) = std::sqrt( 2.0 ) * currentCayleyKleinA_ * currentCayleyKleinB_;
-        wignerDMatrices_[ 1 ]( 1, 1 ) = std::norm( currentCayleyKleinA_ ) * std::norm( currentCayleyKleinA_ ) -
+        degreeOneMatrix( 2, 2 ) = currentCayleyKleinA_ * currentCayleyKleinA_;
+        degreeOneMatrix( 2, 1 ) = -std::sqrt( 2.0 ) * currentCayleyKleinA_ * currentCayleyKleinBConjugate_;
+        degreeOneMatrix( 2, 0 ) = currentCayleyKleinBConjugate_ * currentCayleyKleinBConjugate_;
+        degreeOneMatrix( 1, 2 ) = std::sqrt( 2.0 ) * currentCayleyKleinA_ * currentCayleyKleinB_;
+        degreeOneMatrix( 1, 1 ) = std::norm( currentCayleyKleinA_ ) * std::norm( currentCayleyKleinA_ ) -
                 std::norm( currentCayleyKleinB_ ) * std::norm( currentCayleyKleinB_ );
-        wignerDMatrices_[ 1 ]( 1, 0 ) = -std::sqrt( 2.0 ) * currentCayleyKleinAConjugate_ * currentCayleyKleinBConjugate_;
-        wignerDMatrices_[ 1 ]( 0, 2 ) = currentCayleyKleinB_ * currentCayleyKleinB_;
-        wignerDMatrices_[ 1 ]( 0, 1 ) = std::sqrt( 2.0 ) * currentCayleyKleinAConjugate_ * currentCayleyKleinB_;
-        wignerDMatrices_[ 1 ]( 0, 0 ) = currentCayleyKleinAConjugate_ * currentCayleyKleinAConjugate_;
+        degreeOneMatrix( 1, 0 ) = -std::sqrt( 2.0 ) * currentCayleyKleinAConjugate_ * currentCayleyKleinBConjugate_;
+        degreeOneMatrix( 0, 2 ) = currentCayleyKleinB_ * currentCayleyKleinB_;
+        degreeOneMatrix( 0, 1 ) = std::sqrt( 2.0 ) * currentCayleyKleinAConjugate_ * currentCayleyKleinB_;
+        degreeOneMatrix( 0, 0 ) = currentCayleyKleinAConjugate_ * currentCayleyKleinAConjugate_;
     }
+
+
+
 
     // Recursively compute coefficients at degree >1
     for( int l = 2; l <= maximumDegree_; l++ )
     {
+        Eigen::MatrixXcd& previousMatrix = wignerDMatrices_[ l - 1 ];
+        Eigen::MatrixXcd& currentMatrix = wignerDMatrices_[ l ];
+
+        Eigen::MatrixXd& currentCoefficientsIndexMinusOne = coefficientsIndexMinusOne_[ l ];
+        Eigen::MatrixXd& currentCoefficientsIndexZero = coefficientsIndexZero_[ l ];
+        Eigen::MatrixXd& currentCoefficientsIndexPlusOne = coefficientsIndexOne_[ l ];
+
         for( int i = l; i <= 2 * l; i++ )
         {
             for( int j = 0; j <= 2 * l; j++ )
             {
                 if( i - 2 >= 0 )
                 {
-                    wignerDMatrices_[ l ]( i, j ) = 0.0;
+                    currentMatrix( i, j ) = 0.0;
 
-                    // For each part in equation, check if contribution is non-zer0
+                    // For each part in equation, check if contribution is non-zero
                     if( j > 1 )
                     {
-                        wignerDMatrices_[ l ]( i, j ) += coefficientsIndexMinusOne_[ l ]( i, j ) * wignerDMatrices_[ 1 ]( 2, 2 ) *
-                                wignerDMatrices_[ l - 1 ]( i - 2, j - 2 );
+                        currentMatrix( i, j ) += currentCoefficientsIndexMinusOne( i, j ) * degreeOneMatrix( 2, 2 ) *
+                                previousMatrix( i - 2, j - 2 );
                     }
-                    if( ( j > 0 ) && ( j <= 2 * l - 1 ) )
+                    else if( ( j > 0 ) && ( j <= 2 * l - 1 ) )
                     {
-                        wignerDMatrices_[ l ]( i, j ) +=
-                                coefficientsIndexZero_[ l ]( i, j ) * wignerDMatrices_[ 1 ]( 2, 1 ) *
-                                wignerDMatrices_[ l - 1 ]( i - 2, j - 1 );
+                        currentMatrix( i, j ) +=
+                                currentCoefficientsIndexZero( i, j ) * degreeOneMatrix( 2, 1 ) *
+                                previousMatrix( i - 2, j - 1 );
                     }
-                    if( j < 2 * l - 1 )
+                    else if( j < 2 * l - 1 )
                     {
-                        wignerDMatrices_[ l ]( i, j ) += coefficientsIndexOne_[ l ]( i, j ) * wignerDMatrices_[ 1 ]( 2, 0 ) *
-                                wignerDMatrices_[ l - 1 ]( i - 2, j );
+                        currentMatrix( i, j ) += currentCoefficientsIndexPlusOne( i, j ) * degreeOneMatrix( 2, 0 ) *
+                                previousMatrix( i - 2, j );
                     }
                 }
                 else
                 {
-                    wignerDMatrices_[ l ]( i, j ) = std::complex< double >( 0.0, 0.0 );
+                    currentMatrix( i, j ) = std::complex< double >( 0.0, 0.0 );
                 }
             }
         }
@@ -104,14 +116,14 @@ void WignerDMatricesCache::updateMatrices( const std::complex< double > cayleyKl
             for( int j = 0; j <= 2 * l; j++ )
             {
                 k = j - l;
-                wignerDMatrices_[ l ]( i, j ) = ( ( ( ( m - k ) % 2 ) == 0 ) ? 1.0 : -1.0 ) *
-                        std::conj( wignerDMatrices_[ l ]( -m + l, -k + l ) );
+                currentMatrix( i, j ) = ( ( ( ( m - k ) % 2 ) == 0 ) ? 1.0 : -1.0 ) *
+                        std::conj( currentMatrix( -m + l, -k + l ) );
             }
 
         }
     }
 
-    //if( computeAngularMomentumOperators_ )
+    if( computeAngularMomentumOperators_ )
     {
         computeAngularMomentumOperators( );
     }

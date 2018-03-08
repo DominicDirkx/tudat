@@ -226,11 +226,6 @@ Eigen::Vector3d computeGeodesyNormalizedMutualGravitationalAccelerationSum(
                 // Compute the potential gradient of a single spherical harmonic term.
                 if( saveTermsSeparately )
                 {
-//                    std::cout<<"Computing "<<degreeOfBody1<<" "<<orderOfBody1<<" "<<degreeOfBody2<<" "<<orderOfBody2<<" "<<totalDegree<<" "<<totalOrder<<std::endl;
-//                    std::cout<<"(r/R) power "<<equatorialRadiusRatioPower<<" "<<radius1Powers[ degreeOfBody1 ]<<" "<radius2Powers[ degreeOfBody2 ]<<std::endl;
-//                    std::cout<<"C/S coefficients "<<effectiveCosineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<" "<<
-//                               effectiveSineCoefficientFunction( degreeOfBody1, orderOfBody1, degreeOfBody2, orderOfBody2 )<<std::endl;
-
                     currentAcceleration =  basic_mathematics::computePotentialGradientWithManualRadiusRatioPower(
                                 sphericalpositionOfBodySubjectToAcceleration,
                                 preMultiplier,
@@ -560,15 +555,19 @@ void EffectiveMutualSphericalHarmonicsField::computeCurrentEffectiveCoefficients
                 transformedCosineCoefficientsOfBody2_,
                 transformedSineCoefficientsOfBody2_,
                 areCoefficientsNormalized_,
-                true );
+                transformationCache_->getWignerDMatricesCache( )->getComputeAngularMomentumOperators( ) );
 
     transformationCache_->getCurrentAngularMomentumProductCoefficients(
                 currentAngularMomentumProduceCosineCoefficients_, currentAngularMomentumProduceSineCoefficients_ );
 
     updateEffectiveMutualPotential( );
-    updateEffectiveAngularMomentumOperatorOfMutualPotential( );
 
-    angularMomentumOperatorsAreSet_ = true;
+    if( transformationCache_->getWignerDMatricesCache( )->getComputeAngularMomentumOperators( ) )
+    {
+        updateEffectiveAngularMomentumOperatorOfMutualPotential( );
+
+        angularMomentumOperatorsAreSet_ = true;
+    }
 }
 
 //! Function to update the object to the current state, with the transformed coefficient provided manually

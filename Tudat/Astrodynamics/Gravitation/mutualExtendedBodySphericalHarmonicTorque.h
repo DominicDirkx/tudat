@@ -35,6 +35,8 @@ public:
         gravitationalParameterFunctionOfBodyUndergoingTorque_( gravitationalParameterFunctionOfBodyUndergoingTorque )
     {
         effectiveCoefficientCalculator_ = accelerationBetweenBodies->getEffectiveMutualPotentialField( );
+        effectiveCoefficientCalculator_->getTransformationCache( )->getWignerDMatricesCache( )->setComputeAngularMomentumOperators(
+                    true );
     }
 
     void updateMembers( const double currentTime = TUDAT_NAN );

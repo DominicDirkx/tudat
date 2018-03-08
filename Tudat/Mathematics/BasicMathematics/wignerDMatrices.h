@@ -96,6 +96,17 @@ public:
         return wignerDMatrices_;
     }
 
+    void setComputeAngularMomentumOperators( const bool computeAngularMomentumOperators )
+    {
+        computeAngularMomentumOperators_ = computeAngularMomentumOperators;
+    }
+
+    bool getComputeAngularMomentumOperators( )
+    {
+        return computeAngularMomentumOperators_;
+    }
+
+
 private:
 
     void computeAngularMomentumOperators( );
@@ -139,7 +150,7 @@ private:
     //! Conjugate of Cayley-Klein parameter b for current orientation.
     std::complex< double > currentCayleyKleinBConjugate_;
 
-    const bool computeAngularMomentumOperators_;
+    bool computeAngularMomentumOperators_;
 
 };
 

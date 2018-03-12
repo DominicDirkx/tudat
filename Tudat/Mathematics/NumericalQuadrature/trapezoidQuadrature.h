@@ -12,12 +12,14 @@
 #define TUDAT_TRAPEZOIDAL_INTEGRATOR_H
 
 #include <vector>
+#include <iomanip>
 
 #include <boost/shared_ptr.hpp>
 
 #include <Eigen/Core>
 
 #include "Tudat/Mathematics/NumericalQuadrature/numericalQuadrature.h"
+
 namespace tudat
 {
 
@@ -57,6 +59,8 @@ class TrapezoidNumericalQuadrature : public NumericalQuadrature< IndependentVari
 {
 public:
 
+    TrapezoidNumericalQuadrature( ){ }
+
     //! Constructor.
     /*!
      * Constructor
@@ -65,10 +69,22 @@ public:
      * independentVariables.
      */
     TrapezoidNumericalQuadrature( const std::vector< IndependentVariableType >& independentVariables,
-                                  const std::vector< DependentVariableType >& dependentVariables)
+                                  const std::vector< DependentVariableType >& dependentVariables):
+        NumericalQuadrature< IndependentVariableType, DependentVariableType >(
+            independentVariables, boost::function< DependentVariableType( const IndependentVariableType ) >( ) )
     {
-        independentVariables_ = independentVariables;
         dependentVariables_ = dependentVariables;
+        performQuadrature( );
+    }
+
+    TrapezoidNumericalQuadrature( const std::vector< IndependentVariableType >& independentVariables,
+                                  const boost::function< DependentVariableType( const IndependentVariableType ) > dependentVariableFunction ):
+        NumericalQuadrature< IndependentVariableType, DependentVariableType >( independentVariables, dependentVariableFunction )
+    {
+        for( unsigned int i = 0; i < this->independentVariables_.size( ); i++ )
+        {
+            dependentVariables_.push_back( dependentVariableFunction( this->independentVariables_.at( i ) ) );
+        }
         performQuadrature( );
     }
 
@@ -79,22 +95,27 @@ public:
      * \param dependentVariables Values of function for which the numerical quadrature is to be computed, given at
      * independentVariables.
      */
-    void resetData( const std::vector< IndependentVariableType >& independentVariables,
-                    const std::vector< DependentVariableType >& dependentVariables)
+    void resetDataVectors(
+            const std::vector< IndependentVariableType >& independentVariables,
+            const std::vector< DependentVariableType >& dependentVariables)
     {
-        independentVariables_ = independentVariables;
+        this->independentVariables_ = independentVariables;
         dependentVariables_ = dependentVariables;
         performQuadrature( );
     }
 
-    //! Function to return computed value of the quadrature.
-    /*!
-     *  Function to return computed value of the quadrature, as computed by last call to performQuadrature.
-     *  \return Function to return computed value of the quadrature, as computed by last call to performQuadrature.
-     */
-    DependentVariableType getQuadrature( )
+    virtual void resetData( const std::vector< IndependentVariableType >& independentVariables,
+                            const boost::function< DependentVariableType( const IndependentVariableType ) > dependentVariableFunction )
     {
-        return quadratureResult_;
+        this->independentVariables_ = independentVariables;
+        dependentVariables_.clear( );
+        this->dependentVariableFunction_ = dependentVariableFunction;
+
+        for( unsigned int i = 0; i < this->independentVariables_.size( ); i++ )
+        {
+            dependentVariables_.push_back( dependentVariableFunction( this->independentVariables_.at( i ) ) );
+        }
+        performQuadrature( );
     }
 
 protected:
@@ -106,19 +127,13 @@ protected:
      */
     void performQuadrature( )
     {
-        quadratureResult_ = performTrapezoidalQuadrature( independentVariables_ , dependentVariables_ );
+        this->quadratureResult_ = performTrapezoidalQuadrature( this->independentVariables_ , dependentVariables_ );
     }
 
 private:
 
-    //! Independent variables.
-    std::vector< IndependentVariableType > independentVariables_;
-
     //! Dependent variables.
     std::vector< DependentVariableType > dependentVariables_;
-
-    //! Computed value of the quadrature, as computed by last call to performQuadrature.
-    DependentVariableType quadratureResult_;
 
 };
 

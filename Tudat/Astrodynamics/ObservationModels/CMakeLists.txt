@@ -39,6 +39,7 @@ set(OBSERVATION_MODELS_HEADERS
   "${SRCROOT}${OBSERVATIONMODELSDIR}/twoWayDopplerObservationModel.h"
   "${SRCROOT}${OBSERVATIONMODELSDIR}/UnitTests/testLightTimeCorrections.h"
   "${SRCROOT}${OBSERVATIONMODELSDIR}/observationViabilityCalculator.h"
+  "${SRCROOT}${OBSERVATIONMODELSDIR}/dopplerModelConversions.h"
   "${SRCROOT}${OBSERVABLECORRECTIONSDIR}/lightTimeCorrection.h"
   "${SRCROOT}${OBSERVABLECORRECTIONSDIR}/firstOrderRelativisticLightTimeCorrection.h"
 )
@@ -69,6 +70,10 @@ if(USE_CSPICE)
     add_executable(test_DopplerModels "${SRCROOT}${OBSERVATIONMODELSDIR}/UnitTests/unitTestDopplerModels.cpp")
     setup_custom_test_program(test_DopplerModels "${SRCROOT}${OBSERVATIONMODELSDIR}")
     target_link_libraries(test_DopplerModels ${TUDAT_ESTIMATION_LIBRARIES} ${Boost_LIBRARIES})
+
+    add_executable(test_DopplerModelConversion "${SRCROOT}${OBSERVATIONMODELSDIR}/UnitTests/unitTestDopplerModelConversion.cpp")
+    setup_custom_test_program(test_DopplerModelConversion "${SRCROOT}${OBSERVATIONMODELSDIR}")
+    target_link_libraries(test_DopplerModelConversion ${TUDAT_ESTIMATION_LIBRARIES} ${Boost_LIBRARIES})
 
     add_executable(test_PositionObservationModel "${SRCROOT}${OBSERVATIONMODELSDIR}/UnitTests/unitTestPositionObservationModel.cpp")
     setup_custom_test_program(test_PositionObservationModel "${SRCROOT}${OBSERVATIONMODELSDIR}")

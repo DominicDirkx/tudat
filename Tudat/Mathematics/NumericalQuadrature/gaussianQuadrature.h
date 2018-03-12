@@ -264,6 +264,8 @@ public:
     typedef Eigen::Array< DependentVariableType, Eigen::Dynamic, 1 > DependentVariableArray;
     typedef Eigen::Array< IndependentVariableType, Eigen::Dynamic, 1 > IndependentVariableArray;
 
+    using NumericalQuadrature< IndependentVariableType , DependentVariableType >::independentVariables_;
+
     //! Constructor.
     /*!
      * Constructor
@@ -276,10 +278,12 @@ public:
     GaussianQuadrature( const boost::function< DependentVariableType( IndependentVariableType ) > integrand,
                         const IndependentVariableType lowerLimit, const IndependentVariableType upperLimit,
                         const unsigned int numberOfNodes ):
-        integrand_ ( integrand ), lowerLimit_( lowerLimit ), upperLimit_ ( upperLimit ),
+        NumericalQuadrature< IndependentVariableType , DependentVariableType >(
+    { lowerLimit, upperLimit }, integrand ),
         numberOfNodes_( numberOfNodes ), quadratureHasBeenPerformed_( false )
     {
         gaussQuadratureNodesAndWeights_ = getGaussQuadratureNodesAndWeights< IndependentVariableType >( );
+        performQuadrature( );
     }
 
 
@@ -292,13 +296,14 @@ public:
      * \param numberOfNodes Number of nodes (i.e. nodes) at which the integrand will be evaluated.
      * Must be an integer value between 2 and 64.
      */
-    void reset( const boost::function< DependentVariableType( IndependentVariableType ) > integrand,
+    void resetGaussianQuadrature(
+            const boost::function< DependentVariableType( IndependentVariableType ) > integrand,
                 const IndependentVariableType lowerLimit, const IndependentVariableType upperLimit,
                 const unsigned int numberOfNodes )
     {
-        integrand_ = integrand;
-        lowerLimit_ = lowerLimit;
-        upperLimit_ = upperLimit;
+        this->dependentVariableFunction_ = integrand;
+        independentVariables_[ 0 ] = lowerLimit;
+        independentVariables_[ 1 ] = upperLimit;
         numberOfNodes_ = numberOfNodes;
         quadratureHasBeenPerformed_ = false;
     }
@@ -306,20 +311,20 @@ public:
 
     //! Function to return computed value of the quadrature.
     /*!
-     *  Function to return computed value of the quadrature, as computed by last call to performQuadrature.
+     *  Function to return computed value upperLimit_of the quadrature, as computed by last call to performQuadrature.
      *  \return Function to return computed value of the quadrature, as computed by last call to performQuadrature.
      */
     DependentVariableType getQuadrature( )
     {
         if ( ! quadratureHasBeenPerformed_ )
         {
-            if ( integrand_.empty() )
+            if ( this->dependentVariableFunction_.empty() )
             {
                 throw std::runtime_error(
                             "The integrand for the Gaussian quadrature has not been set." );
             }
 
-            if ( lowerLimit_ > upperLimit_ )
+            if ( independentVariables_[ 0 ] > independentVariables_[ 1 ] )
             {
                 throw std::runtime_error(
                             "The lower limit for the Gaussian quadrature is larger than the upper limit." );
@@ -335,7 +340,7 @@ public:
             quadratureHasBeenPerformed_ = true;
         }
 
-        return quadratureResult_;
+        return this->quadratureResult_;
     }
 
 
@@ -348,6 +353,10 @@ protected:
      */
     void performQuadrature( )
     {
+        if( independentVariables_.size( ) > 2 )
+        {
+            throw std::runtime_error( "Error, Gaussian Quadrature only implemented on a per-step basis" );
+        }
         // Determine the values of the auxiliary independent variable (nodes)
         const IndependentVariableArray nodes = gaussQuadratureNodesAndWeights_->getNodes( numberOfNodes_ );
 
@@ -356,38 +365,29 @@ protected:
 
         // Change of variable -> from range [-1, 1] to range [lowerLimit, upperLimit]
         const IndependentVariableArray independentVariables =
-                0.5 * ( ( upperLimit_ - lowerLimit_ ) * nodes + upperLimit_ + lowerLimit_ );
+                0.5 * ( ( independentVariables_[ 1 ] - independentVariables_[ 0 ] ) * nodes +
+                independentVariables_[ 1 ] + independentVariables_[ 0 ] );
 
         // Determine the value of the dependent variable
         DependentVariableArray weighedIntegrands( numberOfNodes_ );
         for ( unsigned int i = 0; i < numberOfNodes_; i++ )
         {
-            weighedIntegrands( i ) = weights( i ) * integrand_( independentVariables( i ) );
+            weighedIntegrands( i ) = weights( i ) * this->dependentVariableFunction_( independentVariables( i ) );
         }
 
-        quadratureResult_ = 0.5 * ( upperLimit_ - lowerLimit_ ) * weighedIntegrands.sum( );
+
+
+        this->quadratureResult_ = 0.5 * ( independentVariables_[ 1 ] - independentVariables_[ 0 ] ) * weighedIntegrands.sum( );
     }
 
 
 private:
-
-    //! Function returning the integrand.
-    boost::function< DependentVariableType( IndependentVariableType ) > integrand_;
-
-    //! Lower limit for the integral.
-    IndependentVariableType lowerLimit_;
-
-    //! Upper limit for the integral.
-    IndependentVariableType upperLimit_;
 
     //! Number of nodes.
     unsigned int numberOfNodes_;
 
     //! Whether quadratureResult has been set for the current integrand, lowerLimit, upperLimit and numberOfNodes.
     bool quadratureHasBeenPerformed_;
-
-    //! Computed value of the quadrature, as computed by last call to performQuadrature.
-    DependentVariableType quadratureResult_;
 
     boost::shared_ptr< GaussQuadratureNodesAndWeights< IndependentVariableType > > gaussQuadratureNodesAndWeights_;
 };

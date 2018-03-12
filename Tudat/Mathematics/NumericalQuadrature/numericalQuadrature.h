@@ -12,6 +12,7 @@
 #define TUDAT_NUMERICAL_QUADRATURE_H
 
 #include <vector>
+#include <boost/function.hpp>
 
 #include <Eigen/Core>
 
@@ -30,16 +31,43 @@ class NumericalQuadrature
 {
 public:
 
+    NumericalQuadrature( const std::vector< IndependentVariableType >& independentVariables,
+                         const boost::function< DependentVariableType( const IndependentVariableType ) > dependentVariableFunction )
+    {
+        independentVariables_ = independentVariables;
+        dependentVariableFunction_ = dependentVariableFunction;
+    }
+
+    NumericalQuadrature( ){ }
+
     //! Destructor.
     virtual ~NumericalQuadrature( ) { }
 
-    //! This function returns the value of the numerical integration performed by quadrature.
-    /*!
-     * This function returns the value of the numerical integration. It must be implemented in derived classes.
-     * \return Integral of the data.
-     */
-    virtual DependentVariableType getQuadrature( ) = 0;
 
+    //! Function to reset the (in)dependent variable values.
+    /*!
+     * Function to reset the (in)dependent variable values.
+     * \param independentVariables Values of independent variables at which dependentVariables are given
+     * \param dependentVariables Values of function for which the numerical quadrature is to be computed, given at
+     * independentVariables.
+     */
+    virtual void resetData( const std::vector< IndependentVariableType >& independentVariables,
+                    const boost::function< DependentVariableType( const IndependentVariableType ) > dependentVariableFunction )
+    {
+        independentVariables_ = independentVariables;
+        dependentVariableFunction_ = dependentVariableFunction;
+        performQuadrature( );
+    }
+
+    //! Function to return computed value of the quadrature.
+    /*!
+     *  Function to return computed value of the quadrature, as computed by last call to performQuadrature.
+     *  \return Function to return computed value of the quadrature, as computed by last call to performQuadrature.
+     */
+    virtual DependentVariableType getQuadrature( )
+    {
+        return quadratureResult_;
+    }
 
 protected:
 
@@ -50,8 +78,14 @@ protected:
      */
     virtual void performQuadrature( ) = 0;
 
-private:
+    //! Independent variables.
+    std::vector< IndependentVariableType > independentVariables_;
 
+    //! Dependent variables.
+    boost::function< DependentVariableType( const IndependentVariableType ) > dependentVariableFunction_;
+
+    //! Computed value of the quadrature, as computed by last call to performQuadrature.
+    DependentVariableType quadratureResult_;
 
 };
 

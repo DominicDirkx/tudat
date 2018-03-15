@@ -11,6 +11,7 @@
 #ifndef TUDAT_LIGHT_TIME_SOLUTIONS_H
 #define TUDAT_LIGHT_TIME_SOLUTIONS_H
 
+#include <boost/lexical_cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/function.hpp>
@@ -281,6 +282,7 @@ public:
             const ObservationScalarType tolerance =
             ( getDefaultLightTimeTolerance< ObservationScalarType >( ) ) )
     {
+        std::cout<<"Computing light time "<<time<<std::endl;
         using physical_constants::SPEED_OF_LIGHT;
         using std::fabs;
 
@@ -323,6 +325,10 @@ public:
                             transmitterState, receiverState, transmissionTime, receptionTime );
             }
 
+            std::cout<<"Light time "<<transmissionTime<<" "<<receptionTime<<" "<<currentCorrection_<<std::endl;
+            std::cout<<"States "<<receiverState.transpose( )<<" "<<transmitterState.transpose( )<<std::endl;
+
+
             // Update light-time estimate for this iteration.
             if( isTimeAtReception )
             {
@@ -336,6 +342,8 @@ public:
                 transmissionTime = time;
                 receiverState = ( stateFunctionOfReceivingBody_( receptionTime ) );
             }
+
+
             newLightTimeCalculation = calculateNewLightTimeEstime( receiverState, transmitterState );
 
             // Check for convergence.
@@ -361,11 +369,11 @@ public:
                     isToleranceReached = true;
                     std::string errorMessage  =
                             "Warning, light time unconverged at level " +
-                            std::to_string(
+                            boost::lexical_cast< std::string >(
                                 fabs( newLightTimeCalculation - previousLightTimeCalculation ) ) +
                             "; current light-time corrections are: "  +
-                            std::to_string( currentCorrection_ ) + " and input time was " +
-                            std::to_string( static_cast< double >( time ) );
+                            boost::lexical_cast< std::string >( currentCorrection_ ) + " and input time was " +
+                            boost::lexical_cast< std::string >( static_cast< double >( time ) );
                    std::cerr << errorMessage << std::endl;
                 }
 

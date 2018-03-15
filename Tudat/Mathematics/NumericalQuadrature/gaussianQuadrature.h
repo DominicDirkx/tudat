@@ -255,14 +255,15 @@ getGaussQuadratureNodesAndWeights( )
  * The Gaussian nodes and weight factors are not calculated, but read from text files. The number of nodes (or
  * weight factors) has to be at least n = 2. The current text files contain tabulated values up to n = 64.
  */
-template< typename IndependentVariableType, typename DependentVariableType >
+template< typename IndependentVariableType, typename DependentVariableType,
+          typename IndependentStepVariableType = IndependentVariableType  >
 class GaussianQuadrature : public NumericalQuadrature< IndependentVariableType , DependentVariableType >
 {
 public:
 
 
     typedef Eigen::Array< DependentVariableType, Eigen::Dynamic, 1 > DependentVariableArray;
-    typedef Eigen::Array< IndependentVariableType, Eigen::Dynamic, 1 > IndependentVariableArray;
+    typedef Eigen::Array< IndependentStepVariableType, Eigen::Dynamic, 1 > IndependentVariableArray;
 
     using NumericalQuadrature< IndependentVariableType , DependentVariableType >::independentVariables_;
 
@@ -282,7 +283,7 @@ public:
     { lowerLimit, upperLimit }, integrand ),
         numberOfNodes_( numberOfNodes ), quadratureHasBeenPerformed_( false )
     {
-        gaussQuadratureNodesAndWeights_ = getGaussQuadratureNodesAndWeights< IndependentVariableType >( );
+        gaussQuadratureNodesAndWeights_ = getGaussQuadratureNodesAndWeights< IndependentStepVariableType >( );
         performQuadrature( );
     }
 
@@ -389,7 +390,7 @@ private:
     //! Whether quadratureResult has been set for the current integrand, lowerLimit, upperLimit and numberOfNodes.
     bool quadratureHasBeenPerformed_;
 
-    boost::shared_ptr< GaussQuadratureNodesAndWeights< IndependentVariableType > > gaussQuadratureNodesAndWeights_;
+    boost::shared_ptr< GaussQuadratureNodesAndWeights< IndependentStepVariableType > > gaussQuadratureNodesAndWeights_;
 };
 
 } // namespace numerical_quadrature

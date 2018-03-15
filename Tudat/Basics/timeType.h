@@ -312,6 +312,11 @@ public:
         return timeToMultiply2 * timeToMultiply1;
     }
 
+    friend Time operator*( const Time& timeToMultiply1, const Time& timeToMultiply2 )
+    {
+        return timeToMultiply1 * static_cast< long double >( timeToMultiply2 );
+    }
+
     //! Division operator of a Time object with a double (i.e. to rescale time)
     /*!
      * Division operator of a Time object with a double (i.e. to rescale time)
@@ -355,6 +360,10 @@ public:
         return Time( newfullPeriods, newSecondsIntoFullPeriod_ );
     }
 
+    friend const Time operator/( const Time& original, const Time& timeToDivideBy )
+    {
+        return original / static_cast< long double >( timeToDivideBy );
+    }
 
     //! Add and assign operator for adding a Time
     /*!

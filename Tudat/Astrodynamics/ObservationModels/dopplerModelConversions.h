@@ -12,9 +12,7 @@
 #define TUDAT_DOPPLERMODELCONVERSIONS_H
 
 #include "Tudat/Astrodynamics/ObservationModels/oneWayDopplerObservationModel.h"
-#include "Tudat/Mathematics/NumericalQuadrature/gaussianQuadrature.h"
-#include "Tudat/Mathematics/NumericalQuadrature/simpsonsQuadrature.h"
-#include "Tudat/Mathematics/NumericalQuadrature/trapezoidQuadrature.h"
+#include "Tudat/Mathematics/NumericalQuadrature/createNumericalQuadrature.h"
 
 namespace tudat
 {
@@ -25,32 +23,37 @@ namespace observation_models
 template< typename ObservableScalarType, typename TimeType >
 std::map< TimeType, ObservableScalarType > convertOpenLoopToClosedLoopDopplerData(
         const boost::shared_ptr< OneWayDopplerObservationModel< ObservableScalarType, TimeType > > oneWayDopplerModel,
+        boost::shared_ptr< numerical_quadrature::NumericalQuadratureSettings > quadratureSettings,
         const LinkEndType linkEndAssociatedWithTime,
         const TimeType startTime,
         const TimeType endTime,
         const TimeType timeStep )
 {
-    std::cout<<"Link end to use "<<linkEndAssociatedWithTime<<std::endl;
     std::map< TimeType, ObservableScalarType > syntheticClosedLoopDopplerData;
 
     boost::function< ObservableScalarType( const TimeType ) > oneWayDopplerFunction =
             boost::bind( &OneWayDopplerObservationModel< ObservableScalarType, TimeType >::computeObservationEntry,
                          oneWayDopplerModel, _1, linkEndAssociatedWithTime, 0 );
 
-    boost::shared_ptr< numerical_quadrature::SimpsonNumericalQuadrature< TimeType, ObservableScalarType > > quadrature =
-            boost::make_shared< numerical_quadrature::SimpsonNumericalQuadrature< TimeType, ObservableScalarType > >( );
-
     std::vector< TimeType > currentObservableTimeLimits;
     currentObservableTimeLimits.resize( 2 );
+    currentObservableTimeLimits[ 0 ] = startTime - timeStep / 2.0;
+    currentObservableTimeLimits[ 1 ] = startTime + timeStep / 2.0;
+
+    boost::shared_ptr< numerical_quadrature::NumericalQuadrature< TimeType, ObservableScalarType > > quadrature =
+            numerical_quadrature::createNumericalQuadrature(
+                currentObservableTimeLimits, oneWayDopplerFunction, quadratureSettings );
+
     TimeType currentTime = startTime;
     while( currentTime <= endTime )
     {
-        currentObservableTimeLimits[ 0 ] = currentTime - timeStep / 2.0;
-        currentObservableTimeLimits[ 1 ] = currentTime + timeStep / 2.0;
+        currentObservableTimeLimits[ 0 ] = currentTime - timeStep;
+        currentObservableTimeLimits[ 1 ] = currentTime;
 
         quadrature->resetData(
                     currentObservableTimeLimits, oneWayDopplerFunction );
-        syntheticClosedLoopDopplerData[ currentTime ] = quadrature->getQuadrature( ) / timeStep;
+        syntheticClosedLoopDopplerData[ currentTime ] = quadrature->getQuadrature( ) / static_cast< ObservableScalarType >(
+                    timeStep ) * physical_constants::getSpeedOfLight< ObservableScalarType >( );
         currentTime += timeStep;
     }
 

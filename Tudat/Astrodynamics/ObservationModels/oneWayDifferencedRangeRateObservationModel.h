@@ -210,7 +210,6 @@ public:
         linkEndStates[ 2 ] = transmitterStateAtArcEnd.template cast< double >( );
         linkEndStates[ 3 ] = receiverStateAtArcEnd.template cast< double >( );
 
-
         return ( Eigen::Matrix< ObservationScalarType, 1, 1 >( ) << ( lightTimeAtEndInterval - lightTimeAtStartInterval ) *
                  physical_constants::getSpeedOfLight< ObservationScalarType >( ) /
                  static_cast< ObservationScalarType >( currentIntegrationTime ) ).finished( );

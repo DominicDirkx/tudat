@@ -47,14 +47,14 @@ DependentVariableType performSimpsonQuadrature(
         timeStep = independentVariables[ i + 1 ] - independentVariables[ i ];
         if( i == 0 )
         {
-            integral = timeStep / 6.0 * (
+            integral = static_cast< DependentVariableType >( timeStep ) / 6.0 * (
                         dependentVariableFunction( independentVariables[ i ] ) +
                         4.0 * dependentVariableFunction( independentVariables[ i ] + timeStep / 2.0 ) +
                         dependentVariableFunction( independentVariables[ i + 1 ] ) );
         }
         else
         {
-            integral += timeStep / 6.0 * (
+            integral += static_cast< DependentVariableType >( timeStep ) / 6.0 * (
                         dependentVariableFunction( independentVariables[ i ] ) +
                         4.0 * dependentVariableFunction( independentVariables[ i ] + timeStep / 2.0 ) +
                         dependentVariableFunction( independentVariables[ i + 1 ] ) );

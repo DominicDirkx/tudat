@@ -475,7 +475,7 @@ public:
                 receiver, receiverProperTimeRateFunction ) )
     {
         one_ = mathematical_constants::getFloatingInteger< ObservationScalarType >( 1 );
-        taylorSeriesExpansionOrder_ = 3;
+        taylorSeriesExpansionOrder_ = 4;
     }
 
     //! Constructor.
@@ -506,7 +506,7 @@ public:
             throw std::runtime_error( "Error when making one-way Doppler model, input proper time rates are zero" );
         }
         one_ = mathematical_constants::getFloatingInteger< ObservationScalarType >( 1 );
-        taylorSeriesExpansionOrder_ = 3;
+        taylorSeriesExpansionOrder_ = 4;
     }
 
     //! Destructor
@@ -551,6 +551,7 @@ public:
             std::vector< double >& linkEndTimes,
             std::vector< Eigen::Matrix< double, 6, 1 > >& linkEndStates )
     {
+        std::cout<<"Current time: "<<time<<std::endl;
         ObservationScalarType lightTime = TUDAT_NAN;
         TimeType transmissionTime = TUDAT_NAN, receptionTime = TUDAT_NAN;
 

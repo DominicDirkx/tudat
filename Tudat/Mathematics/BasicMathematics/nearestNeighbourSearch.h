@@ -16,6 +16,7 @@
 #ifndef TUDAT_NEAREST_NEIGHBOR_SEARCH_H
 #define TUDAT_NEAREST_NEIGHBOR_SEARCH_H 
 
+#include <iostream>
 #include <map>
 #include <stdexcept>
 #include <vector>
@@ -172,6 +173,7 @@ int findNearestLeftNeighbourUsingHuntingAlgorithm(
         const int previousNearestLowerIndex_,
         const std::vector< IndependentVariableType >& independentValues_ )
 {
+    std::cout<<"Searching "<<independentVariableValue<<" "<<previousNearestLowerIndex_<<std::endl;
     // Initialize return variable for new nearest left neighbor.
     int newNearestLowerIndex = 0;
 
@@ -326,6 +328,8 @@ int findNearestLeftNeighbourUsingHuntingAlgorithm(
             }
         }
     }
+
+    std::cout<<"Searching "<<independentValues_.at( newNearestLowerIndex )<<" "<<newNearestLowerIndex<<std::endl;
 
     return newNearestLowerIndex;
 }

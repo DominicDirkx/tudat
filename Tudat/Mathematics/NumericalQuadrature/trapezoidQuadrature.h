@@ -45,7 +45,7 @@ DependentVariableType performTrapezoidalQuadrature(
     for( unsigned int i = 0 ; i < independentVariables.size( ) - 1 ; i++ )
     {
         timeStep = independentVariables[ i + 1 ] - independentVariables[ i ];
-        integral += timeStep * ( dependentVariables[ i + 1 ] + dependentVariables[ i ] ) / 2.0 ;
+        integral += static_cast< DependentVariableType >( timeStep ) * ( dependentVariables[ i + 1 ] + dependentVariables[ i ] ) / 2.0 ;
     }
     return integral;
 }

@@ -147,6 +147,9 @@ template< >
 Eigen::Matrix< long double, 6, 1 > TabulatedCartesianEphemeris< long double, Time >::getCartesianLongStateFromExtendedTime(
         const Time& time )
 {
+    std::cout<<"Ephemeris time "<<time<<std::endl;
+    std::cout<<"Ephemeris interpolated "<<interpolator_->interpolate( time ).transpose( )<<std::endl;
+
     return interpolator_->interpolate( time );
 }
 

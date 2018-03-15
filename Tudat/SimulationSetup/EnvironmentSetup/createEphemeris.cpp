@@ -107,7 +107,8 @@ boost::shared_ptr< ephemerides::Ephemeris > createBodyEphemeris(
                 }
 
                 // Create corresponding ephemeris object.
-                if( !interpolatedEphemerisSettings->getUseLongDoubleStates( ) )
+                if( !interpolatedEphemerisSettings->getUseLongDoubleStates( ) &&
+                        !interpolatedEphemerisSettings->getUseExtendedTime( ) )
                 {
                     ephemeris = createTabulatedEphemerisFromSpice< double, double >(
                                 inputName,
@@ -118,13 +119,38 @@ boost::shared_ptr< ephemerides::Ephemeris > createBodyEphemeris(
                                 interpolatedEphemerisSettings->getFrameOrientation( ),
                                 interpolatedEphemerisSettings->getInterpolatorSettings( ) );
                 }
-                else
+                else if( interpolatedEphemerisSettings->getUseLongDoubleStates( ) &&
+                         !interpolatedEphemerisSettings->getUseExtendedTime( ) )
                 {
                     ephemeris = createTabulatedEphemerisFromSpice< long double, double >(
                                 inputName,
-                                static_cast< long double >( interpolatedEphemerisSettings->getInitialTime( ) ),
-                                static_cast< long double >( interpolatedEphemerisSettings->getFinalTime( ) ),
-                                static_cast< long double >( interpolatedEphemerisSettings->getTimeStep( ) ),
+                                ( interpolatedEphemerisSettings->getInitialTime( ) ),
+                                ( interpolatedEphemerisSettings->getFinalTime( ) ),
+                                ( interpolatedEphemerisSettings->getTimeStep( ) ),
+                                interpolatedEphemerisSettings->getFrameOrigin( ),
+                                interpolatedEphemerisSettings->getFrameOrientation( ),
+                                interpolatedEphemerisSettings->getInterpolatorSettings( ) );
+                }
+                else if( !interpolatedEphemerisSettings->getUseLongDoubleStates( ) &&
+                         interpolatedEphemerisSettings->getUseExtendedTime( ) )
+                {
+                    ephemeris = createTabulatedEphemerisFromSpice< double, Time >(
+                                inputName,
+                                static_cast< Time >( interpolatedEphemerisSettings->getInitialTime( ) ),
+                                static_cast< Time >( interpolatedEphemerisSettings->getFinalTime( ) ),
+                                static_cast< Time >( interpolatedEphemerisSettings->getTimeStep( ) ),
+                                interpolatedEphemerisSettings->getFrameOrigin( ),
+                                interpolatedEphemerisSettings->getFrameOrientation( ),
+                                interpolatedEphemerisSettings->getInterpolatorSettings( ) );
+                }
+                else if( interpolatedEphemerisSettings->getUseLongDoubleStates( ) &&
+                         interpolatedEphemerisSettings->getUseExtendedTime( ) )
+                {
+                    ephemeris = createTabulatedEphemerisFromSpice< long double, Time >(
+                                inputName,
+                                static_cast< Time >( interpolatedEphemerisSettings->getInitialTime( ) ),
+                                static_cast< Time >( interpolatedEphemerisSettings->getFinalTime( ) ),
+                                static_cast< Time >( interpolatedEphemerisSettings->getTimeStep( ) ),
                                 interpolatedEphemerisSettings->getFrameOrigin( ),
                                 interpolatedEphemerisSettings->getFrameOrientation( ),
                                 interpolatedEphemerisSettings->getInterpolatorSettings( ) );
@@ -204,19 +230,30 @@ boost::shared_ptr< ephemerides::Ephemeris > createBodyEphemeris(
         case custom_ephemeris:
         {
             // Check consistency of type and class.
-            boost::shared_ptr< CustomEphemerisSettings > customEphemerisSettings =
-                    boost::dynamic_pointer_cast< CustomEphemerisSettings >( ephemerisSettings );
-            if( customEphemerisSettings == NULL )
+            boost::shared_ptr< CustomEphemerisSettings< double > > customEphemerisSettingsDouble =
+                    boost::dynamic_pointer_cast< CustomEphemerisSettings< double > >( ephemerisSettings );
+            boost::shared_ptr< CustomEphemerisSettings< long double > > customEphemerisSettingsLongDouble =
+                    boost::dynamic_pointer_cast< CustomEphemerisSettings< long double > >( ephemerisSettings );
+
+            if( customEphemerisSettingsDouble == NULL && customEphemerisSettingsLongDouble == NULL )
             {
                 throw std::runtime_error( "Error, expected constant ephemeris settings for " + bodyName );
             }
-            else
+            else if( customEphemerisSettingsDouble != NULL )
             {
                 // Create ephemeris
-                ephemeris = boost::make_shared< CustomEphemeris >(
-                            customEphemerisSettings->getCustomStateFunction( ),
-                            customEphemerisSettings->getFrameOrigin( ),
-                            customEphemerisSettings->getFrameOrientation( ) );
+                ephemeris = boost::make_shared< CustomEphemeris< double > >(
+                            customEphemerisSettingsDouble->getCustomStateFunction( ),
+                            customEphemerisSettingsDouble->getFrameOrigin( ),
+                            customEphemerisSettingsDouble->getFrameOrientation( ) );
+            }
+            else if( customEphemerisSettingsLongDouble != NULL )
+            {
+                // Create ephemeris
+                ephemeris = boost::make_shared< CustomEphemeris< long double > >(
+                            customEphemerisSettingsLongDouble->getCustomStateFunction( ),
+                            customEphemerisSettingsLongDouble->getFrameOrigin( ),
+                            customEphemerisSettingsLongDouble->getFrameOrientation( ) );
             }
             break;
         }

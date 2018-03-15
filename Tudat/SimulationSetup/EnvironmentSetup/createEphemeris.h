@@ -305,6 +305,16 @@ public:
         useLongDoubleStates_ = useLongDoubleStates;
     }
 
+    bool getUseExtendedTime( )
+    {
+        return useExtendedTime_;
+    }
+
+    void setUseExtendedTime( const bool useExtendedTime )
+    {
+        useExtendedTime_ = useExtendedTime;
+    }
+
 private:
 
     //! Initial time from which interpolated data from Spice should be created.
@@ -320,6 +330,9 @@ private:
     boost::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings_;
 
     bool useLongDoubleStates_;
+
+    bool useExtendedTime_;
+
 };
 
 //! EphemerisSettings derived class for defining settings of an approximate ephemeris for major
@@ -421,6 +434,7 @@ private:
 
 //! EphemerisSettings derived class for defining settings of an ephemeris producing a custom
 //! state (e.g. arbitrary state as a function of time)
+template< typename StateScalarType = double  >
 class CustomEphemerisSettings: public EphemerisSettings
 {
 public:
@@ -432,9 +446,9 @@ public:
      * \param frameOrigin Origin of frame in which ephemeris data is defined.
      * \param frameOrientation Orientation of frame in which ephemeris data is defined.
      */
-    CustomEphemerisSettings( const boost::function< Eigen::Vector6d( const double ) > customStateFunction,
-                               const std::string& frameOrigin = "SSB",
-                               const std::string& frameOrientation = "ECLIPJ2000" ):
+    CustomEphemerisSettings( const boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > customStateFunction,
+                             const std::string& frameOrigin = "SSB",
+                             const std::string& frameOrientation = "ECLIPJ2000" ):
         EphemerisSettings( custom_ephemeris,
                            frameOrigin,
                            frameOrientation ), customStateFunction_( customStateFunction ){ }
@@ -444,7 +458,7 @@ public:
      *  Function to return the function returning the state as a function of time
      *  \return  Function returning the state as a function of time
      */
-    boost::function< Eigen::Vector6d( const double ) > getCustomStateFunction( )
+    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > getCustomStateFunction( )
     {
         return customStateFunction_;
     }
@@ -452,7 +466,7 @@ public:
 private:
 
     //! Function returning the state as a function of time
-    boost::function< Eigen::Vector6d( const double ) > customStateFunction_;
+    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > customStateFunction_;
 };
 
 //! EphemerisSettings derived class for defining settings of an ephemeris representing an ideal
@@ -653,7 +667,7 @@ boost::shared_ptr< ephemerides::Ephemeris > createTabulatedEphemerisFromSpice(
         const std::string& observerName,
         const std::string& referenceFrameName,
         boost::shared_ptr< interpolators::InterpolatorSettings > interpolatorSettings =
-        boost::make_shared< interpolators::LagrangeInterpolatorSettings >( 8 ) )
+        boost::make_shared< interpolators::LagrangeInterpolatorSettings >( 8, ( sizeof( TimeType ) == 8 ) ? 0 : 1 ) )
 {
     using namespace interpolators;
 

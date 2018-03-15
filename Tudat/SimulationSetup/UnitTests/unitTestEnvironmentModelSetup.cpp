@@ -217,7 +217,7 @@ BOOST_AUTO_TEST_CASE( test_ephemerisSetup )
         double speed = 5000.0;
 
         boost::shared_ptr< EphemerisSettings > customEphemerisSettings =
-                boost::make_shared< CustomEphemerisSettings >(
+                boost::make_shared< CustomEphemerisSettings< > >(
                     boost::bind( &computeCustomState, _1,  angularVelocity, radius, speed ),
                     "Earth", "J2000" );
         boost::shared_ptr< ephemerides::Ephemeris > customEphemeris =

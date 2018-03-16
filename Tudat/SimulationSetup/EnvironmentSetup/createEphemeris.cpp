@@ -230,30 +230,51 @@ boost::shared_ptr< ephemerides::Ephemeris > createBodyEphemeris(
         case custom_ephemeris:
         {
             // Check consistency of type and class.
-            boost::shared_ptr< CustomEphemerisSettings< double > > customEphemerisSettingsDouble =
-                    boost::dynamic_pointer_cast< CustomEphemerisSettings< double > >( ephemerisSettings );
-            boost::shared_ptr< CustomEphemerisSettings< long double > > customEphemerisSettingsLongDouble =
-                    boost::dynamic_pointer_cast< CustomEphemerisSettings< long double > >( ephemerisSettings );
+            boost::shared_ptr< CustomEphemerisSettings< double, double > > customEphemerisSettingsDoubleDouble =
+                    boost::dynamic_pointer_cast< CustomEphemerisSettings< double, double > >( ephemerisSettings );
+            boost::shared_ptr< CustomEphemerisSettings< long double, double > > customEphemerisSettingsLongDoubleDouble =
+                    boost::dynamic_pointer_cast< CustomEphemerisSettings< long double, double > >( ephemerisSettings );
+            boost::shared_ptr< CustomEphemerisSettings< double, Time > > customEphemerisSettingsDoubleTime =
+                    boost::dynamic_pointer_cast< CustomEphemerisSettings< double, Time > >( ephemerisSettings );
+            boost::shared_ptr< CustomEphemerisSettings< long double, Time > > customEphemerisSettingsLongDoubleTime =
+                    boost::dynamic_pointer_cast< CustomEphemerisSettings< long double, Time > >( ephemerisSettings );
 
-            if( customEphemerisSettingsDouble == NULL && customEphemerisSettingsLongDouble == NULL )
+            if( customEphemerisSettingsDoubleDouble == NULL && customEphemerisSettingsLongDoubleDouble == NULL &&
+                    customEphemerisSettingsDoubleTime == NULL && customEphemerisSettingsLongDoubleTime == NULL )
             {
                 throw std::runtime_error( "Error, expected constant ephemeris settings for " + bodyName );
             }
-            else if( customEphemerisSettingsDouble != NULL )
+            else if( customEphemerisSettingsDoubleDouble != NULL )
             {
                 // Create ephemeris
-                ephemeris = boost::make_shared< CustomEphemeris< double > >(
-                            customEphemerisSettingsDouble->getCustomStateFunction( ),
-                            customEphemerisSettingsDouble->getFrameOrigin( ),
-                            customEphemerisSettingsDouble->getFrameOrientation( ) );
+                ephemeris = boost::make_shared< CustomEphemeris< double, double > >(
+                            customEphemerisSettingsDoubleDouble->getCustomStateFunction( ),
+                            customEphemerisSettingsDoubleDouble->getFrameOrigin( ),
+                            customEphemerisSettingsDoubleDouble->getFrameOrientation( ) );
             }
-            else if( customEphemerisSettingsLongDouble != NULL )
+            else if( customEphemerisSettingsLongDoubleDouble != NULL )
             {
                 // Create ephemeris
-                ephemeris = boost::make_shared< CustomEphemeris< long double > >(
-                            customEphemerisSettingsLongDouble->getCustomStateFunction( ),
-                            customEphemerisSettingsLongDouble->getFrameOrigin( ),
-                            customEphemerisSettingsLongDouble->getFrameOrientation( ) );
+                ephemeris = boost::make_shared< CustomEphemeris< long double, double > >(
+                            customEphemerisSettingsLongDoubleDouble->getCustomStateFunction( ),
+                            customEphemerisSettingsLongDoubleDouble->getFrameOrigin( ),
+                            customEphemerisSettingsLongDoubleDouble->getFrameOrientation( ) );
+            }
+            else if( customEphemerisSettingsDoubleTime != NULL )
+            {
+                // Create ephemeris
+                ephemeris = boost::make_shared< CustomEphemeris< double, Time > >(
+                            customEphemerisSettingsDoubleTime->getCustomStateFunction( ),
+                            customEphemerisSettingsDoubleTime->getFrameOrigin( ),
+                            customEphemerisSettingsDoubleTime->getFrameOrientation( ) );
+            }
+            else if( customEphemerisSettingsLongDoubleTime != NULL )
+            {
+                // Create ephemeris
+                ephemeris = boost::make_shared< CustomEphemeris< long double, Time > >(
+                            customEphemerisSettingsLongDoubleTime->getCustomStateFunction( ),
+                            customEphemerisSettingsLongDoubleTime->getFrameOrigin( ),
+                            customEphemerisSettingsLongDoubleTime->getFrameOrientation( ) );
             }
             break;
         }

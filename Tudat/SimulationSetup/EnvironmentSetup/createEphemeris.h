@@ -434,7 +434,7 @@ private:
 
 //! EphemerisSettings derived class for defining settings of an ephemeris producing a custom
 //! state (e.g. arbitrary state as a function of time)
-template< typename StateScalarType = double  >
+template< typename StateScalarType = double, typename TimeType = double  >
 class CustomEphemerisSettings: public EphemerisSettings
 {
 public:
@@ -446,7 +446,7 @@ public:
      * \param frameOrigin Origin of frame in which ephemeris data is defined.
      * \param frameOrientation Orientation of frame in which ephemeris data is defined.
      */
-    CustomEphemerisSettings( const boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > customStateFunction,
+    CustomEphemerisSettings( const boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const TimeType ) > customStateFunction,
                              const std::string& frameOrigin = "SSB",
                              const std::string& frameOrientation = "ECLIPJ2000" ):
         EphemerisSettings( custom_ephemeris,
@@ -458,7 +458,7 @@ public:
      *  Function to return the function returning the state as a function of time
      *  \return  Function returning the state as a function of time
      */
-    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > getCustomStateFunction( )
+    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const TimeType ) > getCustomStateFunction( )
     {
         return customStateFunction_;
     }
@@ -466,7 +466,7 @@ public:
 private:
 
     //! Function returning the state as a function of time
-    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > customStateFunction_;
+    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const TimeType ) > customStateFunction_;
 };
 
 //! EphemerisSettings derived class for defining settings of an ephemeris representing an ideal

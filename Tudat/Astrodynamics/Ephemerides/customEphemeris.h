@@ -23,7 +23,7 @@ namespace ephemerides
 {
 
 //! Ephemeris class that gives a custom (i.e. arbitrarily defined as a function of time) state.
-template< typename StateScalarType = double >
+template< typename StateScalarType = double, typename TimeType = double >
 class CustomEphemeris : public Ephemeris
 {
 public:
@@ -37,7 +37,7 @@ public:
      *  \param referenceFrameOrigin Origin of reference frame in which state is defined.
      *  \param referenceFrameOrientation Orientation of reference frame in which state is defined.
      */
-    CustomEphemeris( const boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > stateFunction,
+    CustomEphemeris( const boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const TimeType ) > stateFunction,
                      const std::string& referenceFrameOrigin = "SSB",
                      const std::string& referenceFrameOrientation = "ECLIPJ2000" ):
         Ephemeris( referenceFrameOrigin, referenceFrameOrientation ),
@@ -63,6 +63,18 @@ public:
         return stateFunction_( seconsSinceEpoch ).template cast< long double >( );
     }
 
+    virtual Eigen::Vector6d getCartesianStateFromExtendedTime(
+            const Time& currentTime )
+    {
+        return stateFunction_( currentTime ).template cast< double >( );
+    }
+
+    virtual Eigen::Matrix< long double, 6, 1 > getCartesianLongStateFromExtendedTime(
+            const Time& currentTime )
+    {
+        return stateFunction_( currentTime ).template cast< long double >( );
+    }
+
 
 private:
 
@@ -70,7 +82,7 @@ private:
     /*!
      *  Function that returns a constant cartesian state.
      */
-    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const double ) > stateFunction_;
+    boost::function< Eigen::Matrix< StateScalarType, 6, 1 >( const TimeType ) > stateFunction_;
 
 };
 

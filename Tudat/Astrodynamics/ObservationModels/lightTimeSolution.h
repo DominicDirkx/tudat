@@ -282,7 +282,6 @@ public:
             const ObservationScalarType tolerance =
             ( getDefaultLightTimeTolerance< ObservationScalarType >( ) ) )
     {
-        std::cout<<"Computing light time "<<time<<std::endl;
         using physical_constants::SPEED_OF_LIGHT;
         using std::fabs;
 
@@ -324,10 +323,6 @@ public:
                 setTotalLightTimeCorrection(
                             transmitterState, receiverState, transmissionTime, receptionTime );
             }
-
-            std::cout<<"Light time "<<transmissionTime<<" "<<receptionTime<<" "<<currentCorrection_<<std::endl;
-            std::cout<<"States "<<receiverState.transpose( )<<" "<<transmitterState.transpose( )<<std::endl;
-
 
             // Update light-time estimate for this iteration.
             if( isTimeAtReception )

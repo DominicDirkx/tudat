@@ -551,7 +551,6 @@ public:
             std::vector< double >& linkEndTimes,
             std::vector< Eigen::Matrix< double, 6, 1 > >& linkEndStates )
     {
-        std::cout<<"Current time: "<<time<<std::endl;
         ObservationScalarType lightTime = TUDAT_NAN;
         TimeType transmissionTime = TUDAT_NAN, receptionTime = TUDAT_NAN;
 

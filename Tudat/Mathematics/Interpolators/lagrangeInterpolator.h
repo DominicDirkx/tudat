@@ -221,7 +221,6 @@ public:
     DependentVariableType interpolate(
             const IndependentVariableType targetIndependentVariableValue )
     {
-        std::cout<<"Interpolating "<<targetIndependentVariableValue<<std::endl;
         using std::pow;
 
         if( targetIndependentVariableValue < independentValues_.at( 0 ) ||
@@ -239,13 +238,10 @@ public:
         int lowerEntry = lookUpScheme_->findNearestLowerNeighbour(
                     targetIndependentVariableValue );
 
-        std::cout<<"lower entry "<<lowerEntry<<std::endl;
-
         // Check if requested interval is inside region in which centered lagrange interpolation
         // can be used.
         if( lowerEntry < offsetEntries_ )
         {
-            std::cout<<"Test A"<<std::endl;
             if( boundaryHandling_ == lagrange_no_boundary_interpolation )
             {
                 throw std::runtime_error(
@@ -259,7 +255,6 @@ public:
         }
         else if( lowerEntry >= numberOfIndependentValues_ - offsetEntries_ - 1 )
         {
-            std::cout<<"Test B"<<std::endl;
             if( boundaryHandling_ == lagrange_no_boundary_interpolation )
             {
                 throw std::runtime_error(
@@ -280,17 +275,14 @@ public:
             // Check if requested independent variable is equal to data point
             if( independentValues_[ lowerEntry ] == targetIndependentVariableValue )
             {
-                std::cout<<"Test C"<<std::endl;
                 interpolatedValue = dependentValues_[ lowerEntry ];
             }
             else if( independentValues_[ lowerEntry + 1 ] == targetIndependentVariableValue )
             {
-                std::cout<<"Test D"<<std::endl;
                 interpolatedValue = dependentValues_[ lowerEntry + 1 ];
             }
             else if( independentValues_[ lowerEntry - 1 ] == targetIndependentVariableValue )
             {
-                std::cout<<"Test E"<<std::endl;
                 interpolatedValue = dependentValues_[ lowerEntry - 1 ];
             }
             else

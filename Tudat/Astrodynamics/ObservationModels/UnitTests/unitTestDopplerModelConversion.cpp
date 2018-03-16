@@ -60,6 +60,8 @@ Eigen::Matrix< ScalarType, 6, 1 > getCurrentTestState(
 
 }
 
+using namespace tudat::unit_tests;
+
 template< typename ObservationScalarType, typename TimeType >
 void testDopplerConversion( )
 {
@@ -116,12 +118,12 @@ void testDopplerConversion( )
         marsEphemerisSettings->setUseExtendedTime( true );
     }
 
-    defaultBodySettings[ "Mars" ]->ephemerisSettings = marsEphemerisSettings;
-    //            boost::make_shared< CustomEphemerisSettings< ObservationScalarType > >(
-    //                &getCurrentTestState< ObservationScalarType > );
-    defaultBodySettings[ "Earth" ]->ephemerisSettings = earthEphemerisSettings;
-    //            boost::make_shared< ConstantEphemerisSettings >(
-    //                Eigen::Vector6d::Zero( ) );
+    defaultBodySettings[ "Mars" ]->ephemerisSettings = //marsEphemerisSettings;
+                boost::make_shared< CustomEphemerisSettings< ObservationScalarType > >(
+                    &getCurrentTestState< ObservationScalarType > );
+    defaultBodySettings[ "Earth" ]->ephemerisSettings = //earthEphemerisSettings;
+                boost::make_shared< ConstantEphemerisSettings >(
+                    Eigen::Vector6d::Zero( ) );
 
     // Create bodies
     NamedBodyMap bodyMap = createBodies( defaultBodySettings );
@@ -223,7 +225,7 @@ void testDopplerConversion( )
 
         LinkEndType referenceLinkEnd = receiver;
 
-        std::vector< TimeType > integrationTimes = { //TimeType( 0.1 ), TimeType( 1.0 ), TimeType( 10.0 ),
+        std::vector< TimeType > integrationTimes = { TimeType( 0.1 ), TimeType( 1.0 ), TimeType( 10.0 ),
                                                      TimeType( 100.0 ), TimeType( 1000.0 ) };
         std::vector< boost::shared_ptr< numerical_quadrature::NumericalQuadratureSettings > > quadratureSettings;
         quadratureSettings.push_back( boost::make_shared< numerical_quadrature::NumericalQuadratureSettings >( numerical_quadrature::trapezoidal_quadrature ) );
@@ -323,7 +325,7 @@ void testDopplerConversion( )
 
 int main( )
 {
-    //testDopplerConversion< double, double >( );
+    testDopplerConversion< double, double >( );
     testDopplerConversion< long double, Time >( );
 }
 

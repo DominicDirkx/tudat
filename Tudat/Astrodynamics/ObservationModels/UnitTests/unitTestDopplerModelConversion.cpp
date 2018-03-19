@@ -39,17 +39,18 @@ template< typename ScalarType, typename TimeType >
 Eigen::Matrix< ScalarType, 6, 1 > getCurrentTestState(
         const TimeType currentTime )
 {
-    ScalarType angularVelocity = static_cast< ScalarType >( 2.0 * tudat::mathematical_constants::PI / ( 3600.0 ) );
+    ScalarType angularVelocity = static_cast< ScalarType >( 2.0 * tudat::mathematical_constants::PI / ( 1800.0 ) );
     ScalarType radius = static_cast< ScalarType >( 3.0E6 );
 
+    ScalarType linearVelocity = 50.0E3;
     Eigen::Matrix< ScalarType, 6, 1 > currentState;
     currentState.setZero( );
 
-    currentState( 0 ) = static_cast< ScalarType >( 1.5E8 ) + static_cast< ScalarType >( 10.0E3 ) * currentTime;
+    currentState( 0 ) = static_cast< ScalarType >( 1.5E11 ) + static_cast< ScalarType >( linearVelocity ) * currentTime;
     currentState( 0 ) += radius * std::sin( angularVelocity * static_cast< ScalarType >( currentTime ) );
     currentState( 2 ) += radius * std::cos( angularVelocity * static_cast< ScalarType >( currentTime ) );
 
-    currentState( 3 ) = static_cast< ScalarType >( 10.0E3 );
+    currentState( 3 ) = static_cast< ScalarType >( linearVelocity );
     currentState( 3 ) += angularVelocity * radius * std::cos( angularVelocity * static_cast< ScalarType >( currentTime ) );
     currentState( 5 ) -= angularVelocity * radius * std::sin( angularVelocity * static_cast< ScalarType >( currentTime ) );
 
@@ -90,7 +91,7 @@ void testDopplerConversion( )
 
     // Specify initial time
     double initialEphemerisTime = 1.0E6;//tudat::basic_astrodynamics::convertCalendarDateToJulianDaysSinceEpoch(
-                //2013, 12, 29, 6, 0, 0.0, tudat::basic_astrodynamics::JULIAN_DAY_ON_J2000 ) * 86400.0;
+    //2013, 12, 29, 6, 0, 0.0, tudat::basic_astrodynamics::JULIAN_DAY_ON_J2000 ) * 86400.0;
     double finalEphemerisTime = initialEphemerisTime + 86400.0;
     double maximumTimeStep = 3600.0;
     double buffer = 10.0 * maximumTimeStep;
@@ -119,11 +120,11 @@ void testDopplerConversion( )
     }
 
     defaultBodySettings[ "Mars" ]->ephemerisSettings = //marsEphemerisSettings;
-                boost::make_shared< CustomEphemerisSettings< ObservationScalarType, TimeType > >(
-                    &getCurrentTestState< ObservationScalarType, TimeType > );
+            boost::make_shared< CustomEphemerisSettings< ObservationScalarType, TimeType > >(
+                &getCurrentTestState< ObservationScalarType, TimeType > );
     defaultBodySettings[ "Earth" ]->ephemerisSettings = //earthEphemerisSettings;
-                boost::make_shared< ConstantEphemerisSettings >(
-                    Eigen::Vector6d::Zero( ) );
+            boost::make_shared< ConstantEphemerisSettings >(
+                Eigen::Vector6d::Zero( ) );
 
     // Create bodies
     NamedBodyMap bodyMap = createBodies( defaultBodySettings );
@@ -188,10 +189,10 @@ void testDopplerConversion( )
 
     std::vector< std::string > observedBodies;
     observedBodies.push_back( "Mars" );
-    //    observedBodies.push_back( "MarsOrbiter1" );
-    //    observedBodies.push_back( "MarsOrbiter2" );
-    //    observedBodies.push_back( "MarsOrbiter3" );
-    //    observedBodies.push_back( "MarsOrbiter4" );
+    observedBodies.push_back( "MarsOrbiter1" );
+    observedBodies.push_back( "MarsOrbiter2" );
+    observedBodies.push_back( "MarsOrbiter3" );
+    observedBodies.push_back( "MarsOrbiter4" );
 
     for( unsigned int k = 0; k < observedBodies.size( ); k++ )
     {
@@ -217,34 +218,45 @@ void testDopplerConversion( )
                 ObservationModelCreator< 1, ObservationScalarType, TimeType >::createObservationModel(
                     linkEnds, openLoopObservableSettings, bodyMap );
 
-
-
-
-        boost::shared_ptr< OneWayDopplerObservationModel< ObservationScalarType, TimeType > > dopplerObservationModel =
-                boost::dynamic_pointer_cast< OneWayDopplerObservationModel< ObservationScalarType, TimeType > >( openLoopObservableSettings );
-
         LinkEndType referenceLinkEnd = receiver;
 
-        std::vector< TimeType > integrationTimes = { TimeType( 1.0 ), TimeType( 10.0 ),
-                                                     TimeType( 100.0 ), TimeType( 1000.0 ) };
+        int numberOfIntegrationTimes = 10;
+        double startIntegrationTime = 1.0;
+        double integrationTimeMultiplier = 2.0;
+
         std::vector< boost::shared_ptr< numerical_quadrature::NumericalQuadratureSettings > > quadratureSettings;
         quadratureSettings.push_back( boost::make_shared< numerical_quadrature::NumericalQuadratureSettings >( numerical_quadrature::trapezoidal_quadrature ) );
         quadratureSettings.push_back( boost::make_shared< numerical_quadrature::NumericalQuadratureSettings >( numerical_quadrature::simpsons_quadrature ) );
         quadratureSettings.push_back( boost::make_shared< numerical_quadrature::GaussianQuadratureSettings >( 3 ) );
         quadratureSettings.push_back( boost::make_shared< numerical_quadrature::GaussianQuadratureSettings >( 5 ) );
         quadratureSettings.push_back( boost::make_shared< numerical_quadrature::GaussianQuadratureSettings >( 7 ) );
-        //quadratureSettings.push_back( boost::make_shared< numerical_quadrature::GaussianQuadratureSettings >( 11 ) );
+        quadratureSettings.push_back( boost::make_shared< numerical_quadrature::GaussianQuadratureSettings >( 11 ) );
+
+        Eigen::MatrixXd maximumDopplerErrors = Eigen::MatrixXd::Zero( numberOfIntegrationTimes, quadratureSettings.size( ) );
+        Eigen::MatrixXd minimumDopplerErrors = Eigen::MatrixXd::Zero( numberOfIntegrationTimes, quadratureSettings.size( ) );
+        Eigen::MatrixXd meanDopplerErrors = Eigen::MatrixXd::Zero( numberOfIntegrationTimes, quadratureSettings.size( ) );
+
+        Eigen::MatrixXd maximumDopplerErrorsWrtBenchmark = Eigen::MatrixXd::Zero( numberOfIntegrationTimes, quadratureSettings.size( ) );
+        Eigen::MatrixXd minimumDopplerErrorsWrtBenchmark = Eigen::MatrixXd::Zero( numberOfIntegrationTimes, quadratureSettings.size( ) );
+        Eigen::MatrixXd meanDopplerErrorsWrtBenchmark = Eigen::MatrixXd::Zero( numberOfIntegrationTimes, quadratureSettings.size( ) );
+
 
         double simulationTime = 3600.0;
-        for( unsigned int i = 0; i < integrationTimes.size( ); i++ )
+        double currentIntegrationTime = startIntegrationTime;
+        for( unsigned int i = 0; i < numberOfIntegrationTimes; i++ )
         {
             boost::shared_ptr< ObservationSettings > closedLoopObservableSettings =
-                    boost::make_shared< OneWayDifferencedRangeRateObservationSettings >( boost::lambda::constant( integrationTimes.at( i ) ) );
+                    boost::make_shared< OneWayDifferencedRangeRateObservationSettings >( boost::lambda::constant( currentIntegrationTime ) );
 
             // Create closed-loop observation model.
             boost::shared_ptr< ObservationModel< 1, ObservationScalarType, TimeType > > closedLoopObservationModel =
                     ObservationModelCreator< 1, ObservationScalarType, TimeType >::createObservationModel(
                         linkEnds, closedLoopObservableSettings, bodyMap );
+
+            std::map< TimeType, ObservationScalarType > syntheticBenchmarkClosedLoopData = convertOpenLoopToClosedLoopDopplerData< ObservationScalarType, TimeType >(
+                        boost::dynamic_pointer_cast< OneWayDopplerObservationModel< ObservationScalarType, TimeType > >( openLoopObservationModel ),
+                        boost::make_shared< numerical_quadrature::GaussianQuadratureSettings >( 15 ), referenceLinkEnd, initialEphemerisTime,
+                        initialEphemerisTime + simulationTime, currentIntegrationTime );
 
             for( unsigned int j = 0; j < quadratureSettings.size( ); j++ )
             {
@@ -252,54 +264,112 @@ void testDopplerConversion( )
                 std::map< TimeType, ObservationScalarType > syntheticClosedLoopData = convertOpenLoopToClosedLoopDopplerData< ObservationScalarType, TimeType >(
                             boost::dynamic_pointer_cast< OneWayDopplerObservationModel< ObservationScalarType, TimeType > >( openLoopObservationModel ),
                             quadratureSettings.at( j ), referenceLinkEnd, initialEphemerisTime,
-                            initialEphemerisTime + simulationTime, integrationTimes.at( i ) );
+                            initialEphemerisTime + simulationTime, currentIntegrationTime );
 
-                std::map< double, ObservationScalarType > simulatedClosedLoopData, syntheticClosedLoopErrors;
+
+                std::map< double, ObservationScalarType > simulatedClosedLoopData, simulatedOffsetClosedLoopData,
+                        syntheticClosedLoopErrors, syntheticClosedLoopBenchmarkErrors, simulatedOpenLoopData;
                 std::map< double, ObservationScalarType > arcStartSimulatedRangeData, arcEndSimulatedRangeData, manualSimulatedClosedLoopData;
                 std::map< double, ObservationScalarType > arcStartRealRangeData, arcEndRealRangeData, manualRealClosedLoopData,
                         realArcStartOpenLoopData, realArcEndOpenLoopData;
+
+                double maximumDopplerError = 0.0;
+                double minimumDopplerError = std::numeric_limits< double >::infinity( );
+                double meanDopplerError = 0.0;
+
+                double maximumDopplerErrorWrtBenchmark = 0.0;
+                double minimumDopplerErrorWrtBenchmark = std::numeric_limits< double >::infinity( );
+                double meanDopplerErrorWrtBenchmark = 0.0;
 
                 for( auto dataIterator = syntheticClosedLoopData.begin( ); dataIterator != syntheticClosedLoopData.end( );
                      dataIterator++ )
                 {
                     // Simulate closed loop data, and compare to synthetic value
-                    simulatedClosedLoopData[ dataIterator->first ] = closedLoopObservationModel-> computeObservationEntry(
+                    syntheticClosedLoopBenchmarkErrors[ dataIterator->first ] = syntheticBenchmarkClosedLoopData[
+                            dataIterator->first ] - syntheticClosedLoopData[ dataIterator->first ];
+
+                    simulatedOpenLoopData[ dataIterator->first ] = openLoopObservationModel->computeObservationEntry(
                                 dataIterator->first, referenceLinkEnd, 0 );
+                    simulatedClosedLoopData[ dataIterator->first ] = closedLoopObservationModel->computeObservationEntry(
+                                dataIterator->first, referenceLinkEnd, 0 );
+                    simulatedOffsetClosedLoopData[ dataIterator->first ] = closedLoopObservationModel->computeObservationEntry(
+                                dataIterator->first + currentIntegrationTime / 2.0, referenceLinkEnd, 0 );
                     syntheticClosedLoopErrors[ dataIterator->first ] = syntheticClosedLoopData[ dataIterator->first ] +
                             simulatedClosedLoopData[ dataIterator->first ];
+
+                    {
+                        if( std::fabs( syntheticClosedLoopErrors[ dataIterator->first ] ) > maximumDopplerError )
+                        {
+                            maximumDopplerError = std::fabs( syntheticClosedLoopErrors[ dataIterator->first ] );
+                        }
+
+                        if( std::fabs( syntheticClosedLoopErrors[ dataIterator->first ] ) < minimumDopplerError )
+                        {
+                            minimumDopplerError = std::fabs( syntheticClosedLoopErrors[ dataIterator->first ] );
+                        }
+
+                        meanDopplerError += std::fabs( syntheticClosedLoopErrors[ dataIterator->first ] );
+                    }
+
+
+                    {
+                        if( std::fabs( syntheticClosedLoopBenchmarkErrors[ dataIterator->first ] ) > maximumDopplerErrorWrtBenchmark )
+                        {
+                            maximumDopplerErrorWrtBenchmark = std::fabs( syntheticClosedLoopBenchmarkErrors[ dataIterator->first ] );
+                        }
+
+                        if( std::fabs( syntheticClosedLoopBenchmarkErrors[ dataIterator->first ] ) < minimumDopplerErrorWrtBenchmark )
+                        {
+                            minimumDopplerErrorWrtBenchmark = std::fabs( syntheticClosedLoopBenchmarkErrors[ dataIterator->first ] );
+                        }
+
+                        meanDopplerErrorWrtBenchmark += std::fabs( syntheticClosedLoopBenchmarkErrors[ dataIterator->first ] );
+                    }
 
                     // Simulate range data
                     arcEndSimulatedRangeData[ dataIterator->first ] = rangeObservationModel->computeObservationEntry(
                                 dataIterator->first, referenceLinkEnd, 0 );
                     arcStartSimulatedRangeData[ dataIterator->first ] = rangeObservationModel->computeObservationEntry(
-                                dataIterator->first - integrationTimes.at( i ), referenceLinkEnd, 0 );
+                                dataIterator->first - currentIntegrationTime, referenceLinkEnd, 0 );
 
                     // Compute true range data
                     arcEndRealRangeData[ dataIterator->first ] = tudat::unit_tests::getCurrentTestState< ObservationScalarType, TimeType >(
                                 dataIterator->first ).segment( 0, 3 ).norm( );
                     arcStartRealRangeData[ dataIterator->first ] = tudat::unit_tests::getCurrentTestState< ObservationScalarType, TimeType >(
-                                dataIterator->first - integrationTimes.at( i ) ).segment( 0, 3 ).norm( );
+                                dataIterator->first - currentIntegrationTime ).segment( 0, 3 ).norm( );
 
                     // Compute true open-loop data
                     Eigen::Matrix< ObservationScalarType, 6, 1 > currentState = tudat::unit_tests::getCurrentTestState< ObservationScalarType, TimeType >(
                                 dataIterator->first );
                     realArcEndOpenLoopData[ dataIterator->first ] = currentState.segment( 0, 3 ).dot( currentState.segment( 3, 3 ) );
                     Eigen::Matrix< ObservationScalarType, 6, 1 > previousState = tudat::unit_tests::getCurrentTestState< ObservationScalarType, TimeType >(
-                                dataIterator->first - integrationTimes.at( i ) );
+                                dataIterator->first - currentIntegrationTime );
                     realArcStartOpenLoopData[ dataIterator->first ] = previousState.segment( 0, 3 ).dot( previousState.segment( 3, 3 ) );
 
 
                     manualRealClosedLoopData[ dataIterator->first ] =
                             ( arcEndRealRangeData[ dataIterator->first ] - arcStartRealRangeData[ dataIterator->first ] ) /
-                            static_cast< ObservationScalarType >( integrationTimes.at( i ) );
+                            static_cast< ObservationScalarType >( currentIntegrationTime );
 
                     manualSimulatedClosedLoopData[ dataIterator->first ] =
                             ( arcEndSimulatedRangeData[ dataIterator->first ] - arcStartSimulatedRangeData[ dataIterator->first ] ) /
-                            static_cast< ObservationScalarType >( integrationTimes.at( i ) );
+                            static_cast< ObservationScalarType >( currentIntegrationTime );
 
                 }
+
+                meanDopplerError /= static_cast< double >( syntheticClosedLoopErrors.size( ) );
+                meanDopplerErrorWrtBenchmark /= static_cast< double >( syntheticClosedLoopErrors.size( ) );
+
+                maximumDopplerErrors( i, j ) = maximumDopplerError;
+                minimumDopplerErrors( i, j ) = minimumDopplerError;
+                meanDopplerErrors( i, j ) = meanDopplerError;
+
+                maximumDopplerErrorsWrtBenchmark( i, j ) = maximumDopplerErrorWrtBenchmark;
+                minimumDopplerErrorsWrtBenchmark( i, j ) = minimumDopplerErrorWrtBenchmark;
+                meanDopplerErrorsWrtBenchmark( i, j ) = meanDopplerErrorWrtBenchmark;
+
                 tudat::input_output::writeDataMapToTextFile(
-                            syntheticClosedLoopData, "syntheticClosedLoopDopplerErrors_" + std::to_string( i ) + "_" +
+                            syntheticClosedLoopData, "syntheticClosedLooDopplerErrors_" + std::to_string( i ) + "_" +
                             std::to_string( j ) + "_" + std::to_string( k ) + "_" +  useDouble + ".dat" );
 
                 tudat::input_output::writeDataMapToTextFile(
@@ -308,6 +378,15 @@ void testDopplerConversion( )
                 tudat::input_output::writeDataMapToTextFile(
                             simulatedClosedLoopData, "closedLoopDoppler_" + std::to_string( i ) + "_" +
                             std::to_string( j ) + "_" + std::to_string( k ) + "_" +  useDouble + ".dat" );
+                tudat::input_output::writeDataMapToTextFile(
+                            simulatedOffsetClosedLoopData, "closedLoopCentralDoppler_" + std::to_string( i ) + "_" +
+                            std::to_string( j ) + "_" + std::to_string( k ) + "_" +  useDouble + ".dat" );
+                tudat::input_output::writeDataMapToTextFile(
+                            simulatedOpenLoopData, "openLoopDoppler_" + std::to_string( i ) + "_" +
+                            std::to_string( j ) + "_" + std::to_string( k ) + "_" +  useDouble + ".dat" );
+
+
+
 
                 tudat::input_output::writeDataMapToTextFile(
                             manualSimulatedClosedLoopData, "manualClosedLoopDoppler_" + std::to_string( i ) + "_" +
@@ -315,12 +394,28 @@ void testDopplerConversion( )
                 tudat::input_output::writeDataMapToTextFile(
                             manualRealClosedLoopData, "manualRealClosedLoopDoppler_" + std::to_string( i ) + "_" +
                             std::to_string( j ) + "_" + std::to_string( k ) + "_" +  useDouble + ".dat" );
+
             }
 
+            currentIntegrationTime *= integrationTimeMultiplier;
+
         }
+
+        tudat::input_output::writeMatrixToFile(
+                    maximumDopplerErrors, "maximumDopplerErrors_" + std::to_string( k ) + "_" + useDouble + ".dat" );
+        tudat::input_output::writeMatrixToFile(
+                    minimumDopplerErrors, "minimumDopplerErrors_" + std::to_string( k ) + "_" + useDouble + ".dat" );
+        tudat::input_output::writeMatrixToFile(
+                    meanDopplerErrors, "meanDopplerErrors_" + std::to_string( k ) + "_" + useDouble + ".dat" );
+
+        tudat::input_output::writeMatrixToFile(
+                    maximumDopplerErrorsWrtBenchmark, "maximumDopplerErrorsWrtBenchmark_" + std::to_string( k ) + "_" + useDouble + ".dat" );
+        tudat::input_output::writeMatrixToFile(
+                    minimumDopplerErrorsWrtBenchmark, "minimumDopplerErrorsWrtBenchmark_" + std::to_string( k ) + "_" + useDouble + ".dat" );
+        tudat::input_output::writeMatrixToFile(
+                    meanDopplerErrorsWrtBenchmark, "meanDopplerErrorsWrtBenchmark_" + std::to_string( k ) + "_" + useDouble + ".dat" );
+
     }
-
-
 }
 
 int main( )

@@ -2,6 +2,14 @@
 #include <fstream>
 #include <bitset>
 #include <cmath>
+#include <vector>
+#include <map>
+
+#include <boost/make_shared.hpp>
+
+#include "Tudat/Astrodynamics/BasicAstrodynamics/timeConversions.h"
+#include "Tudat/InputOutput/basicInputOutput.h"
+#include "Tudat/Mathematics/Interpolators/lookupScheme.h"
 
 uint32_t read_u32_le(std::istream& file)
 {
@@ -124,30 +132,75 @@ uint32_t& groupStartPacketNumber )
     }
 }
 
+int currentBlockIsHeader(  char fileBlock[ 9 ][ 4 ], int& secondaryKeyInt )
+{
+    int headerType = -2;
+
+    int32_t primaryKey;
+    uint32_t secondaryKey;
+    uint32_t logicalrecordLength;
+    uint32_t groupStartPacketNumber;
+
+    try
+    {
+        parseHeader( fileBlock, primaryKey, secondaryKey, logicalrecordLength, groupStartPacketNumber );
+        secondaryKeyInt = secondaryKey;
+        if( primaryKey ==  101 )
+        {
+            headerType = 1;
+        }
+        else if( primaryKey == 107 )
+        {
+            headerType = 2;
+        }
+        else if( primaryKey == 109 )
+        {
+            headerType = 3;
+        }
+        else if( primaryKey == 2030 )
+        {
+            headerType = 4;
+        }
+        else if( primaryKey == 2040 )
+        {
+            headerType = 5;
+        }
+        else if( primaryKey == -1 )
+        {
+            headerType = -1;
+        }
+    }
+    catch( std::runtime_error )
+    {
+        headerType = 0;
+    }
+    return headerType;
+}
+
 void parseFileLabel( char fileBlock[ 9 ][ 4 ],
 std::string& systemId, std::string& programId, std::string& fileCreationDate, std::string& fileCreationTme,
 uint32_t& spacecraftIdNumber, uint32_t& fileReferenceDate, uint32_t& fileReferenceTime )
 {
-   systemId.resize( 8 );
-   programId.resize( 8 );
+    systemId.resize( 8 );
+    programId.resize( 8 );
 
-   fileCreationDate.resize( 4 );
-   fileCreationTme.resize( 4 );
+    fileCreationDate.resize( 4 );
+    fileCreationTme.resize( 4 );
 
-   for( unsigned int i = 0; i < 4; i++ )
-   {
-       systemId[ i ] = fileBlock[ 0 ][ i ];
-       systemId[ i + 4 ] = fileBlock[ 1 ][ i ];
+    for( unsigned int i = 0; i < 4; i++ )
+    {
+        systemId[ i ] = fileBlock[ 0 ][ i ];
+        systemId[ i + 4 ] = fileBlock[ 1 ][ i ];
 
-       programId[ i ] = fileBlock[ 2 ][ i ];
-       programId[ i + 4 ] = fileBlock[ 3 ][ i ];
+        programId[ i ] = fileBlock[ 2 ][ i ];
+        programId[ i + 4 ] = fileBlock[ 3 ][ i ];
 
-       fileCreationDate[ i ] = fileBlock[ 5 ][ i ];
-       fileCreationTme[ i ] = fileBlock[ 6 ][ i ];
-   }
-   spacecraftIdNumber = convertCharactersToUnsignedInt32( fileBlock[ 4 ] );
-   fileReferenceDate = convertCharactersToUnsignedInt32( fileBlock[ 7 ] );
-   fileReferenceTime = convertCharactersToUnsignedInt32( fileBlock[ 8 ] );
+        fileCreationDate[ i ] = fileBlock[ 5 ][ i ];
+        fileCreationTme[ i ] = fileBlock[ 6 ][ i ];
+    }
+    spacecraftIdNumber = convertCharactersToUnsignedInt32( fileBlock[ 4 ] );
+    fileReferenceDate = convertCharactersToUnsignedInt32( fileBlock[ 7 ] );
+    fileReferenceTime = convertCharactersToUnsignedInt32( fileBlock[ 8 ] );
 }
 
 void parseIdentifierGroup( char fileBlock[ 9 ][ 4 ] )
@@ -192,54 +245,38 @@ std::bitset< FirstInputSize + SecondInputSize > mergeBitsets(
     return returnBitset;
 }
 
-void parseDopplerOrbitData( char fileBlock[ 9 ][ 4 ] )
-{
-    std::bitset< 32 > dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 5 ] ) );
-    std::bitset< 7 > receiverChannelBitsBits = getBitsetSegment< 7, 32 >( dataBits, 0 );
-    std::bitset< 10 > spacecraftIdBits = getBitsetSegment< 10, 32 >( dataBits, 7 );
-    std::bitset< 1 > receiverExciterFlagBits = getBitsetSegment< 1, 32 >( dataBits, 17 );
-    std::bitset< 14 > referenceFrequencyHighPartBitsA = getBitsetSegment< 14, 32 >( dataBits, 18 );
-
-    dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 6 ] ) );
-    std::bitset< 8 > referenceFrequencyHighPartBitsB = getBitsetSegment< 8, 32 >( dataBits, 0 );
-    std::bitset< 22 > referenceFrequencyHighPartBits = mergeBitsets< 14, 8 >(
-                referenceFrequencyHighPartBitsA, referenceFrequencyHighPartBitsB );
-
-    std::bitset< 24 > referenceFrequencyLowPartBits = getBitsetSegment< 24, 32 >( dataBits, 8 );
-
-    std::cout<<receiverChannelBitsBits.to_ulong( )<<" "<<spacecraftIdBits.to_ulong( )<<" "
-               <<receiverExciterFlagBits.to_ulong( )<<" "<<referenceFrequencyHighPartBits.to_ulong( )<<" "<<
-                 referenceFrequencyLowPartBits.to_ulong( )<<std::endl;
-
-    dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 7 ] ) );
-    std::bitset< 20 > reservedSegmentBits = getBitsetSegment< 20, 32 >( dataBits, 0 );
-    std::bitset< 12 > compressionTimeABits = getBitsetSegment< 12, 32 >( dataBits, 20 );
-
-    std::cout<<"Data 7 "<<dataBits<<std::endl;
-
-    dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 8 ] ) );
-    std::bitset< 10 > compressionTimeBBits = getBitsetSegment< 10, 32 >( dataBits, 0 );
-
-    std::cout<<"Data 8 "<<dataBits<<std::endl;
-
-    std::cout<<"Data comp. time "<<compressionTimeABits<<" "<<compressionTimeBBits <<std::endl;
-
-    std::bitset< 22 > compressionTimeBits = mergeBitsets< 12, 10 >(
-                compressionTimeABits, compressionTimeBBits );
-
-    std::cout<<compressionTimeBits<<" "<<compressionTimeBits.to_ulong( )<<std::endl;
-
-    std::bitset< 22 > transmittingStationDelayBits = getBitsetSegment< 22, 32 >( dataBits, 10 );
-
-    std::cout<<transmittingStationDelayBits<<" "<<transmittingStationDelayBits.to_ulong( )<<std::endl;
-
-
-
-
-}
-
 struct OdfDopplerDataBlock
 {
+
+    int receiverChannel;
+    int spacecraftId;
+    int receiverExciterFlag;
+    int referenceFrequencyHighPart;
+    int referenceFrequencyLowPart;
+
+    int reservedSegment;
+    int compressionTime;
+
+    int transmittingStationDelay;
+
+    double getReferenceFrequency( )
+    {
+        std::cout<<std::setprecision( 16 )<<referenceFrequencyHighPart<<" "<<referenceFrequencyLowPart<<" "<<
+                   std::pow( 2.0, 24 ) /1.0E3 * referenceFrequencyHighPart<<" "<<referenceFrequencyLowPart / 1.0E3<<std::endl;
+        return std::pow( 2.0, 24 )  /1.0E3 * referenceFrequencyHighPart + referenceFrequencyLowPart / 1.0E3;
+    }
+
+    void printContents( )
+    {
+        std::cout<<"Receiver: "<<receiverChannel<<" "<<receiverExciterFlag<<std::endl;
+        std::cout<<"Spacecraft: "<<spacecraftId<<std::endl;
+        std::cout<<"Reference frequency: "<<referenceFrequencyHighPart<<" "<<referenceFrequencyLowPart<<std::endl;
+
+        std::cout<<"Reserved: "<<reservedSegment<<std::endl;
+        std::cout<<"Compression time: "<<compressionTime<<std::endl;
+        std::cout<<"Transmission delay: "<<transmittingStationDelay<<std::endl<<std::endl;;
+
+    }
 
 };
 
@@ -262,6 +299,151 @@ struct OdfCommonDataBlock
     int uplinkBand;
     int referenceBand;
     int validity;
+
+    void printContents( )
+    {
+        std::cout<<"Time: "<<integerTimeTag<<" "<<fractionalTimeTag<<std::endl;
+        std::cout<<"Downlink delay: "<<receivingStationDownlinkDelay<<std::endl;
+        std::cout<<"Observable: "<<integerObservable<<" "<<fractionalObservable<<std::endl;
+
+        std::cout<<"Format id: "<<formatId<<std::endl;
+        std::cout<<"Station data: "<<receivingStation<<" "<<transmittingStation<<" "<<transmittingStationNetworkId<<" "<<std::endl;
+        std::cout<<"Data type: "<<dataType<<std::endl;
+        std::cout<<"Bands: "<<downlinkBand<<" "<<uplinkBand<<" "<<referenceBand<<" "<<std::endl;
+        std::cout<<"Validity: "<<validity<<std::endl<<std::endl;
+
+    }
+};
+
+struct OdfRampBlock
+{
+    int integerRampStartTime;
+    int fractionalRampStartTime;
+
+    int integerRampEndTime;
+    int fractionalRampEndTime;
+
+    int integerRampRate;
+    int fractionalRampRate;
+
+    int integerRampStartFrequency;
+    int integerRampStartFrequencyModulo;
+    int fractionalRampStartFrequency;
+
+    int transmittingStationId;
+
+    double getRampStartFrequency( )
+    {
+        return static_cast< double >( integerRampStartFrequency ) * 1.0E9 +
+                static_cast< double >( integerRampStartFrequencyModulo ) +
+                static_cast< double >( fractionalRampStartFrequency ) * 1.0E-9;
+
+    }
+
+    double getRampRate( )
+    {
+        return static_cast< double >( integerRampRate ) +
+                static_cast< double >( fractionalRampRate ) * 1.0E-9;
+
+    }
+
+    double getRampStartTime( )
+    {
+        return static_cast< double >( integerRampStartTime ) -
+                //                ( tudat::basic_astrodynamics::JULIAN_DAY_ON_J2000 - tudat::basic_astrodynamics::convertCalendarDateToJulianDay(
+                //                        1950, 1, 1, 0, 0, 0.0 ) ) *
+                86400.0 + static_cast< double >( fractionalRampStartTime ) * 1.0E-9;
+    }
+
+    double getRampEndTime( )
+    {
+        return static_cast< double >( integerRampEndTime ) -
+                //                ( tudat::basic_astrodynamics::JULIAN_DAY_ON_J2000 - tudat::basic_astrodynamics::convertCalendarDateToJulianDay(
+                //                        1950, 1, 1, 0, 0, 0.0 ) ) * 86400.0 +
+                static_cast< double >( fractionalRampEndTime ) * 1.0E-9;
+    }
+
+    void printContents( )
+    {
+        std::cout<<"Start time "<<integerRampStartTime<<" "<<fractionalRampStartTime<<std::endl;
+        std::cout<<"End time "<<integerRampEndTime<<" "<<fractionalRampEndTime<<std::endl;
+        std::cout<<"Ramp rate "<<integerRampRate<<" "<<fractionalRampRate<<std::endl;
+        std::cout<<"Start frequency "<<integerRampStartFrequency<<" "<<integerRampStartFrequencyModulo<<" "<<
+                   fractionalRampStartFrequency<<std::endl;
+        std::cout<<"Station "<<transmittingStationId<<std::endl<<std::endl;
+
+    }
+};
+
+class RampedReferenceFrequencyInterpolator
+{
+public:
+    RampedReferenceFrequencyInterpolator(
+            std::vector< OdfRampBlock > rampBlock )
+    {
+        for( unsigned int i = 0; i < rampBlock.size( ); i++ )
+        {
+            startTimes.push_back( rampBlock.at( i ).getRampStartTime( ) );
+            endTimes.push_back( rampBlock.at( i ).getRampEndTime( ) );
+            rampRates.push_back( rampBlock.at( i ).getRampRate( ) );
+            startFrequency.push_back( rampBlock.at( i ).getRampStartFrequency( ) );
+        }
+
+        startTimeLookupScheme_ = boost::make_shared<
+                tudat::interpolators::HuntingAlgorithmLookupScheme< double > >(
+                    startTimes );
+    }
+
+    double getCurrentReferenceFrequencyIntegral(
+            const double lookupTime, const double integrationTime )
+    {
+        //        std::cout<<startTimes.size( )<<std::endl;
+        //        std::cout<<lookupTime<<" "<<lookupTime - startTimes.at( 0 )<<" "<<lookupTime - endTimes.at( endTimes.size( ) - 1 )<<std::endl;
+
+        int lowerNearestNeighbour = startTimeLookupScheme_->findNearestLowerNeighbour(
+                    lookupTime );
+        if( lookupTime > endTimes.at( lowerNearestNeighbour ) )
+        {
+            //std::cout<<lookupTime - endTimes.at( lowerNearestNeighbour )<<" "<<lowerNearestNeighbour<<" "<<startTimes.size( )<<std::endl;
+            //std::cout<<lookupTime - startTimes.at( lowerNearestNeighbour + 1 )<<" "<<startTimes.size( )<<std::endl<<std::endl;
+
+            //throw std::runtime_error( "Error when getting ramp frequency, time not inside arc range" );
+        }
+
+        return integrationTime * (
+                    startFrequency.at( lowerNearestNeighbour ) +
+                    rampRates.at( lowerNearestNeighbour ) * ( lookupTime - startTimes.at( lowerNearestNeighbour ) ) +
+                    0.5 * rampRates.at( lowerNearestNeighbour ) * integrationTime );
+    }
+
+    double getCurrentReferenceFrequency(
+            const double lookupTime, const double integrationTime )
+    {
+        int lowerNearestNeighbour = startTimeLookupScheme_->findNearestLowerNeighbour(
+                    lookupTime );
+        if( lookupTime > endTimes.at( lowerNearestNeighbour ) )
+        {
+            //std::cout<<lookupTime - endTimes.at( lowerNearestNeighbour )<<" "<<lowerNearestNeighbour<<" "<<startTimes.size( )<<std::endl;
+            //std::cout<<lookupTime - startTimes.at( lowerNearestNeighbour + 1 )<<" "<<startTimes.size( )<<std::endl<<std::endl;
+
+            //throw std::runtime_error( "Error when getting ramp frequency, time not inside arc range" );
+        }
+
+        return  startFrequency.at( lowerNearestNeighbour ) +
+                    rampRates.at( lowerNearestNeighbour ) * ( lookupTime - startTimes.at( lowerNearestNeighbour ) );
+    }
+
+
+
+private:
+
+    std::vector< double > startTimes;
+    std::vector< double > endTimes;
+    std::vector< double > rampRates;
+    std::vector< double > startFrequency;
+
+    boost::shared_ptr< tudat::interpolators::LookUpScheme< double > > startTimeLookupScheme_;
+
 };
 
 struct OdfDataBlock
@@ -270,74 +452,166 @@ struct OdfDataBlock
     OdfCommonDataBlock commonDataBlock;
 };
 
+OdfDopplerDataBlock parseDopplerOrbitData( char fileBlock[ 9 ][ 4 ] )
+{
+    OdfDopplerDataBlock dopplerDataBlock;
 
-void parseOrbitData( char fileBlock[ 9 ][ 4 ] )
+    std::bitset< 32 > dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 5 ] ) );
+
+    dopplerDataBlock.receiverChannel = getBitsetSegment< 7, 32 >( dataBits, 0 ).to_ulong( );
+    dopplerDataBlock.spacecraftId = getBitsetSegment< 10, 32 >( dataBits, 7 ).to_ulong( );
+    dopplerDataBlock.receiverExciterFlag = getBitsetSegment< 1, 32 >( dataBits, 17 ).to_ulong( );
+
+    std::bitset< 14 > referenceFrequencyHighPartBitsA = getBitsetSegment< 14, 32 >( dataBits, 18 );
+    dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 6 ] ) );
+    std::bitset< 8 > referenceFrequencyHighPartBitsB = getBitsetSegment< 8, 32 >( dataBits, 0 );
+    dopplerDataBlock.referenceFrequencyHighPart = mergeBitsets< 14, 8 >(
+                referenceFrequencyHighPartBitsA, referenceFrequencyHighPartBitsB ).to_ulong();
+    dopplerDataBlock.referenceFrequencyLowPart = getBitsetSegment< 24, 32 >( dataBits, 8 ).to_ulong( );
+
+    //std::cout<<dopplerDataBlock.referenceFrequencyHighPart<<" "<<dopplerDataBlock.referenceFrequencyLowPart<<std::endl;
+
+    dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 7 ] ) );
+
+    dopplerDataBlock.reservedSegment = getBitsetSegment< 20, 32 >( dataBits, 0 ).to_ulong( );
+    std::bitset< 12 > compressionTimeABits = getBitsetSegment< 12, 32 >( dataBits, 20 );
+    dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 8 ] ) );
+    std::bitset< 10 > compressionTimeBBits = getBitsetSegment< 10, 32 >( dataBits, 0 );
+    dopplerDataBlock.compressionTime = mergeBitsets< 12, 10 >(
+                compressionTimeABits, compressionTimeBBits ).to_ulong( );
+    dopplerDataBlock.transmittingStationDelay = getBitsetSegment< 22, 32 >( dataBits, 10 ).to_ulong( );
+
+    //dopplerDataBlock.printContents( );
+
+    return dopplerDataBlock;
+}
+
+OdfDataBlock parseOrbitData( char fileBlock[ 9 ][ 4 ] )
 {
     OdfCommonDataBlock commonDataBlock;
-    uint32_t integerTimeTag = convertCharactersToUnsignedInt32( fileBlock[ 0 ] );
+
+    commonDataBlock.integerTimeTag = convertCharactersToUnsignedInt32( fileBlock[ 0 ] );
+
     std::bitset< 32 > dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 1 ] ) );
+    commonDataBlock.fractionalTimeTag = getBitsetSegment< 10, 32 >(
+                dataBits, 0 ).to_ulong( );
+    commonDataBlock.receivingStationDownlinkDelay = getBitsetSegment< 22, 32 >(
+                dataBits, 10 ).to_ulong( );
 
-    std::cout<<integerTimeTag<<" "<<dataBits<<std::endl;
+    commonDataBlock.integerObservable = convertCharactersToSignedInt32( fileBlock[ 2 ] );
+    commonDataBlock.fractionalObservable = convertCharactersToSignedInt32( fileBlock[ 3 ] );
 
-    std::bitset< 10 > fractionalTimeTagBits = getBitsetSegment< 10, 32 >(
-                    dataBits, 0 );
-    int fractionalTimeTag = getUnsignedNBitInteger< 10 >( fractionalTimeTagBits );
-
-    std::bitset< 22 > receivingStationDownlinkDelayBits = getBitsetSegment< 22, 32 >(
-                    dataBits, 10 );
-    int receivingStationDownlinkDelay = getUnsignedNBitInteger< 22 >( receivingStationDownlinkDelayBits );
-
-    std::cout<<fractionalTimeTagBits<<" "<<fractionalTimeTag<<std::endl;
-    std::cout<<receivingStationDownlinkDelayBits<<" "<<receivingStationDownlinkDelay<<std::endl;
-
-    int32_t integerObservable = convertCharactersToSignedInt32( fileBlock[ 2 ] );
-    int32_t fractionalObservable = convertCharactersToSignedInt32( fileBlock[ 3 ] );
-
-    std::cout<<integerObservable<<" "<<fractionalObservable<<std::endl;
 
     dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 4 ] ) );
-    std::bitset< 3 > formatIdBits = getBitsetSegment< 3, 32 >( dataBits, 0 );
-    std::bitset< 7 > receivingStationBits = getBitsetSegment< 7, 32 >( dataBits, 3 );
-    std::bitset< 7 > transmittingStationBits = getBitsetSegment< 7, 32 >( dataBits, 10 );
-    std::bitset< 2 > transmittingStationNetworkIdBits = getBitsetSegment< 2, 32 >( dataBits, 17 );
-    std::bitset< 6 > dataTypeBits = getBitsetSegment< 6, 32 >( dataBits, 19 );
 
-    int formatId = getUnsignedNBitInteger< 3 >( formatIdBits );
-    int receivingStation = getUnsignedNBitInteger< 7 >( receivingStationBits );
-    int transmittingStation = getUnsignedNBitInteger< 7 >( transmittingStationBits );
-    int transmittingStationNetworkId = getUnsignedNBitInteger< 2 >( transmittingStationNetworkIdBits );
-    int dataType = getUnsignedNBitInteger< 6 >( dataTypeBits );
 
-    std::cout<<dataBits<<std::endl;
-    std::cout<<formatIdBits<<" "<<formatId<<std::endl;
-    std::cout<<receivingStationBits<<" "<<receivingStation<<std::endl;
-    std::cout<<transmittingStationBits<<" "<<transmittingStation<<std::endl;
-    std::cout<<transmittingStationNetworkIdBits<<" "<<transmittingStationNetworkId<<std::endl;
-    std::cout<<dataTypeBits<<" "<<dataType<<std::endl;
+    commonDataBlock.formatId = getBitsetSegment< 3, 32 >( dataBits, 0 ).to_ulong( );
+    commonDataBlock.receivingStation = getBitsetSegment< 7, 32 >( dataBits, 3 ).to_ulong( );
+    commonDataBlock.transmittingStation = getBitsetSegment< 7, 32 >( dataBits, 10 ).to_ulong( );
 
-    std::bitset< 2 > downlinkBandBits = getBitsetSegment< 2, 32 >( dataBits, 25 );
-    std::bitset< 2 > uplinkBandBits = getBitsetSegment< 2, 32 >( dataBits, 27 );
-    std::bitset< 2 > referenceBandBits = getBitsetSegment< 2, 32 >( dataBits, 29 );
-    std::bitset< 1 > validityBits = getBitsetSegment< 1, 32 >( dataBits, 31 );
+    //    std::cout<<std::setprecision( 16 )<<static_cast< double >( commonDataBlock.integerTimeTag ) +
+    //               static_cast< double >(commonDataBlock.fractionalTimeTag ) / 1000.0<<" "<<
+    //               commonDataBlock.receivingStation<<" "<<commonDataBlock.transmittingStation<<std::endl;
 
-    std::cout<<getUnsignedNBitInteger< 2 >( downlinkBandBits )<<" "<<
-               getUnsignedNBitInteger< 2 >( uplinkBandBits )<<" "<<
-               getUnsignedNBitInteger< 2 >( referenceBandBits )<<" "<<
-               getUnsignedNBitInteger< 1 >( validityBits )<<std::endl;
+    commonDataBlock.transmittingStationNetworkId = getBitsetSegment< 2, 32 >( dataBits, 17 ).to_ulong( );
+    commonDataBlock.dataType =  getBitsetSegment< 6, 32 >( dataBits, 19 ).to_ulong( );
 
-    if( dataType == 11 || dataType == 12 || dataType == 13 )
+    commonDataBlock.downlinkBand = getBitsetSegment< 2, 32 >( dataBits, 25 ).to_ulong( );
+    commonDataBlock.uplinkBand = getBitsetSegment< 2, 32 >( dataBits, 27 ).to_ulong( );
+    commonDataBlock.referenceBand = getBitsetSegment< 2, 32 >( dataBits, 29 ).to_ulong( );
+    commonDataBlock.validity = getBitsetSegment< 1, 32 >( dataBits, 31 ).to_ulong( );
+
+    //commonDataBlock.printContents( );
+
+    OdfDataBlock dataBlock;
+    dataBlock.commonDataBlock = commonDataBlock;
+    if( commonDataBlock.dataType == 12 || commonDataBlock.dataType == 13 )
     {
-        parseDopplerOrbitData( fileBlock );
+        dataBlock.dopplerDataBlock = parseDopplerOrbitData( fileBlock );
     }
-
-
-
-
+    else
+    {
+        //std::cout<<commonDataBlock.dataType<<std::endl;
+        //throw std::runtime_error( "Error, data type not recognized" );
+    }
+    return dataBlock;
 }
+
+OdfRampBlock parseRampData( char fileBlock[ 9 ][ 4 ] )
+{
+
+    OdfRampBlock rampBlock;
+    rampBlock.integerRampStartTime = convertCharactersToUnsignedInt32( fileBlock[ 0 ] );
+    rampBlock.fractionalRampStartTime = convertCharactersToUnsignedInt32( fileBlock[ 1 ] );
+
+    rampBlock.integerRampRate = convertCharactersToSignedInt32( fileBlock[ 2 ] );
+    rampBlock.fractionalRampRate = convertCharactersToSignedInt32( fileBlock[ 3 ] );
+
+    std::bitset< 32 > dataBits = std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 4 ] ) );
+    rampBlock.transmittingStationId = getBitsetSegment< 10, 32 >( dataBits, 22 ).to_ulong( );
+    rampBlock.integerRampStartFrequency = getBitsetSegment< 22, 32 >( dataBits, 0 ).to_ulong( );
+
+    rampBlock.integerRampStartFrequencyModulo = convertCharactersToSignedInt32( fileBlock[ 5 ] );
+    rampBlock.fractionalRampStartFrequency = convertCharactersToSignedInt32( fileBlock[ 6 ] );
+
+    rampBlock.integerRampEndTime = convertCharactersToSignedInt32( fileBlock[ 7 ] );
+    rampBlock.fractionalRampEndTime = convertCharactersToSignedInt32( fileBlock[ 8 ] );
+
+    //rampBlock.printContents( );
+
+    return rampBlock;
+}
+
+std::map< std::pair< int, int >, std::map< double, OdfDataBlock > > getSortedOdfBlocks(
+        const std::vector< OdfDataBlock >& odfDataBlocks )
+{
+    std::map< std::pair< int, int >, std::map< double, OdfDataBlock > > dataMap;
+    for( unsigned int i = 0; i < odfDataBlocks.size( ); i++ )
+    {
+        if( //odfDataBlocks.at( i ).commonDataBlock.dataType == 11 ||
+                odfDataBlocks.at( i ).commonDataBlock.dataType == 12 ||
+                odfDataBlocks.at( i ).commonDataBlock.dataType == 13 )
+        {
+            double currentTime =
+                    static_cast< double >( odfDataBlocks.at( i ).commonDataBlock.integerTimeTag ) +
+                    static_cast< double >( odfDataBlocks.at( i ).commonDataBlock.fractionalTimeTag ) / 1000.0;
+            dataMap[ std::make_pair( odfDataBlocks.at( i ).commonDataBlock.transmittingStation,
+                                     odfDataBlocks.at( i ).commonDataBlock.receivingStation ) ][ currentTime ] =
+                    odfDataBlocks.at( i );
+        }
+    }
+    return dataMap;
+}
+
+
+std::map< std::pair< int, int >, std::map< double, double > > getDataMap( const std::vector< OdfDataBlock >& odfDataBlocks )
+{
+
+    std::map< std::pair< int, int >, std::map< double, double > > dataMap;
+    for( unsigned int i = 0; i < odfDataBlocks.size( ); i++ )
+    {
+        if( //odfDataBlocks.at( i ).commonDataBlock.dataType == 11 ||
+                odfDataBlocks.at( i ).commonDataBlock.dataType == 12 ||
+                odfDataBlocks.at( i ).commonDataBlock.dataType == 13 )
+        {
+            double currentTime =
+                    static_cast< double >( odfDataBlocks.at( i ).commonDataBlock.integerTimeTag ) +
+                    static_cast< double >( odfDataBlocks.at( i ).commonDataBlock.fractionalTimeTag ) / 1000.0;
+            dataMap[ std::make_pair( odfDataBlocks.at( i ).commonDataBlock.transmittingStation,
+                                     odfDataBlocks.at( i ).commonDataBlock.receivingStation ) ][ currentTime ] =
+                    static_cast< double >( odfDataBlocks.at( i ).commonDataBlock.integerObservable ) +
+                    static_cast< double >( odfDataBlocks.at( i ).commonDataBlock.fractionalObservable ) / 1.0E9;
+            //            std::cout<<currentTime<<" "<<dataMap[ odfDataBlocks.at( i ).commonDataBlock. receivingStation ][ currentTime ]<<" "<<
+            //                       odfDataBlocks.at( i ).commonDataBlock. receivingStation<<std::endl;
+        }
+    }
+    return dataMap;
+}
+
 
 int main( )
 {
-    std::ifstream dataFile( "/home/dominic/Downloads/mromagr2017_117_0745xmmmv1.odf", std::ios_base::binary);
+    std::ifstream dataFile( "/home/dominic/Downloads/mess_rs_15101_103_odf.dat", std::ios_base::binary);
 
     char currentFileBlock[ 9 ][ 4 ];
 
@@ -356,7 +630,7 @@ int main( )
         parseFileLabel( currentFileBlock, systemId, programId, fileCreationDate, fileCreationTime,
                         spacecraftIdNumber, fileReferenceDate, fileReferenceTime );
         std::cout<<" "<<systemId<<" "<<programId<<" "<<fileCreationDate<<" "<<fileCreationTime<<" "<<
-                                spacecraftIdNumber<<" "<<fileReferenceDate<<" "<<fileReferenceTime<<std::endl;
+                   spacecraftIdNumber<<" "<<fileReferenceDate<<" "<<fileReferenceTime<<std::endl;
 
 
 
@@ -378,16 +652,117 @@ int main( )
         int32_t primaryKey;
         uint32_t secondaryKey, logicalrecordLength, groupStartPacketNumber;
         parseHeader( currentFileBlock, primaryKey, secondaryKey, logicalrecordLength, groupStartPacketNumber );
-        std::cout<<primaryKey<<" "<<secondaryKey<<" "<<logicalrecordLength<<" "<<groupStartPacketNumber <<std::endl;
+        std::cout<<primaryKey<<" "<<secondaryKey<<" "<<logicalrecordLength<<" "<<groupStartPacketNumber <<std::endl<<std::endl;
     }
 
+    std::vector< OdfDataBlock > odfDataBlocks;
+    std::map< int, std::vector< OdfRampBlock > > odfRampBlocks;
 
-    readOdfFileBlock( currentFileBlock, dataFile );
+    bool continueFileRead = true;
+
+    int counter = 0;
+    int currentRampStation = -1;
+    int secondaryKey = -1;
+
+    int dataBlockType = 1; // 1: Orbit Data, 2: Ramp Data, 3: Clock Offset
+
+    while( continueFileRead )
     {
-        parseOrbitData( currentFileBlock );
+        readOdfFileBlock( currentFileBlock, dataFile );
+
+        int blockIsHeader = currentBlockIsHeader( currentFileBlock, secondaryKey );
+
+        if( blockIsHeader == 0 && dataBlockType == 1 )
+        {
+            odfDataBlocks.push_back( parseOrbitData( currentFileBlock ) );
+        }
+        else if( blockIsHeader == 0 && dataBlockType == 2 )
+        {
+            odfRampBlocks[ currentRampStation ].push_back( parseRampData( currentFileBlock ) );
+        }
+        else if( blockIsHeader != 0 )
+        {
+            //std::cout<<"Header "<<blockIsHeader<<" "<<counter<<" "<<secondaryKey<<std::endl;
+            if( blockIsHeader == 3 )
+            {
+                dataBlockType = 1;
+            }
+            else if( blockIsHeader == 4 )
+            {
+                currentRampStation = secondaryKey;
+                dataBlockType = 2;
+            }
+            else if( blockIsHeader == 5 )
+            {
+                dataBlockType = 3;
+            }
+            else if( blockIsHeader == -1 )
+            {
+                continueFileRead = 0;
+            }
+            else
+            {
+                throw std::runtime_error( "Error when reading ODF file, header not recognized" );
+            }
+        }
+        else
+        {
+            std::cout<<blockIsHeader<<" "<<dataBlockType<<std::endl;
+            throw std::runtime_error( "Error, did not recognized header ODF block" );
+        }
+        counter++;
+    }
+
+    std::map< int, boost::shared_ptr< RampedReferenceFrequencyInterpolator > > rampFrequencyInterpolators;
+    for( auto dataIterator = odfRampBlocks.begin( ); dataIterator != odfRampBlocks.end( ); dataIterator++ )
+    {
+        rampFrequencyInterpolators[ dataIterator->first ] =
+                boost::make_shared< RampedReferenceFrequencyInterpolator >( dataIterator->second );
+    }
+
+    std::map< std::pair< int, int >, std::map< double, OdfDataBlock > > sortedOdfBlocks = getSortedOdfBlocks( odfDataBlocks );
+    std::map< std::pair< int, int >, std::map< double, double > > dopplerData = getDataMap( odfDataBlocks );
+    for( auto dataIterator = dopplerData.begin( ); dataIterator != dopplerData.end( ); dataIterator++ )
+    {
+        std::map< double, double > currentDopplerData = dataIterator->second;
+        std::map< double, double > currentReferenceFrequency;
+        std::map< double, double > currentReferenceIntegrals;
+
+        tudat::input_output::writeDataMapToTextFile(
+                    dataIterator->second, "dopplerDataTest_" + std::to_string( dataIterator->first.first ) + "_" +
+                    std::to_string( dataIterator->first.second ) + ".dat", "/home/dominic/Documents/" );
+
+        for( auto dopplerIterator = currentDopplerData.begin( ); dopplerIterator != currentDopplerData.end( ); dopplerIterator++ )
+        {
+            currentReferenceFrequency[ dopplerIterator->first ] = sortedOdfBlocks.at( dataIterator->first ).at( dopplerIterator->first ).
+                    dopplerDataBlock.getReferenceFrequency( );
+        }
+
+        tudat::input_output::writeDataMapToTextFile(
+                    currentReferenceFrequency, "dopplerReferece_" + std::to_string( dataIterator->first.first ) + "_" +
+                    std::to_string( dataIterator->first.second ) + ".dat", "/home/dominic/Documents/" );
+
+        if( rampFrequencyInterpolators.count( dataIterator->first.first ) > 0 )
+        {
+            std::cout<<"Data points "<<currentDopplerData.size( )<<std::endl;
+            for( auto dopplerIterator = currentDopplerData.begin( ); dopplerIterator != currentDopplerData.end( ); dopplerIterator++ )
+            {
+                currentReferenceIntegrals[ dopplerIterator->first ] = rampFrequencyInterpolators[ dataIterator->first.first ]->getCurrentReferenceFrequency(
+                            dopplerIterator->first - 0.5, 1.0 );
+            }
+
+            tudat::input_output::writeDataMapToTextFile(
+                        currentReferenceIntegrals, "dopplerDataReference_" + std::to_string( dataIterator->first.first ) + "_" +
+                        std::to_string( dataIterator->first.second ) + ".dat", "/home/dominic/Documents/" );
+        }
     }
 
 
+
+    std::cout<<"JD "<< tudat::basic_astrodynamics::convertCalendarDateToJulianDay(
+                   1950, 1, 1, 0, 0, 0.0 )<<" "<<
+               ( tudat::basic_astrodynamics::JULIAN_DAY_ON_J2000 - tudat::basic_astrodynamics::convertCalendarDateToJulianDay(
+                     1950, 1, 1, 0, 0, 0.0 ) ) * 86400.0<<std::endl;
 }
 
 //int main( )

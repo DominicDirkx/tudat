@@ -119,6 +119,24 @@ std::vector< KeyType > createVectorFromMapKeys( const std::map< KeyType, VectorA
     return outputVector;
 }
 
+template< typename ValueType, typename KeyType >
+std::map< KeyType, ValueType > createVectorFromMapValues(
+        const std::vector< KeyType >& keys,
+        const std::vector< ValueType >& values )
+{
+    if( keys.size( ) != values.size( ) )
+    {
+        throw std::runtime_error( "Error when merging vectors into map, vector sizes are unequal" );
+    }
+
+    std::map< KeyType, ValueType > returnMap;
+    for( unsigned int i = 0; i < keys.size( ); i++ )
+    {
+       returnMap[ keys.at( i ) ] = values.at( i );
+    }
+    return returnMap;
+}
+
 //! Function to sum the return values of two boost function with empty input argument list.
 /*!
  * Function to sum the return values of two boost function with empty input argument list.

@@ -10,10 +10,100 @@
 #include "Tudat/Astrodynamics/BasicAstrodynamics/timeConversions.h"
 #include "Tudat/InputOutput/readOdfFile.h"
 #include "Tudat/Mathematics/Interpolators/lookupScheme.h"
+#include "Tudat/Astrodynamics/Propagators/parseOdfFile.h"
 
 int main( )
 {
-    tudat::input_output::readOdfFile( "/home/dominic/Downloads/mromagr2017_117_0745xmmmv1.odf" );
+//   boost::shared_ptr< tudat::orbit_determination::ProcessedOdfFileContents > odfContents =
+//           tudat::orbit_determination::parseOdfFileContents(
+//               tudat::input_output::readOdfFile( "/home/dominic/Downloads/mromagr2017_117_0745xmmmv1.odf" ) );
+
+//   std::map< tudat::observation_models::ObservableType,
+//           std::vector< boost::shared_ptr< tudat::orbit_determination::ProcessdOdfFileSingleLinkData > > > dataBlocks =
+//           odfContents->dataBlocks;
+
+//   for( auto it = dataBlocks.begin( ); it != dataBlocks.end( ); it++ )
+//   {
+//       int counter = 0;
+//       for( unsigned int i = 0; i < it->second.size( ); i++ )
+//       {
+//           boost::shared_ptr< tudat::orbit_determination::ProcessdOdfFileDopplerData > currentDopplerData =
+//                   boost::dynamic_pointer_cast< tudat::orbit_determination::ProcessdOdfFileDopplerData >(
+//                       it->second.at( i ) );
+//           std::string fileSuffix = std::to_string( it->first ) + "_" + std::to_string( counter );
+
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getCompressionTimes( ),
+//                           "odfTestCompressionTimes_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getObservationData( ),
+//                           "odfTestObservations_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getReferenceFrequencies( ),
+//                           "odfTestReferenceFrequencies_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getRampFlags( ),
+//                           "odfTestRampFlags_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+//           counter++;
+//       }
+//   }
+
+   std::vector< boost::filesystem::path > files = tudat::input_output::listAllFilesInDirectory(
+       "/home/dominic/Software/MercuryData/odf/2015/", false );
+
+   std::vector< boost::shared_ptr< tudat::orbit_determination::ProcessedOdfFileContents > > odfContentsList;
+
+   for( unsigned int i = 8; i < 9; i++ )
+   {
+       std::string fileString = files.at( i ).string( );
+       int stringSize = fileString.size( );
+
+       if( fileString.substr( stringSize - 3, stringSize -1 ) == "dat" )
+       {
+           std::cout<<fileString<<std::endl;
+           odfContentsList.push_back( tudat::orbit_determination::parseOdfFileContents(
+               tudat::input_output::readOdfFile( "/home/dominic/Software/MercuryData/odf/2015/" + fileString ) ) );
+           std::cout<<std::endl;
+       }
+   }
+
+
+   boost::shared_ptr< tudat::orbit_determination::ProcessedOdfFileContents > mergedData =
+           tudat::orbit_determination::mergeOdfFileContents(
+               odfContentsList );
+
+   std::cout<<files.size( )<<std::endl;
+
+   std::map< tudat::observation_models::ObservableType,
+           std::vector< boost::shared_ptr< tudat::orbit_determination::ProcessdOdfFileSingleLinkData > > > dataBlocksMerged =
+           mergedData->dataBlocks;
+
+   for( auto it = dataBlocksMerged.begin( ); it != dataBlocksMerged.end( ); it++ )
+   {
+       int counter = 0;
+       for( unsigned int i = 0; i < it->second.size( ); i++ )
+       {
+           boost::shared_ptr< tudat::orbit_determination::ProcessdOdfFileDopplerData > currentDopplerData =
+                   boost::dynamic_pointer_cast< tudat::orbit_determination::ProcessdOdfFileDopplerData >(
+                       it->second.at( i ) );
+           std::string fileSuffix = std::to_string( it->first ) + "_" + std::to_string( counter );
+
+           tudat::input_output::writeDataMapToTextFile(
+                       currentDopplerData->getCompressionTimes( ),
+                           "odfTestCompressionTimes_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+           tudat::input_output::writeDataMapToTextFile(
+                       currentDopplerData->getObservationData( ),
+                           "odfTestObservations_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+           tudat::input_output::writeDataMapToTextFile(
+                       currentDopplerData->getReferenceFrequencies( ),
+                           "odfTestReferenceFrequencies_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+           tudat::input_output::writeDataMapToTextFile(
+                       currentDopplerData->getRampFlags( ),
+                           "odfTestRampFlags_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+           counter++;
+       }
+   }
+
 }
 
 //uint32_t read_u32_le(std::istream& file)

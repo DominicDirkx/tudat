@@ -128,18 +128,32 @@ boost::shared_ptr< OdfDataBlock > parseOrbitData( char fileBlock[ 9 ][ 4 ] )
 
     boost::shared_ptr< OdfDataBlock > dataBlock = boost::make_shared< OdfDataBlock >( );
 
+
     dataBlock->commonDataBlock = commonDataBlock;
     if(  dataType == 11 || dataType == 12 || dataType == 13 )
     {
+        if( dataType != 11 )
+        {
+            std::cout<<commonDataBlock->integerObservable<<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 0 ] )
+                    <<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 1 ] )<<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 2 ] )<<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 3 ] )
+                    <<" "<<std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 2 ] ) )<<" "<<std::endl;
+        }
         dataBlock->observableSpecificDataBlock = parseDopplerOrbitData( fileBlock, dataType );
     }
     else if(  dataType == 37 )
     {
         dataBlock->observableSpecificDataBlock = parseSequentialRangeData( fileBlock, dataType );
     }
+    //    else if( dataType == 14 || dataType == 7 || dataType == 2 || dataType == 40  || dataType == 50 || dataType == 20 )
+    //    {
+    //        dataBlock = NULL;
+    //    }
     else
     {
-        throw std::runtime_error( "Error, ODF data type " + std::to_string( dataType ) + " not recognized" );
+        std::cerr<<"Data type "<<dataType<<std::endl;
+        dataBlock = NULL;
+        //throw std::runtime_error( "Error, ODF data type " + std::to_string( dataType ) + " not recognized" );
+
     }
     return dataBlock;
 }
@@ -163,6 +177,8 @@ OdfRampBlock parseRampData( char fileBlock[ 9 ][ 4 ] )
 
     rampBlock.integerRampEndTime = convertCharactersToSignedInt32( fileBlock[ 7 ] );
     rampBlock.fractionalRampEndTime = convertCharactersToSignedInt32( fileBlock[ 8 ] );
+
+    //std::cout<<rampBlock.integerRampStartFrequency<<" "<<rampBlock.integerRampStartFrequencyModulo<<" "<<rampBlock.fractionalRampStartFrequency<<std::endl;
 
     //rampBlock.printContents( );
 
@@ -361,7 +377,11 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
 
         if( blockIsHeader == 0 && dataBlockType == 3 )
         {
-            unsortedOdfDataBlocks.push_back( parseOrbitData( currentFileBlock ) );
+            boost::shared_ptr< OdfDataBlock > currentDataBlock = parseOrbitData( currentFileBlock );
+            if( currentDataBlock != NULL )
+            {
+                unsortedOdfDataBlocks.push_back( currentDataBlock );
+            }
         }
         else if( blockIsHeader == 0 && dataBlockType == 4 )
         {
@@ -378,6 +398,10 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
         else
         {
             throw std::runtime_error( "Error, did not recognized header ODF block" );
+        }
+        if( dataFile.eof( ) )
+        {
+            continueFileRead = 0;
         }
         counter++;
     }

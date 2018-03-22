@@ -215,11 +215,22 @@ class OdfCommonDataBlock
 public:
     int integerTimeTag;
     int fractionalTimeTag;
-    int receivingStationDownlinkDelay;
 
     int integerObservable;
     int fractionalObservable;
 
+    double getObservableValue( )
+    {
+        return static_cast< double >( integerObservable ) +
+                static_cast< double >( fractionalObservable ) / 1.0E9;
+    }
+
+    double getObservableTime( )
+    {
+        return static_cast< double >( integerTimeTag ) + static_cast< double >( fractionalTimeTag ) / 1000.0;
+    }
+
+    int receivingStationDownlinkDelay;
     int formatId;
     int receivingStation;
     int transmittingStation;

@@ -91,6 +91,8 @@ public:
     std::vector< int > uplinkBand;
     std::vector< int > referenceBand;
 
+    std::vector< std::string > originFile;
+
     observation_models::ObservableType observableType;
 
     std::string transmittingStation;
@@ -194,6 +196,11 @@ boost::shared_ptr< ProcessedOdfFileContents > mergeOdfFileContents(
                sortedDopplerDataBlocks[ it->first ]->rampingFlag.insert(
                            sortedDopplerDataBlocks[ it->first ]->rampingFlag.end( ),
                       blockToAdd->rampingFlag.begin( ), blockToAdd->rampingFlag.end( ) );
+
+               sortedDopplerDataBlocks[ it->first ]->originFile.insert(
+                           sortedDopplerDataBlocks[ it->first ]->originFile.end( ),
+                      blockToAdd->originFile.begin( ), blockToAdd->originFile.end( ) );
+
            }
 
        }
@@ -298,7 +305,7 @@ boost::shared_ptr< ProcessedOdfFileContents > parseOdfFileContents(
     for( auto it = processedDopplerDataBlocks.begin( ); it != processedDopplerDataBlocks.end( ); it++ )
     {
         processedDataBlocks[ it->second->observableType ].push_back( it->second );
-        std::cout<<it->first.first<<" "<<it->first.second<<" "<<it->second->observableValues.size( )<<std::endl;
+        //std::cout<<it->first.first<<" "<<it->first.second<<" "<<it->second->observableValues.size( )<<std::endl;
     }
 
     processedOdfFile->sortedDopplerDataBlocks = processedDopplerDataBlocks;

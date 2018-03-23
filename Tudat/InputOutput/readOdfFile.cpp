@@ -90,6 +90,10 @@ boost::shared_ptr< OdfDopplerDataBlock > parseDopplerOrbitData( char fileBlock[ 
                 compressionTimeABits, compressionTimeBBits ).to_ulong( );
     dopplerDataBlock->transmittingStationDelay = getBitsetSegment< 22, 32 >( dataBits, 10 ).to_ulong( );
 
+//    std::cout<<dopplerDataBlock->referenceFrequencyHighPart<<" "<<
+//               dopplerDataBlock->transmittingStationDelay<<" "<<dopplerDataBlock->receiverChannel<<" "<<
+//               dopplerDataBlock->receiverExciterFlag<<" "<< dopplerDataBlock->reservedSegment <<std::endl;
+
     return dopplerDataBlock;
 }
 
@@ -134,9 +138,16 @@ boost::shared_ptr< OdfDataBlock > parseOrbitData( char fileBlock[ 9 ][ 4 ] )
     {
         if( dataType != 11 )
         {
-            std::cout<<commonDataBlock->integerObservable<<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 0 ] )
-                    <<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 1 ] )<<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 2 ] )<<" "<<std::bitset< 8 >( fileBlock[ 2 ][ 3 ] )
-                    <<" "<<std::bitset< 32 >( convertCharactersToUnsignedInt32( fileBlock[ 2 ] ) )<<" "<<std::endl;
+//            std::cout<<commonDataBlock->integerObservable<<" "<<
+//                       commonDataBlock->downlinkBand<<" "<<
+//                       commonDataBlock->uplinkBand<<" "<<
+//                       commonDataBlock->referenceBand<<" "<<
+//                       commonDataBlock->validity<<" "<<
+//                       commonDataBlock->formatId<<" "<<
+//                       commonDataBlock->transmittingStationNetworkId<<" "<<
+//                       commonDataBlock->receivingStation<<" "<<
+//                       commonDataBlock->transmittingStation<<" "<<
+//                       commonDataBlock->receivingStationDownlinkDelay<<" ";
         }
         dataBlock->observableSpecificDataBlock = parseDopplerOrbitData( fileBlock, dataType );
     }
@@ -195,6 +206,7 @@ uint32_t& spacecraftIdNumber, uint32_t& fileReferenceDate, uint32_t& fileReferen
     fileCreationDate.resize( 4 );
     fileCreationTme.resize( 4 );
 
+    // Read strong contents of data block
     for( unsigned int i = 0; i < 4; i++ )
     {
         systemId[ i ] = fileBlock[ 0 ][ i ];
@@ -206,6 +218,8 @@ uint32_t& spacecraftIdNumber, uint32_t& fileReferenceDate, uint32_t& fileReferen
         fileCreationDate[ i ] = fileBlock[ 5 ][ i ];
         fileCreationTme[ i ] = fileBlock[ 6 ][ i ];
     }
+
+    // Retrieve numeral contents of data block
     spacecraftIdNumber = convertCharactersToUnsignedInt32( fileBlock[ 4 ] );
     fileReferenceDate = convertCharactersToUnsignedInt32( fileBlock[ 7 ] );
     fileReferenceTime = convertCharactersToUnsignedInt32( fileBlock[ 8 ] );
@@ -217,12 +231,14 @@ uint32_t& secondaryKey,
 uint32_t& logicalrecordLength,
 uint32_t& groupStartPacketNumber )
 {
+    // Read data from header file
     primaryKey = convertCharactersToSignedInt32( fileBlock[ 0 ] );
     secondaryKey = convertCharactersToUnsignedInt32( fileBlock[ 1 ] );
     logicalrecordLength = convertCharactersToUnsignedInt32( fileBlock[ 2 ] );
     groupStartPacketNumber = convertCharactersToUnsignedInt32( fileBlock[ 3 ] );
-    uint32_t testInteger;
 
+    // Check if subsequent data contains only zeroes
+    uint32_t testInteger;
     for( int i = 0; i < 5; i++ )
     {
         testInteger = convertCharactersToUnsignedInt32( fileBlock[ i + 4 ] );
@@ -243,9 +259,12 @@ int currentBlockIsHeader(  char fileBlock[ 9 ][ 4 ], unsigned int& secondaryKeyI
     uint32_t logicalrecordLength;
     uint32_t groupStartPacketNumber;
 
+    // Try reading current block as a header, if an exception is caught, block is not a header.
     try
     {
         parseHeader( fileBlock, primaryKey, secondaryKey, logicalrecordLength, groupStartPacketNumber );
+
+        // If block is a header, retrieve secondary key and header type
         secondaryKeyInt = secondaryKey;
         if( primaryKey ==  101 )
         {
@@ -279,6 +298,31 @@ int currentBlockIsHeader(  char fileBlock[ 9 ][ 4 ], unsigned int& secondaryKeyI
     return headerType;
 }
 
+
+void parseIdentifierGroup( char fileBlock[ 9 ][ 4 ],
+    std::string& identifierGroupStringA, std::string&identifierGroupStringB, std::string& identifierGroupStringC )
+{
+    // Read three strings from data blocks
+    identifierGroupStringA.resize( 8 );
+    identifierGroupStringB.resize( 8 );
+    identifierGroupStringC.resize( 20 );
+
+    for( unsigned int i = 0; i < 4; i++ )
+    {
+        identifierGroupStringA[ i ] = fileBlock[ 0 ][ i ];
+        identifierGroupStringA[ i + 4 ] = fileBlock[ 1 ][ i ];
+
+        identifierGroupStringB[ i ] = fileBlock[ 2 ][ i ];
+        identifierGroupStringB[ i + 4 ] = fileBlock[ 3 ][ i ];
+
+        for( unsigned int j = 0; j < 5; j++ )
+        {
+            identifierGroupStringC[ i + j * 4 ] = fileBlock[ 4 + j ][ i ];
+        }
+    }
+}
+
+//! Function to read a single 36 byte block from ODF file
 void readOdfFileBlock(
         char fileBlock[ 9 ][ 4 ],
 std::istream& file )
@@ -289,46 +333,23 @@ std::istream& file )
     }
 }
 
-void parseIdentifierGroup( char fileBlock[ 9 ][ 4 ] )
-{
-    std::string testStringA, testStringB, testStringC;
-    testStringA.resize( 8 );
-    testStringB.resize( 8 );
-    testStringC.resize( 20 );
-
-    for( unsigned int i = 0; i < 4; i++ )
-    {
-        testStringA[ i ] = fileBlock[ 0 ][ i ];
-        testStringA[ i + 4 ] = fileBlock[ 1 ][ i ];
-
-        testStringB[ i ] = fileBlock[ 2 ][ i ];
-        testStringB[ i + 4 ] = fileBlock[ 3 ][ i ];
-
-        for( unsigned int j = 0; j < 5; j++ )
-        {
-            testStringC[ i + j * 4 ] = fileBlock[ 4 + j ][ i ];
-        }
-    }
-
-    std::cout<<testStringA<<" "<<testStringB<<" "<<testStringC<<std::endl;
-    //    if( testStringA != "TIMETAG " || testStringB != "OBSRVBL " || testStringC != "FREQ, ANCILLARY-DATA"  )
-    //    {
-    //        throw std::runtime_error( "Error when reading ODF file, identifier group incompatible" );
-    //    }
-}
-
+//! Function to read the contents of an ODF file into an OdfRawFileContents object
 boost::shared_ptr< OdfRawFileContents > readOdfFile(
         const std::string& odfFile )
 {
+    // Open file
     std::ifstream dataFile( odfFile, std::ios_base::binary);
 
+    // Create OdfRawFileContents object, and add file name
     boost::shared_ptr< OdfRawFileContents > odfFileContents =
             boost::make_shared< OdfRawFileContents >( );
+    odfFileContents->fileName = odfFile;
 
+    // Read first line
     char currentFileBlock[ 9 ][ 4 ];
-
     readOdfFileBlock( currentFileBlock, dataFile );
 
+    // Parse file header
     int32_t primaryKey;
     uint32_t secondaryKey, logicalrecordLength, groupStartPacketNumber;
     parseHeader( currentFileBlock, primaryKey, secondaryKey, logicalrecordLength, groupStartPacketNumber );
@@ -337,12 +358,13 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
         throw std::runtime_error( "Error when reding ODF file, file header incompatible" );
     }
 
-
+    // Parse file label
     readOdfFileBlock( currentFileBlock, dataFile );
     parseFileLabel( currentFileBlock, odfFileContents->systemId, odfFileContents->programId,
                     odfFileContents->fileCreationDate, odfFileContents->fileCreationTime,
                     odfFileContents->spacecraftId, odfFileContents->fileReferenceDate, odfFileContents->fileReferenceTime );
 
+    // Parse identifier header
     readOdfFileBlock( currentFileBlock, dataFile );
     parseHeader( currentFileBlock, primaryKey, secondaryKey, logicalrecordLength, groupStartPacketNumber );
     if( primaryKey != 107 || secondaryKey != 0 || logicalrecordLength != 1 || groupStartPacketNumber != 2 )
@@ -350,9 +372,13 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
         throw std::runtime_error( "Error when reding ODF file, file header incompatible" );
     }
 
-    readOdfFileBlock( currentFileBlock, dataFile );
-    parseIdentifierGroup( currentFileBlock );
+    // Parse identifier group
+    readOdfFileBlock( currentFileBlock, dataFile  );
+    parseIdentifierGroup(
+                currentFileBlock, odfFileContents->identifierGroupStringA, odfFileContents->identifierGroupStringB,
+                odfFileContents->identifierGroupStringC );
 
+    // Parse data header
     readOdfFileBlock( currentFileBlock, dataFile );
     parseHeader( currentFileBlock, primaryKey, secondaryKey, logicalrecordLength, groupStartPacketNumber );
     if( primaryKey != 109 || secondaryKey != 0 || logicalrecordLength != 1 || groupStartPacketNumber != 4 )
@@ -360,21 +386,25 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
         throw std::runtime_error( "Error when reding ODF file, file header incompatible" );
     }
 
+    // Define output of data blocks and ramp blocks
     std::vector< boost::shared_ptr< OdfDataBlock > > unsortedOdfDataBlocks;
     std::map< int, std::vector< OdfRampBlock > > odfRampBlocks;
 
     bool continueFileRead = true;
-
     int counter = 0;
     int currentRampStation = -1;
-
     int dataBlockType = 3; // 1: Orbit Data, 2: Ramp Data, 3: Clock Offset
 
-    while( continueFileRead )
+    // Read file until end
+    while( continueFileRead && !dataFile.eof( ) )
     {
+        // Read current block
         readOdfFileBlock( currentFileBlock, dataFile );
+
+        // Check if block is a header file
         int blockIsHeader = currentBlockIsHeader( currentFileBlock, secondaryKey );
 
+        // If not a  header, read associated block
         if( blockIsHeader == 0 && dataBlockType == 3 )
         {
             boost::shared_ptr< OdfDataBlock > currentDataBlock = parseOrbitData( currentFileBlock );
@@ -387,9 +417,14 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
         {
             odfRampBlocks[ currentRampStation ].push_back( parseRampData( currentFileBlock ) );
         }
+        // If block is a header, set current data block type accordingly.
         else if( blockIsHeader != 0 )
         {
             dataBlockType = blockIsHeader;
+            if( dataBlockType == 4 )
+            {
+                currentRampStation = secondaryKey;
+            }
             if( dataBlockType == -1 )
             {
                 continueFileRead = 0;
@@ -399,15 +434,21 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
         {
             throw std::runtime_error( "Error, did not recognized header ODF block" );
         }
-        if( dataFile.eof( ) )
-        {
-            continueFileRead = 0;
-        }
         counter++;
     }
 
+    // Set file contents
     odfFileContents->dataBlocks = unsortedOdfDataBlocks;
     odfFileContents->odfRampBlocks = odfRampBlocks;
+
+    if( continueFileRead == 1 )
+    {
+        odfFileContents->eofHeaderFound = false;
+    }
+    else
+    {
+        odfFileContents->eofHeaderFound = true;
+    }
 
     return odfFileContents;
 }

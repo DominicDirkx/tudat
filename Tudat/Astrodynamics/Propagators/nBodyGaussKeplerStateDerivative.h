@@ -149,10 +149,10 @@ public:
                         currentCartesianLocalSoluton_.segment( i * 6, 6 ) ) *
                     stateDerivative.block( i * 6 + 3, 0, 3, 1 ).template cast< double >( );
 
-                stateDerivative.block( i * 6, 0, 6, 1 ) = computeGaussPlanetaryEquationsForKeplerElements(
-                            ( Eigen::Vector6d( ) << stateOfSystemToBeIntegrated.block( i * 6, 0, 5, 1 ).template cast< double >( ),
-                              currentTrueAnomalies_.at( i ) ).finished( ), currentAccelerationInRswFrame,
-                            centralBodyGravitationalParameters_.at( i )( ) ).template cast< StateScalarType >( );
+            stateDerivative.block( i * 6, 0, 6, 1 ) = computeGaussPlanetaryEquationsForKeplerElements(
+                        ( Eigen::Vector6d( ) << stateOfSystemToBeIntegrated.block( i * 6, 0, 5, 1 ).template cast< double >( ),
+                          currentTrueAnomalies_.at( i ) ).finished( ), currentAccelerationInRswFrame,
+                        centralBodyGravitationalParameters_.at( i )( ) ).template cast< StateScalarType >( );
         }
 
     }

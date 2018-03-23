@@ -49,11 +49,12 @@ int main( )
 //   }
 
    std::vector< boost::filesystem::path > files = tudat::input_output::listAllFilesInDirectory(
-       "/home/dominic/Software/MercuryData/odf/2015/", false );
+       "/home/dominic/Software/MercuryData/odf/", false );
 
    std::vector< boost::shared_ptr< tudat::orbit_determination::ProcessedOdfFileContents > > odfContentsList;
 
-   for( unsigned int i = 8; i < 9; i++ )
+   //for( unsigned int i = 0; i < files.size( ); i++ )
+   for( unsigned int i = 0; i < 1000; i++ )
    {
        std::string fileString = files.at( i ).string( );
        int stringSize = fileString.size( );
@@ -62,7 +63,7 @@ int main( )
        {
            std::cout<<fileString<<std::endl;
            odfContentsList.push_back( tudat::orbit_determination::parseOdfFileContents(
-               tudat::input_output::readOdfFile( "/home/dominic/Software/MercuryData/odf/2015/" + fileString ) ) );
+               tudat::input_output::readOdfFile( "/home/dominic/Software/MercuryData/odf/" + fileString ) ) );
            std::cout<<std::endl;
        }
    }
@@ -78,31 +79,74 @@ int main( )
            std::vector< boost::shared_ptr< tudat::orbit_determination::ProcessdOdfFileSingleLinkData > > > dataBlocksMerged =
            mergedData->dataBlocks;
 
+
    for( auto it = dataBlocksMerged.begin( ); it != dataBlocksMerged.end( ); it++ )
    {
        int counter = 0;
+
+       std::vector< double > observationTimes, obsevables, referenceFrequencies;
+       std::vector< std::string > receivingStation, transmittingStation;
+       std::vector< std::string > originFiles;
+       std::vector< bool > rampFlags;
+
        for( unsigned int i = 0; i < it->second.size( ); i++ )
        {
            boost::shared_ptr< tudat::orbit_determination::ProcessdOdfFileDopplerData > currentDopplerData =
                    boost::dynamic_pointer_cast< tudat::orbit_determination::ProcessdOdfFileDopplerData >(
                        it->second.at( i ) );
-           std::string fileSuffix = std::to_string( it->first ) + "_" + std::to_string( counter );
 
-           tudat::input_output::writeDataMapToTextFile(
-                       currentDopplerData->getCompressionTimes( ),
-                           "odfTestCompressionTimes_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
-           tudat::input_output::writeDataMapToTextFile(
-                       currentDopplerData->getObservationData( ),
-                           "odfTestObservations_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
-           tudat::input_output::writeDataMapToTextFile(
-                       currentDopplerData->getReferenceFrequencies( ),
-                           "odfTestReferenceFrequencies_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
-           tudat::input_output::writeDataMapToTextFile(
-                       currentDopplerData->getRampFlags( ),
-                           "odfTestRampFlags_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+           std::vector< double > currentObservationTimes = currentDopplerData->observationTimes,
+                   currentObsevables = currentDopplerData->observableValues,
+                   currentReferenceFrequencies = currentDopplerData->referenceFrequency;
+           std::vector< std::string > currentOriginFiles = currentDopplerData->originFile;
+           std::vector< bool > currentRampFlags = currentDopplerData->rampingFlag;
+
+           observationTimes.insert( observationTimes.end( ), currentObservationTimes.begin( ), currentObservationTimes.end( ) );
+           obsevables.insert( obsevables.end( ), currentObsevables.begin( ), currentObsevables.end( ) );
+           originFiles.insert( originFiles.end( ), currentOriginFiles.begin( ), currentOriginFiles.end( ) );
+           rampFlags.insert( rampFlags.end( ), currentRampFlags.begin( ), currentRampFlags.end( ) );
+           referenceFrequencies.insert(
+                       referenceFrequencies.end( ), currentReferenceFrequencies.begin( ), currentReferenceFrequencies.end( ) );
+
+           for( unsigned int i = 0; i < currentObservationTimes.size( ); i++ )
+           {
+                receivingStation.push_back( currentDopplerData->receivingStation );
+                transmittingStation.push_back( currentDopplerData->transmittingStation );
+           }
+
+//           std::string fileSuffix = std::to_string( it->first ) + "_" + std::to_string( counter );
+
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getCompressionTimes( ),
+//                           "odfTestCompressionTimes_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getObservationData( ),
+//                           "odfTestObservations_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getReferenceFrequencies( ),
+//                           "odfTestReferenceFrequencies_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
+//           tudat::input_output::writeDataMapToTextFile(
+//                       currentDopplerData->getRampFlags( ),
+//                           "odfTestRampFlags_" + fileSuffix + ".dat", "/home/dominic/Documents/" ) ;
            counter++;
        }
+
+       Eigen::MatrixXd dataMatrix = Eigen::MatrixXd( rampFlags.size( ), 6 );
+       for( int j = 0; j < rampFlags.size( ); j++ )
+       {
+            dataMatrix( j, 0 ) = observationTimes.at( j );
+            dataMatrix( j, 1 ) = obsevables.at( j );
+            dataMatrix( j, 2 ) = boost::lexical_cast< double >( receivingStation.at( j ) );
+            dataMatrix( j, 3 ) = boost::lexical_cast< double >( transmittingStation.at( j ) );
+            dataMatrix( j, 4 ) = referenceFrequencies.at( j );
+            dataMatrix( j, 5 ) = static_cast< double >( rampFlags.at( j ) );
+
+       }
+
+       tudat::input_output::writeMatrixToFile(
+                   dataMatrix, "odfFileSummary_" + std::to_string( it->first ), 16, "/home/dominic/Documents/" );
    }
+
 
 }
 

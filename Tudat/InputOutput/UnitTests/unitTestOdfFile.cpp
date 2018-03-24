@@ -188,7 +188,7 @@ int main( )
         }
 
         Eigen::MatrixXd dataMatrix = Eigen::MatrixXd( rampFlags.size( ), 8 );
-        for( int j = 0; j < rampFlags.size( ); j++ )
+        for( unsigned int j = 0; j < rampFlags.size( ); j++ )
         {
             dataMatrix( j, 0 ) = observationTimes.at( j );
             dataMatrix( j, 1 ) = observables.at( j );

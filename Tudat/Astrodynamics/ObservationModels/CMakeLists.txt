@@ -34,6 +34,7 @@ set(OBSERVATION_MODELS_HEADERS
   "${SRCROOT}${OBSERVATIONMODELSDIR}/oneWayRangeObservationModel.h"
   "${SRCROOT}${OBSERVATIONMODELSDIR}/oneWayDopplerObservationModel.h"
   "${SRCROOT}${OBSERVATIONMODELSDIR}/oneWayDifferencedRangeRateObservationModel.h"
+  "${SRCROOT}${OBSERVATIONMODELSDIR}/nWayDifferencedRangeRateObservationModel.h"
   "${SRCROOT}${OBSERVATIONMODELSDIR}/simulateObservations.h"
   "${SRCROOT}${OBSERVATIONMODELSDIR}/positionObservationModel.h"
   "${SRCROOT}${OBSERVATIONMODELSDIR}/twoWayDopplerObservationModel.h"

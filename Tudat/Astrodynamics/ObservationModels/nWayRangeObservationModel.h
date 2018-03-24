@@ -213,6 +213,11 @@ public:
         return lightTimeCalculators_;
     }
 
+    int getNumberOfLinkEnds( )
+    {
+        return numberOfLinkEnds_;
+    }
+
 private:
 
     //! List of objects to compute the light-times for each leg of the n-way range.

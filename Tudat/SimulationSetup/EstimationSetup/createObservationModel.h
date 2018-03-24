@@ -25,6 +25,7 @@
 #include "Tudat/Astrodynamics/ObservationModels/oneWayDopplerObservationModel.h"
 #include "Tudat/Astrodynamics/ObservationModels/twoWayDopplerObservationModel.h"
 #include "Tudat/Astrodynamics/ObservationModels/oneWayDifferencedRangeRateObservationModel.h"
+#include "Tudat/Astrodynamics/ObservationModels/nWayDifferencedRangeRateObservationModel.h"
 #include "Tudat/Astrodynamics/ObservationModels/angularPositionObservationModel.h"
 #include "Tudat/Astrodynamics/ObservationModels/positionObservationModel.h"
 #include "Tudat/Astrodynamics/ObservationModels/observationSimulator.h"
@@ -412,8 +413,7 @@ public:
 
 };
 
-
-//! Class to define the settings for one-way differenced range-rate (e.g. closed-loop Doppler) observable
+//! Class to define the settings for n-way range observable
 class NWayRangeObservationSettings: public ObservationSettings
 {
 public:
@@ -469,6 +469,68 @@ public:
 
     //! Function that returns the integration time of observable as a function of time
     boost::function< std::vector< double >( const double ) > retransmissionTimesFunction_;
+
+};
+
+
+//! Class to define the settings for n-way differenced range-rate (e.g. closed-loop Doppler) observable
+class NWayDifferencedRangeRateObservationSettings: public ObservationSettings
+{
+public:
+
+    NWayDifferencedRangeRateObservationSettings(
+            const std::vector< boost::shared_ptr< ObservationSettings > > oneWayRangeObsevationSettings,
+            const boost::function< double( const double ) > integrationTimeFunction,
+            const boost::function< std::vector< double >( const double ) > retransmissionTimesFunction =
+            boost::function< std::vector< double >( const double  ) >( ),
+            const boost::shared_ptr< ObservationBiasSettings > biasSettings = NULL ):
+        ObservationSettings( n_way_range, std::vector< boost::shared_ptr< LightTimeCorrectionSettings > >( ), biasSettings ),
+        integrationTimeFunction_( integrationTimeFunction )
+    {
+        nWayRangeSettings_ = boost::make_shared< NWayRangeObservationSettings >(
+                    oneWayRangeObsevationSettings, retransmissionTimesFunction );
+    }
+
+    //! Constructor
+    /*!
+     * Constructor
+     * \param integrationTimeFunction Function that returns the integration time of observable as a function of time
+     * \param lightTimeCorrections Settings for a single light-time correction that is to be used for teh observation model
+     * (NULL if none)
+     * \param biasSettings Settings for the observation bias model that is to be used (default none: NULL)
+     */
+    NWayDifferencedRangeRateObservationSettings(
+            const boost::shared_ptr< LightTimeCorrectionSettings > lightTimeCorrections,
+            const int numberOfLinkEnds,
+            const boost::function< double( const double ) > integrationTimeFunction,
+            const boost::function< std::vector< double >( const double ) > retransmissionTimesFunction =
+            boost::function< std::vector< double >( const double  ) >( ),
+            const boost::shared_ptr< ObservationBiasSettings > biasSettings = NULL ):
+        ObservationSettings(
+            n_way_differenced_range, std::vector< boost::shared_ptr< LightTimeCorrectionSettings > >( ), biasSettings ),
+        integrationTimeFunction_( integrationTimeFunction )
+    {
+
+        nWayRangeSettings_ = boost::make_shared< NWayRangeObservationSettings >(
+                    lightTimeCorrections, numberOfLinkEnds, retransmissionTimesFunction );
+    }
+
+    NWayDifferencedRangeRateObservationSettings(
+            const boost::shared_ptr< NWayRangeObservationSettings > nWayRangeSettings,
+            const boost::function< double( const double ) > integrationTimeFunction,
+            const boost::shared_ptr< ObservationBiasSettings > biasSettings = NULL ):
+        ObservationSettings(
+            n_way_differenced_range, std::vector< boost::shared_ptr< LightTimeCorrectionSettings > >( ), biasSettings ),
+        nWayRangeSettings_( nWayRangeSettings ), integrationTimeFunction_( integrationTimeFunction ){ }
+
+    //! Destructor
+    ~NWayDifferencedRangeRateObservationSettings( ){ }
+
+
+    boost::shared_ptr< NWayRangeObservationSettings > nWayRangeSettings_;
+
+    //! Function that returns the integration time of observable as a function of time
+    boost::function< double( const double ) > integrationTimeFunction_;
 
 };
 
@@ -1010,6 +1072,68 @@ public:
 
             break;
         }
+        case n_way_differenced_range:
+        {
+            boost::shared_ptr< NWayDifferencedRangeRateObservationSettings > rangeRateObservationSettings =
+                    boost::dynamic_pointer_cast< NWayDifferencedRangeRateObservationSettings >( observationSettings );
+            if( rangeRateObservationSettings == NULL )
+            {
+                throw std::runtime_error( "Error when making differenced one-way range rate, input type is inconsistent" );
+            }
+
+            // Check consistency input.
+            if( linkEnds.size( ) <= 2 )
+            {
+                std::string errorMessage =
+                        "Error when making n-way range model, " +
+                        std::to_string( linkEnds.size( ) ) + " link ends found";
+                throw std::runtime_error( errorMessage );
+            }
+            if( linkEnds.count( receiver ) == 0 )
+            {
+                throw std::runtime_error( "Error when making n way differenced range model, no receiver found" );
+            }
+            if( linkEnds.count( transmitter ) == 0 )
+            {
+                throw std::runtime_error( "Error when making n way differenced range model, no transmitter found" );
+            }
+
+            // Check link end consistency.
+            for( LinkEnds::const_iterator linkEndIterator = linkEnds.begin( ); linkEndIterator != linkEnds.end( );
+                 linkEndIterator++ )
+            {
+                if( ( linkEndIterator->first != transmitter ) && ( linkEndIterator->first != receiver ) )
+                {
+                    int linkEndIndex = static_cast< int >( linkEndIterator->first );
+                    LinkEndType previousLinkEndType = static_cast< LinkEndType >( linkEndIndex - 1 );
+
+                    if( linkEnds.count( previousLinkEndType ) == 0 )
+                    {
+                        throw std::runtime_error( "Error when making n-way differenced range model, did not find link end type " +
+                                                  std::to_string( previousLinkEndType ) );
+                    }
+                }
+            }
+
+            boost::shared_ptr< ObservationBias< 1 > > observationBias;
+            if( observationSettings->biasSettings_ != NULL )
+            {
+                observationBias =
+                        createObservationBiasCalculator(
+                            linkEnds, observationSettings->observableType_, observationSettings->biasSettings_,bodyMap );
+            }
+
+            boost::shared_ptr< NWayRangeObservationModel< ObservationScalarType, TimeType > > nWayRangeModel =
+                    boost::dynamic_pointer_cast< NWayRangeObservationModel< ObservationScalarType, TimeType > >(
+                        createObservationModel( linkEnds, rangeRateObservationSettings->nWayRangeSettings_,
+                                                bodyMap ) );
+
+            // Create observation model
+            observationModel = boost::make_shared< NWayDifferencedRangeObservationModel<
+                    ObservationScalarType, TimeType > >(
+                        nWayRangeModel, rangeRateObservationSettings->integrationTimeFunction_, observationBias );
+            break;
+        }
         case n_way_range:
         {
             // Check consistency input.
@@ -1057,9 +1181,7 @@ public:
             }
 
             std::vector< boost::shared_ptr< LightTimeCorrectionSettings > > lightTimeCorrectionsList;
-
             boost::function< std::vector< double >( const double ) > retransmissionTimesFunction_;
-
             boost::shared_ptr< NWayRangeObservationSettings > nWayRangeObservationSettings =
                     boost::dynamic_pointer_cast< NWayRangeObservationSettings >( observationSettings );
 

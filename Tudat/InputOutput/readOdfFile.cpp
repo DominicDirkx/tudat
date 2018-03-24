@@ -151,17 +151,13 @@ boost::shared_ptr< OdfDataBlock > parseOrbitData( char fileBlock[ 9 ][ 4 ] )
         }
         dataBlock->observableSpecificDataBlock = parseDopplerOrbitData( fileBlock, dataType );
     }
-    else if(  dataType == 37 )
-    {
-        dataBlock->observableSpecificDataBlock = parseSequentialRangeData( fileBlock, dataType );
-    }
-    //    else if( dataType == 14 || dataType == 7 || dataType == 2 || dataType == 40  || dataType == 50 || dataType == 20 )
-    //    {
-    //        dataBlock = NULL;
-    //    }
+//    else if(  dataType == 37 )
+//    {
+//        dataBlock->observableSpecificDataBlock = parseSequentialRangeData( fileBlock, dataType );
+//    }
     else
     {
-        std::cerr<<"Data type "<<dataType<<std::endl;
+        //std::cerr<<"Data type "<<dataType<<std::endl;
         dataBlock = NULL;
         //throw std::runtime_error( "Error, ODF data type " + std::to_string( dataType ) + " not recognized" );
 
@@ -189,9 +185,6 @@ OdfRampBlock parseRampData( char fileBlock[ 9 ][ 4 ] )
     rampBlock.integerRampEndTime = convertCharactersToSignedInt32( fileBlock[ 7 ] );
     rampBlock.fractionalRampEndTime = convertCharactersToSignedInt32( fileBlock[ 8 ] );
 
-    //std::cout<<rampBlock.integerRampStartFrequency<<" "<<rampBlock.integerRampStartFrequencyModulo<<" "<<rampBlock.fractionalRampStartFrequency<<std::endl;
-
-    //rampBlock.printContents( );
 
     return rampBlock;
 }
@@ -363,6 +356,8 @@ boost::shared_ptr< OdfRawFileContents > readOdfFile(
     parseFileLabel( currentFileBlock, odfFileContents->systemId, odfFileContents->programId,
                     odfFileContents->fileCreationDate, odfFileContents->fileCreationTime,
                     odfFileContents->spacecraftId, odfFileContents->fileReferenceDate, odfFileContents->fileReferenceTime );
+
+    //std::cout<<odfFileContents->fileReferenceDate<<" "<<odfFileContents->fileReferenceTime<<std::endl;
 
     // Parse identifier header
     readOdfFileBlock( currentFileBlock, dataFile );

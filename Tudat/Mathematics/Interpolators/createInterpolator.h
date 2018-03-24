@@ -63,7 +63,7 @@ public:
                           const AvailableLookupScheme selectedLookupScheme = huntingAlgorithm,
                           const bool useLongDoubleTimeStep = 0 ):
         interpolatorType_( interpolatorType ), selectedLookupScheme_( selectedLookupScheme ),
-        useLongDoubleTimeStep_( true ){ }
+        useLongDoubleTimeStep_( useLongDoubleTimeStep ){ }
 
     //! Virtual destructor
     virtual ~InterpolatorSettings( ){ }

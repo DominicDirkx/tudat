@@ -128,16 +128,18 @@ public:
         Eigen::Matrix< ObservationScalarType, 1, 1 > arcStartRange = nWayRangeModel_->computeIdealObservationsWithLinkEndData(
                     time - currentIntegrationTime, linkEndAssociatedWithTime, arcStartLinkEndTimes_, arcStartLinkEndStates_ );
 
-        linkEndTimes.resize( 2 * numberOfLinkEnds_ );
-        linkEndStates.resize( 2 * numberOfLinkEnds_ );
+        int numberOfTimesAndStates = arcEndLinkEndTimes_.size( ) ;
 
-        for( int i = 0; i < numberOfLinkEnds_;i++ )
+        linkEndTimes.resize( 2 * numberOfTimesAndStates );
+        linkEndStates.resize( 2 * numberOfTimesAndStates );
+
+        for( int i = 0; i < numberOfTimesAndStates;i++ )
         {
             linkEndTimes[ i ] = arcStartLinkEndTimes_.at( i );
-            linkEndTimes[ 2 * i ] = arcEndLinkEndTimes_.at( i );
+            linkEndTimes[ i + numberOfTimesAndStates ] = arcEndLinkEndTimes_.at( i );
 
             linkEndStates[ i ] = arcStartLinkEndStates_.at( i );
-            linkEndStates[ 2 * i ] = arcStartLinkEndStates_.at( i );
+            linkEndStates[ i + numberOfTimesAndStates ] = arcEndLinkEndStates_.at( i );
 
         }
 

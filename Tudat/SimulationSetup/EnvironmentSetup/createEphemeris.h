@@ -261,7 +261,7 @@ public:
         DirectSpiceEphemerisSettings( frameOrigin, frameOrientation, 0, 0, 0,
                                       interpolated_spice ),
         initialTime_( initialTime ), finalTime_( finalTime ), timeStep_( timeStep ),
-        interpolatorSettings_( interpolatorSettings ), useLongDoubleStates_( 0 ){ }
+        interpolatorSettings_( interpolatorSettings ), useLongDoubleStates_( 0 ), useExtendedTime_( 0 ){ }
 
     //! Function to return initial time from which interpolated data from Spice should be created.
     /*!

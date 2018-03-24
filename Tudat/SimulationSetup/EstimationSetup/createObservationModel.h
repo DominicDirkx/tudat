@@ -484,7 +484,7 @@ public:
             const boost::function< std::vector< double >( const double ) > retransmissionTimesFunction =
             boost::function< std::vector< double >( const double  ) >( ),
             const boost::shared_ptr< ObservationBiasSettings > biasSettings = NULL ):
-        ObservationSettings( n_way_range, std::vector< boost::shared_ptr< LightTimeCorrectionSettings > >( ), biasSettings ),
+        ObservationSettings( n_way_differenced_range, std::vector< boost::shared_ptr< LightTimeCorrectionSettings > >( ), biasSettings ),
         integrationTimeFunction_( integrationTimeFunction )
     {
         nWayRangeSettings_ = boost::make_shared< NWayRangeObservationSettings >(

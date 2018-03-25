@@ -150,4 +150,4 @@ target_link_libraries(test_AerodynamicCoefficientReader tudat_input_output tudat
 
 add_executable(test_OdfFile "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestOdfFile.cpp" )
 setup_custom_test_program(test_OdfFile "${SRCROOT}${INPUTOUTPUTDIR}")
-target_link_libraries(test_OdfFile tudat_input_output tudat_basic_astrodynamics tudat_basics ${Boost_LIBRARIES})
+target_link_libraries(test_OdfFile tudat_orbit_determination tudat_input_output tudat_basic_astrodynamics tudat_basics ${Boost_LIBRARIES})

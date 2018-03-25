@@ -10,7 +10,7 @@
 #include "Tudat/Astrodynamics/BasicAstrodynamics/timeConversions.h"
 #include "Tudat/InputOutput/readOdfFile.h"
 #include "Tudat/Mathematics/Interpolators/lookupScheme.h"
-#include "Tudat/Astrodynamics/Propagators/parseOdfFile.h"
+#include "Tudat/Astrodynamics/OrbitDetermination//parseOdfFile.h"
 
 int main( )
 {
@@ -55,7 +55,7 @@ int main( )
     std::vector< boost::shared_ptr< orbit_determination::ProcessedOdfFileContents > > odfContentsList;
 
     //for( unsigned int i = 0; i < files.size( ); i++ )
-    for( unsigned int i = 0; i < 500; i++ )
+    for( unsigned int i = 0; i < files.size( ); i++ )
     {
         if( i % 100 == 0 )
         {
@@ -80,7 +80,9 @@ int main( )
             boost::shared_ptr< orbit_determination::ProcessdOdfFileSingleLinkData > > > dataBlocksMerged =
             mergedData->processedDataBlocks;
 
-    double filterTime = 58.0 * 365.25 * 86400.0;
+    double filterStartTime = 58.0 * 365.25 * 86400.0;
+    double filterEndTime = 62.0 * 365.25 * 86400.0;
+
     double filterFrequency = 200.0E3;
 
     for( auto it = dataBlocksMerged.begin( ); it != dataBlocksMerged.end( ); it++ )
@@ -96,7 +98,6 @@ int main( )
 
         for( auto linkIt = it->second.begin( ); linkIt != it->second.end( ); linkIt++ )
         {
-            std::cout<<it->first<<" "<<linkIt->first.first<<" "<<linkIt->first.second<<" "<<std::endl;
             boost::shared_ptr< orbit_determination::ProcessdOdfFileDopplerData > currentDopplerData =
                     boost::dynamic_pointer_cast< orbit_determination::ProcessdOdfFileDopplerData >( linkIt->second );
 
@@ -105,6 +106,7 @@ int main( )
                     currentReferenceFrequencies = currentDopplerData->referenceFrequency;
             std::vector< std::string > currentOriginFiles = currentDopplerData->originFile;
             std::vector< bool > currentRampFlags = currentDopplerData->rampingFlag;
+            std::cout<<it->first<<" "<<linkIt->first.first<<" "<<linkIt->first.second<<" "<<currentObservationTimes.size( )<<std::endl;
 
             boost::shared_ptr< orbit_determination::RampedReferenceFrequencyInterpolator > transmitterRampInterpolator;
             if( mergedData->rampInterpolators.count(
@@ -132,7 +134,11 @@ int main( )
 
             for( unsigned int j = 0; j < currentObservationTimes.size( ); j++ )
             {
-                if( currentObservationTimes.at( j ) > filterTime && std::fabs( currentObservables.at( j ) ) < filterFrequency )
+                if( currentObservationTimes.at( j ) > filterStartTime &&
+                        currentObservationTimes.at( j ) < filterEndTime &&
+                        std::fabs( currentObservables.at( j ) ) < filterFrequency
+                        && std::stoi( linkIt->first.second ) > 0 && std::stoi( linkIt->first.second ) < 100
+                         && std::stoi( linkIt->first.first ) > 0 && std::stoi( linkIt->first.first ) < 100 )
                 {
 
                     observationTimes.push_back( currentObservationTimes.at( j ) );

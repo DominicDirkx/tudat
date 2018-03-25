@@ -9,7 +9,9 @@
  */
 
 #include "Tudat/SimulationSetup/EnvironmentSetup/createGroundStations.h"
+#include "Tudat/Astrodynamics/BasicAstrodynamics/timeConversions.h"
 #include "Tudat/Astrodynamics/Ephemerides/rotationalEphemeris.h"
+#include "Tudat/External/SpiceInterface/spiceInterface.h"
 
 namespace tudat
 {
@@ -41,6 +43,31 @@ void createGroundStation(
     createGroundStation( body, groundStationName, boost::make_shared< ground_stations::GroundStationState >(
                              groundStationPosition, positionElementType, body->getShapeModel( ) ) );
 
+}
+
+void addSpiceDsnGroundStations(
+        const boost::shared_ptr< Body >& body,
+        const std::vector< int > groundStationIndices )
+{
+    double referenceTime = basic_astrodynamics::convertCalendarDateToJulianDaysSinceEpoch(
+                2003, 1, 1, 0, 0, 0.0, basic_astrodynamics::JULIAN_DAY_ON_J2000 ) * physical_constants::JULIAN_DAY;
+
+    for( unsigned int i = 0; i < groundStationIndices.size( ); i++ )
+    {
+        std::string currentStationName = "DSS-" + std::to_string( groundStationIndices.at( i ) );
+        Eigen::Vector3d stationPosition =
+                spice_interface::getBodyCartesianPositionAtEpoch(
+                    currentStationName, "Earth", "ITRF93", "None", referenceTime );
+        createGroundStation(
+                body, currentStationName, stationPosition, coordinate_conversions::cartesian_position );
+    }
+}
+
+void addAllSpiceDsnGroundStations(
+        const boost::shared_ptr< Body >& body )
+{
+    addSpiceDsnGroundStations( body,
+    { 12, 13, 14, 15, 16, 17, 23, 24, 25, 26, 27, 28, 33, 34, 42, 43, 45, 46, 49, 53, 54, 55, 61, 63, 64, 65, 66 } );
 }
 
 //! Function to create a set of ground stations and add them to the corresponding Body objects

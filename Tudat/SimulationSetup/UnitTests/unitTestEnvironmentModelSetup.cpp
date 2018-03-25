@@ -1070,6 +1070,49 @@ BOOST_AUTO_TEST_CASE( test_groundStationCreation )
     }
 }
 
+BOOST_AUTO_TEST_CASE( test_SpiceStationCreation )
+{
+    const double flattening = 1.0 / 298.257223563;
+    const double equatorialRadius = 6378137.0;
+
+    std::map< std::string, boost::shared_ptr< BodySettings > > bodySettings;
+    bodySettings[ "Earth" ] = boost::make_shared< BodySettings >( );
+    bodySettings[ "Earth" ]->shapeModelSettings = boost::make_shared< OblateSphericalBodyShapeSettings >(
+                equatorialRadius, flattening );
+    tudat::simulation_setup::NamedBodyMap bodyMap = createBodies( bodySettings );
+
+    tudat::spice_interface::loadSpiceKernelInTudat(
+                tudat::input_output::getSpiceKernelPath( ) + "earthstns_fx_050714.bsp" );
+    tudat::spice_interface::loadSpiceKernelInTudat(
+                tudat::input_output::getSpiceKernelPath( ) + "earth_topo_050714.tf" );
+
+    std::vector< int > stationIndices;
+    stationIndices.push_back( 12 );
+    stationIndices.push_back( 23 );
+    stationIndices.push_back( 33 );
+
+    tudat::simulation_setup::addAllSpiceDsnGroundStations(
+                bodyMap.at( "Earth" ) );
+
+    std::map< int, Eigen::Vector3d > stationPositionsAtEpoch;
+    stationPositionsAtEpoch[ 12 ] = ( Eigen::Vector3d( ) << -2350444.0057, -4651980.7620, 3665630.9322 ).finished( );
+    stationPositionsAtEpoch[ 17 ] = ( Eigen::Vector3d( ) << -2354730.5247, -4646751.6975, 3669440.5998 ).finished( );
+    stationPositionsAtEpoch[ 24 ] = ( Eigen::Vector3d( ) << -2354906.7087, -4646840.0834, 3669242.3207 ).finished( );
+    stationPositionsAtEpoch[ 45 ] = ( Eigen::Vector3d( ) << -4460935.5783, 2682765.6611, -3674380.9824 ).finished( );
+    stationPositionsAtEpoch[ 63 ] = ( Eigen::Vector3d( ) << 4849092.5175, -360180.3480, 4115109.2506 ).finished( );
+
+    for( auto it = stationPositionsAtEpoch.begin( ); it != stationPositionsAtEpoch.end( ); it++ )
+    {
+        boost::shared_ptr< tudat::ground_stations::GroundStation > station =
+                bodyMap[ "Earth" ]->getGroundStation( "DSS-" + std::to_string( it->first ) );
+        Eigen::Vector3d stationState = station->getStateInPlanetFixedFrame(
+                                             basic_astrodynamics::JULIAN_DAY_ON_J2000 ).segment( 0, 3 );
+        TUDAT_CHECK_MATRIX_CLOSE_FRACTION( stationState, it->second, 1.0E-12 );
+    }
+
+
+}
+
 BOOST_AUTO_TEST_SUITE_END( )
 
 } // namespace unit_tests

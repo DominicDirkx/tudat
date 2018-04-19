@@ -117,6 +117,10 @@ double computePeriapsisAltitudeFromCartesianState( const Eigen::Vector6d& state,
                                                    const double centralBodyGravitationalParameter,
                                                    const double centralBodyRadius );
 
+double computeEnergyWrtSurface(
+        const double altitude,
+        const double speed );
+
 
 } // namespace basic_astrodynamics
 } // namespace tudat

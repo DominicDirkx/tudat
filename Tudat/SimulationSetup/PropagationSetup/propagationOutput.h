@@ -1051,6 +1051,31 @@ boost::function< double( ) > getDoubleDependentVariableFunction(
                                             functionToEvaluate, firstInput, secondInput, thirdInput );
             break;
         }
+        case energy_wrt_reference_surface:
+        {
+            if( bodyMap.at( bodyWithProperty )->getFlightConditions( ) == NULL )
+            {
+                std::string errorMessage = "Error, no flight conditions available when requesting Mach number output of " +
+                        bodyWithProperty + "w.r.t." + secondaryBody;
+                throw std::runtime_error( errorMessage );
+            }
+
+            boost::function< double( const double, const double ) > functionToEvaluate =
+                    boost::bind( &basic_astrodynamics::computeEnergyWrtSurface, _1, _2 );
+
+            // Retrieve functions for airspeed and speed of sound.
+            boost::function< double( ) > firstInput =
+                    boost::bind( &aerodynamics::FlightConditions::getCurrentAltitude,
+                                 bodyMap.at( bodyWithProperty )->getFlightConditions( ) );
+            boost::function< double( ) > secondInput =
+                    boost::bind( &aerodynamics::FlightConditions::getCurrentAirspeed,
+                                 bodyMap.at( bodyWithProperty )->getFlightConditions( ) );
+
+
+            variableFunction = boost::bind( &evaluateBivariateFunction< double, double >,
+                                            functionToEvaluate, firstInput, secondInput );
+            break;
+        }
         default:
             std::string errorMessage =
                     "Error, did not recognize double dependent variable type when making variable function: " +

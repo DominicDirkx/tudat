@@ -457,7 +457,7 @@ public:
      *  \param convergenceChecker Object used to check convergence/termination of algorithm
      *  \return Object containing estimated parameter value and associateed data, such as residuals and observation partials.
      */
-    boost::shared_ptr< PodOutput< ObservationScalarType > > estimateParameters(
+    boost::shared_ptr< PodOutput< ObservationScalarType, TimeType > > estimateParameters(
             const boost::shared_ptr< PodInput< ObservationScalarType, TimeType > >& podInput,
             const boost::shared_ptr< EstimationConvergenceChecker > convergenceChecker =
             boost::make_shared< EstimationConvergenceChecker >( ) )
@@ -483,6 +483,14 @@ public:
         std::vector< Eigen::VectorXd > parameterHistory;
         std::vector< std::vector< std::map< TimeType, Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > > > > dynamicsHistoryPerIteration;
         std::vector< std::vector< std::map< TimeType, Eigen::VectorXd > > > dependentVariableHistoryPerIteration;
+
+        if( podInput->getSaveStateHistoryForEachIteration( ) )
+        {
+            dynamicsHistoryPerIteration.push_back(
+                        variationalEquationsSolver_->getEquationsOfMotionNumericalSolutionBase( ) );
+            dependentVariableHistoryPerIteration.push_back(
+                        variationalEquationsSolver_->getDependentVariableNumericalSolutionBase( ) );
+        }
 
         // Declare residual bookkeeping variables
         std::vector< double > rmsResidualHistory;
@@ -510,13 +518,13 @@ public:
                     resetParameterEstimate( newParameterEstimate, podInput->getReintegrateVariationalEquations( ) );
                 }
 
-//                if( podInput->getSaveStateHistoryForEachIteration( ) )
-//                {
-//                    dynamicsHistoryPerIteration.push_back(
-//                                variationalEquationsSolver_->getDynamicsSimulatorBase( )->getEquationsOfMotionNumericalSolutionBase( ) );
-//                    dependentVariableHistoryPerIteration.push_back(
-//                                variationalEquationsSolver_->getDynamicsSimulatorBase( )->getDependentVariableNumericalSolutionBase( ) );
-//                }
+                if( podInput->getSaveStateHistoryForEachIteration( ) )
+                {
+                    dynamicsHistoryPerIteration.push_back(
+                                variationalEquationsSolver_->getEquationsOfMotionNumericalSolutionBase( ) );
+                    dependentVariableHistoryPerIteration.push_back(
+                                variationalEquationsSolver_->getDependentVariableNumericalSolutionBase( ) );
+                }
             }
             catch( std::runtime_error )
             {
@@ -604,7 +612,7 @@ public:
             }
 
             // If current iteration is better than previous one, update 'best' data.
-            if( residualRms < bestResidual || !( bestResidual == bestResidual ) )
+            //if( residualRms < bestResidual || !( bestResidual == bestResidual ) )
             {
                 bestResidual = residualRms;
                 bestParameterEstimate = oldParameterEstimate;
@@ -630,10 +638,21 @@ public:
             std::cout << "Final residual: " << bestResidual << std::endl;
         }
 
-        return boost::make_shared< PodOutput< ObservationScalarType > >(
+
+
+        boost::shared_ptr< PodOutput< ObservationScalarType, TimeType > > podOutput =
+                boost::make_shared< PodOutput< ObservationScalarType, TimeType > >(
                     bestParameterEstimate, bestResiduals, bestInformationMatrix, bestWeightsMatrixDiagonal, bestTransformationData,
                     bestInverseNormalizedCovarianceMatrix, bestResidual, residualHistory, parameterHistory, exceptionDuringInversion,
                     exceptionDuringPropagation );
+
+        if( podInput->getSaveStateHistoryForEachIteration( ) )
+        {
+            podOutput->setPropagationResults( dynamicsHistoryPerIteration, dependentVariableHistoryPerIteration );
+
+        }
+
+        return podOutput;
     }
 
     //! Function to reset the current parameter estimate.

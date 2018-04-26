@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE( test_DissipationParameterEstimation )
         boost::shared_ptr< PodInput< double, double > > podInput =
                 boost::make_shared< PodInput< double, double > >(
                     observationsAndTimes, ( initialParameterEstimate ).rows( ) );
-        boost::shared_ptr< PodOutput< double > > podOutput = orbitDeterminationManager.estimateParameters(
+        boost::shared_ptr< PodOutput< double, double > > podOutput = orbitDeterminationManager.estimateParameters(
                     podInput, boost::make_shared< EstimationConvergenceChecker >( 3 ) );
 
         // Check if parameters are correctly estimated
@@ -489,7 +489,7 @@ BOOST_AUTO_TEST_CASE( test_LoveNumberEstimationFromOrbiterData )
                 initialParameterEstimate - truthParameters );
 
     // Perform estimation
-    boost::shared_ptr< PodOutput< double > > podOutput = orbitDeterminationManager.estimateParameters(
+    boost::shared_ptr< PodOutput< double, double > > podOutput = orbitDeterminationManager.estimateParameters(
                 podInput, boost::make_shared< EstimationConvergenceChecker >( 4 ) );
 
     // Check estimation results

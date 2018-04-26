@@ -53,7 +53,7 @@ Eigen::VectorXd getDefaultInitialParameterPerturbation( )
 }
 
 template< typename TimeType = double, typename StateScalarType  = double >
-std::pair< boost::shared_ptr< PodOutput< StateScalarType > >, Eigen::VectorXd > executePlanetaryParameterEstimation(
+std::pair< boost::shared_ptr< PodOutput< StateScalarType, TimeType > >, Eigen::VectorXd > executePlanetaryParameterEstimation(
         const int observableType = 1,
         Eigen::VectorXd parameterPerturbation = getDefaultInitialParameterPerturbation( ),
         Eigen::MatrixXd inverseAPrioriCovariance  = Eigen::MatrixXd::Zero( 7, 7 ),
@@ -291,7 +291,7 @@ std::pair< boost::shared_ptr< PodOutput< StateScalarType > >, Eigen::VectorXd > 
     podInput->defineEstimationSettings( true, true, false, false, false );
 
     // Perform estimation
-    boost::shared_ptr< PodOutput< StateScalarType > > podOutput = orbitDeterminationManager.estimateParameters(
+    boost::shared_ptr< PodOutput< StateScalarType, TimeType > > podOutput = orbitDeterminationManager.estimateParameters(
                 podInput, boost::make_shared< EstimationConvergenceChecker >( ) );
 
     return std::make_pair( podOutput,
@@ -301,7 +301,7 @@ std::pair< boost::shared_ptr< PodOutput< StateScalarType > >, Eigen::VectorXd > 
 
 template< typename TimeType = double, typename StateScalarType  = double >
 Eigen::VectorXd executeEarthOrbiterParameterEstimation(
-        std::pair< boost::shared_ptr< PodOutput< StateScalarType > >,
+        std::pair< boost::shared_ptr< PodOutput< StateScalarType, TimeType > >,
         boost::shared_ptr< PodInput< StateScalarType, TimeType > > >& podData,
         const TimeType startTime = TimeType( 1.0E7 ),
         const int numberOfDaysOfData = 3,
@@ -609,7 +609,7 @@ Eigen::VectorXd executeEarthOrbiterParameterEstimation(
     podInput->defineEstimationSettings( true, true, true, true, false );
 
     // Perform estimation
-    boost::shared_ptr< PodOutput< StateScalarType > > podOutput = orbitDeterminationManager.estimateParameters(
+    boost::shared_ptr< PodOutput< StateScalarType, TimeType > > podOutput = orbitDeterminationManager.estimateParameters(
                 podInput, boost::make_shared< EstimationConvergenceChecker >( numberOfIterations ) );
 
     Eigen::VectorXd estimationError = podOutput->parameterEstimate_ - truthParameters;
@@ -1053,7 +1053,7 @@ std::pair< Eigen::VectorXd, bool > executeEarthOrbiterBiasEstimation(
     podInput->defineEstimationSettings( true, false, false, true, false );
 
     // Perform estimation
-    boost::shared_ptr< PodOutput< StateScalarType > > podOutput = orbitDeterminationManager.estimateParameters(
+    boost::shared_ptr< PodOutput< StateScalarType, TimeType > > podOutput = orbitDeterminationManager.estimateParameters(
                 podInput, boost::make_shared< EstimationConvergenceChecker >( numberOfIterations ) );
 
     Eigen::VectorXd estimationError = podOutput->parameterEstimate_ - truthParameters;

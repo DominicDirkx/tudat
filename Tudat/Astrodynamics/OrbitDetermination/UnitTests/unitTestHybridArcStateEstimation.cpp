@@ -55,7 +55,7 @@ Eigen::VectorXd  executeParameterEstimation(
         const bool patchMultiArcs = 0,
         const std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > forcedMultiArcInitialStates =
         std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >( ),
-        const double arcDuration = 4.0 * 86400.0,
+        const double arcDuration = 7.0 * 86400.0,
         const double arcOverlap  = 5.0E3 )
 {
     //Load spice kernels.f
@@ -238,7 +238,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
     boost::shared_ptr< IntegratorSettings< > > integratorSettings =
             boost::make_shared< IntegratorSettings< > >
-            ( rungeKutta4, initialEphemerisTime, 60.0 );
+            ( rungeKutta4, initialEphemerisTime, 30.0 );
 
 
     // Set parameters that are to be estimated.
@@ -251,7 +251,7 @@ Eigen::VectorXd  executeParameterEstimation(
                 boost::make_shared< InitialTranslationalStateEstimatableParameterSettings< StateScalarType > >(
                     singleArcBodiesToIntegrate.at( 0 ), singleArcInitialStates, singleArcCentralBodies.at( 0 ) ) );
 
-    parameterNames.push_back( boost::make_shared< EstimatableParameterSettings >( "Sun", gravitational_parameter ) );
+    //parameterNames.push_back( boost::make_shared< EstimatableParameterSettings >( "Sun", gravitational_parameter ) );
     parameterNames.push_back( boost::make_shared< EstimatableParameterSettings >( "Mars", gravitational_parameter ) );
 
     boost::shared_ptr< estimatable_parameters::EstimatableParameterSet< StateScalarType > > parametersToEstimate =
@@ -274,7 +274,7 @@ Eigen::VectorXd  executeParameterEstimation(
     linkEnds2[ 3 ][ transmitter ] = std::make_pair( "Mars", "" );
 
     observation_models::ObservationSettingsMap observationSettingsMap;
-    for( unsigned int i = 0; i  < 4; i++ )
+    for( unsigned int i = 0; i  < linkEnds2.size( ); i++ )
     {
         observationSettingsMap.insert( std::make_pair( linkEnds2[ i ], boost::make_shared< ObservationSettings >(
                                                            one_way_range ) ) );
@@ -316,7 +316,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
     std::map< ObservableType, std::map< LinkEnds, std::pair< std::vector< TimeType >, LinkEndType > > > measurementSimulationInput;
 
-    for( unsigned int i = 0; i < 4; i++ )
+    for( unsigned int i = 0; i < linkEnds2.size( ); i++ )
     {
         measurementSimulationInput[ one_way_range ][ linkEnds2[ i ] ] = std::make_pair( initialObservationTimes, receiver );
         measurementSimulationInput[ angular_position ][ linkEnds2[ i ] ] = std::make_pair( initialObservationTimes, receiver );
@@ -334,7 +334,7 @@ Eigen::VectorXd  executeParameterEstimation(
 
 
     Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > truthParameters = initialParameterEstimate;
-    std::cout << "Truth " << std::setprecision( 6 ) << truthParameters.transpose( ) << std::endl;
+    std::cout << "Truth " << std::setprecision( 16 ) << truthParameters.transpose( ) << std::endl;
 
     initialParameterEstimate[ 0 ] += 1.0E2;
     initialParameterEstimate[ 1 ] += 1.0E2;
@@ -366,13 +366,35 @@ Eigen::VectorXd  executeParameterEstimation(
                 observationsAndTimes, ( initialParameterEstimate ).rows( ) );
 
     std::map< observation_models::ObservableType, double > weightPerObservable;
-    weightPerObservable[ one_way_range ] = 1.0E-4;
-    weightPerObservable[ angular_position ] = 1.0E-20;
+    weightPerObservable[ one_way_range ] = 1.0;
+    weightPerObservable[ angular_position ] = 1.0E-18;
 
     podInput->setConstantPerObservableWeightsMatrix( weightPerObservable );
+    podInput->defineEstimationSettings( true, false, true, true, true, true );
+    boost::shared_ptr< PodOutput< StateScalarType, TimeType > > podOutput = orbitDeterminationManager.estimateParameters(
+                podInput, boost::make_shared< EstimationConvergenceChecker >( 8 ) );
 
-    boost::shared_ptr< PodOutput< StateScalarType > > podOutput = orbitDeterminationManager.estimateParameters(
-                podInput );
+//    tudat::input_output::writeMatrixToFile( podOutput->getResidualHistoryMatrix( ), "hybridResidualHistory.dat" );
+//    tudat::input_output::writeMatrixToFile( podOutput->getCorrelationMatrix( ), "hybridCorrelations.dat" );
+//    tudat::input_output::writeMatrixToFile( podOutput->normalizedInformationMatrix_, "hybridPartials.dat" );
+
+//    std::vector< std::vector< std::map< TimeType, Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > > > > dynamicsHistoryPerIteration =
+//    podOutput->dynamicsHistoryPerIteration_;
+//    for( unsigned int i = 0; i < dynamicsHistoryPerIteration.size( ); i++ )
+//    {
+//        tudat::input_output::writeDataMapToTextFile( dynamicsHistoryPerIteration.at( i ).at( 0 ), "hybridMarsOrbit" + std::to_string( i ) + ".dat" );
+//        for( unsigned int j = 1; j < dynamicsHistoryPerIteration.at( i ).size( ); j++ )
+//        {
+//            tudat::input_output::writeDataMapToTextFile(
+//                        dynamicsHistoryPerIteration.at( i ).at( j ), "hybridSpacecraftOrbit" + std::to_string( i ) + "_" +
+//                        std::to_string( j )+ ".dat" );
+
+//        }
+
+//    }
+
+    std::cout<<"Formal error "<<podOutput->getFormalErrorVector( ).transpose( )<<std::endl;
+    std::cout<<"Estimated parameter "<<std::setprecision( 16 )<<podOutput->parameterEstimate_.transpose( )<<std::endl;
 
     return ( podOutput->parameterEstimate_ - truthParameters ).template cast< double >( );
 }
@@ -387,18 +409,18 @@ BOOST_AUTO_TEST_CASE( test_MultiArcStateEstimation )
 
     for( unsigned int j = 0; j < 2; j++ )
     {
-        BOOST_CHECK_SMALL( std::fabs( parameterError( j ) ), 1.0 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( j ) ), 2.0 );
         BOOST_CHECK_SMALL( std::fabs( parameterError( j + 3 ) ), 1.0E-6  );
     }
 
     BOOST_CHECK_SMALL( std::fabs( parameterError( 2 ) ), 500.0 );
-    BOOST_CHECK_SMALL( std::fabs( parameterError( 5 ) ), 1.0E-4  );
+    BOOST_CHECK_SMALL( std::fabs( parameterError( 5 ) ), 1.0E-5  );
 
     for( int i = 0; i < numberOfEstimatedArcs; i++ )
     {
         for( unsigned int j = 0; j < 3; j++ )
         {
-            BOOST_CHECK_SMALL( std::fabs( parameterError( ( i + 1 )* 6 + j ) ), 1E-1 );
+            BOOST_CHECK_SMALL( std::fabs( parameterError( ( i + 1 )* 6 + j ) ), 1E-2 );
             BOOST_CHECK_SMALL( std::fabs( parameterError( ( i + 1 ) * 6 + j + 3 ) ), 1.0E-5  );
         }
     }

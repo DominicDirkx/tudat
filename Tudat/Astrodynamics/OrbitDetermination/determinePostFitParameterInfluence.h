@@ -47,7 +47,7 @@ namespace simulation_setup
  *  \return Pair of estimation output (first) and adjustment to initial state vectors (second)
  */
 template< typename TimeType = double, typename StateScalarType = double >
-std::pair< boost::shared_ptr< PodOutput< StateScalarType > >, Eigen::VectorXd > determinePostfitParameterInfluence(
+std::pair< boost::shared_ptr< PodOutput< StateScalarType, TimeType > >, Eigen::VectorXd > determinePostfitParameterInfluence(
         const NamedBodyMap& bodyMap,
         const boost::shared_ptr< numerical_integrators::IntegratorSettings< TimeType > > integratorSettings,
         const boost::shared_ptr< propagators::PropagatorSettings< StateScalarType > > propagatorSettings,
@@ -164,7 +164,7 @@ std::pair< boost::shared_ptr< PodOutput< StateScalarType > >, Eigen::VectorXd > 
     perturbedParameters->resetParameterValues( parameterVectorToPerturb );
 
     // Fit nominal dynamics to pertrubed dynamical model
-    boost::shared_ptr< PodOutput< StateScalarType > > podOutput = orbitDeterminationManager.estimateParameters(
+    boost::shared_ptr< PodOutput< StateScalarType, TimeType > > podOutput = orbitDeterminationManager.estimateParameters(
                 podInput, boost::make_shared< EstimationConvergenceChecker >( numberOfIterations ) );
 
     // Reset parameter to nominal value

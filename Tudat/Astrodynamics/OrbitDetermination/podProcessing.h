@@ -381,7 +381,7 @@ template< typename ObservationScalarType = double, typename TimeType = double, t
           typename ParameterScalarType = double >
 std::map< TimeType, Eigen::MatrixXd >  calculateCovarianceMatrixAsFunctionOfTime(
         const boost::shared_ptr< PodInput< ObservationScalarType, TimeType > >& podInputData,
-        const boost::shared_ptr< PodOutput< ParameterScalarType > >& podOutputData,
+        const boost::shared_ptr< PodOutput< ParameterScalarType, TimeType > >& podOutputData,
         const double outputTimeStep )
 {
     return calculateCovarianceMatrixAsFunctionOfTime< ObservationScalarType, TimeType >(

@@ -136,6 +136,17 @@ public:
     virtual boost::shared_ptr< DynamicsSimulator< StateScalarType, TimeType > > getDynamicsSimulatorBase( ) = 0;
 
 
+    virtual std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > >
+    getEquationsOfMotionNumericalSolutionBase( )
+    {
+        return getDynamicsSimulatorBase( )->getEquationsOfMotionNumericalSolutionBase( );
+    }
+
+
+    virtual std::vector< std::map< TimeType, Eigen::VectorXd > > getDependentVariableNumericalSolutionBase( )
+    {
+        return getDynamicsSimulatorBase( )->getDependentVariableNumericalSolutionBase( );
+    }
 
 protected:
 
@@ -618,7 +629,6 @@ public:
     {
         variationalEquationsSolution_[ 0 ].clear( );
         variationalEquationsSolution_[ 1 ].clear( );
-
 
         if( integrateEquationsConcurrently )
         {
@@ -1739,6 +1749,38 @@ public:
     virtual boost::shared_ptr< DynamicsSimulator< StateScalarType, TimeType > > getDynamicsSimulatorBase( )
     {
         throw std::runtime_error( "Error, getDynamicsSimulatorBase not implemented in hyrbid arc propagator" );
+    }
+
+    std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > >
+    getEquationsOfMotionNumericalSolutionBase( )
+    {
+        std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > > numericalSolution;
+        numericalSolution.push_back( singleArcSolver_->getEquationsOfMotionNumericalSolutionBase( ).at( 0 ) );
+
+        std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > > multiArcNumericalSolution =
+                multiArcSolver_->getEquationsOfMotionNumericalSolutionBase( );
+        for( unsigned int i = 0; i < multiArcNumericalSolution.size( ); i++ )
+        {
+            numericalSolution.push_back( multiArcNumericalSolution.at( i ) );
+        }
+
+        return numericalSolution;
+    }
+
+
+    std::vector< std::map< TimeType, Eigen::VectorXd > > getDependentVariableNumericalSolutionBase( )
+    {
+        std::vector< std::map< TimeType, Eigen::VectorXd > > numericalSolution;
+        numericalSolution.push_back( singleArcSolver_->getDependentVariableNumericalSolutionBase( ).at( 0 ) );
+
+        std::vector< std::map< TimeType, Eigen::VectorXd > > multiArcNumericalSolution =
+                multiArcSolver_->getDependentVariableNumericalSolutionBase( );
+        for( unsigned int i = 0; i < multiArcNumericalSolution.size( ); i++ )
+        {
+            numericalSolution.push_back( multiArcNumericalSolution.at( i ) );
+        }
+
+        return numericalSolution;
     }
 
 

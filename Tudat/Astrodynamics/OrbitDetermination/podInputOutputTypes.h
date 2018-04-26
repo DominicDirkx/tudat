@@ -40,7 +40,7 @@ public:
     typedef std::map< observation_models::LinkEnds, std::pair< ObservationVectorType,
     std::pair< std::vector< TimeType >, observation_models::LinkEndType > > > SingleObservablePodInputType;
 
-        //! List of SingleObservablePodInputType per observation type
+    //! List of SingleObservablePodInputType per observation type
     typedef std::map< observation_models::ObservableType, SingleObservablePodInputType > PodInputDataType;
 
     //! Constructor
@@ -99,7 +99,7 @@ public:
     void setConstantWeightsMatrix( const double constantWeight = 1.0 )
     {
         std::map< observation_models::ObservableType,
-                    std::map< observation_models::LinkEnds, double > > weightPerObservableAndLinkEnds;
+                std::map< observation_models::LinkEnds, double > > weightPerObservableAndLinkEnds;
         for( typename PodInputDataType::const_iterator observablesIterator = observationsAndTimes_.begin( );
              observablesIterator != observationsAndTimes_.end( ); observablesIterator++ )
         {
@@ -348,7 +348,7 @@ private:
 };
 
 //! Data structure through which the output of the orbit determination is communicated
-template< typename ObservationScalarType = double >
+template< typename ObservationScalarType = double, typename TimeType = double >
 struct PodOutput
 {
 
@@ -392,6 +392,14 @@ struct PodOutput
         exceptionDuringInversion_( exceptionDuringInversion ),
         exceptionDuringPropagation_( exceptionDuringPropagation)
     { }
+
+    void setPropagationResults(
+            const std::vector< std::vector< std::map< TimeType, Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > > > >& dynamicsHistoryPerIteration,
+            const std::vector< std::vector< std::map< TimeType, Eigen::VectorXd > > >& dependentVariableHistoryPerIteration )
+    {
+        dynamicsHistoryPerIteration_ = dynamicsHistoryPerIteration;
+        dependentVariableHistoryPerIteration_ = dependentVariableHistoryPerIteration;
+    }
 
     //! Function to retrieve the unnormalized inverse estimation covariance matrix
     /*!
@@ -525,6 +533,10 @@ struct PodOutput
 
     //! Boolean denoting whether an exception was caught during (re)propagation of equations of motion (and variational equations)
     bool exceptionDuringPropagation_;
+
+    std::vector< std::vector< std::map< TimeType, Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > > > > dynamicsHistoryPerIteration_;
+
+    std::vector< std::vector< std::map< TimeType, Eigen::VectorXd > > > dependentVariableHistoryPerIteration_;
 };
 
 }

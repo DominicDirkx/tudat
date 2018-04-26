@@ -400,7 +400,7 @@ Eigen::VectorXd  executeParameterEstimation(
 }
 
 
-BOOST_AUTO_TEST_CASE( test_MultiArcStateEstimation )
+BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
 {
     Eigen::VectorXd parameterError = executeParameterEstimation< double, double, double >( );
     int numberOfEstimatedArcs = ( parameterError.rows( ) - 8 ) / 6;
@@ -409,12 +409,12 @@ BOOST_AUTO_TEST_CASE( test_MultiArcStateEstimation )
 
     for( unsigned int j = 0; j < 2; j++ )
     {
-        BOOST_CHECK_SMALL( std::fabs( parameterError( j ) ), 2.0 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( j ) ), 1.0 );
         BOOST_CHECK_SMALL( std::fabs( parameterError( j + 3 ) ), 1.0E-6  );
     }
 
-    BOOST_CHECK_SMALL( std::fabs( parameterError( 2 ) ), 500.0 );
-    BOOST_CHECK_SMALL( std::fabs( parameterError( 5 ) ), 1.0E-5  );
+    BOOST_CHECK_SMALL( std::fabs( parameterError( 2 ) ), 100.0 );
+    BOOST_CHECK_SMALL( std::fabs( parameterError( 5 ) ), 5.0E-5  );
 
     for( int i = 0; i < numberOfEstimatedArcs; i++ )
     {

@@ -64,7 +64,8 @@ public:
         reintegrateVariationalEquations_( true ),
         saveInformationMatrix_( true ),
         printOutput_( true ),
-        saveResidualsAndParametersFromEachIteration_( true )
+        saveResidualsAndParametersFromEachIteration_( true ),
+        weighResiduals_( true )
     {
         if( inverseOfAprioriCovariance_.rows( ) == 0 )
         {
@@ -200,7 +201,8 @@ public:
                                    const bool saveInformationMatrix = 1,
                                    const bool printOutput = 1,
                                    const bool saveResidualsAndParametersFromEachIteration = 1,
-                                   const bool saveStateHistoryForEachIteration = 0 )
+                                   const bool saveStateHistoryForEachIteration = 0,
+                                   const bool weighResiduals = 1 )
     {
         reintegrateEquationsOnFirstIteration_ = reintegrateEquationsOnFirstIteration;
         reintegrateVariationalEquations_ = reintegrateVariationalEquations;
@@ -208,6 +210,7 @@ public:
         printOutput_ = printOutput;
         saveResidualsAndParametersFromEachIteration_ = saveResidualsAndParametersFromEachIteration;
         saveStateHistoryForEachIteration_ = saveStateHistoryForEachIteration;
+        weighResiduals_ = weighResiduals;
     }
 
     //! Function to return the total data structure of observations and associated times/link ends/type (by reference)
@@ -313,6 +316,12 @@ public:
         return saveStateHistoryForEachIteration_;
     }
 
+    bool getWeighResiduals( )
+    {
+        return weighResiduals_;
+    }
+
+
 private:
     //! Total data structure of observations and associated times/link ends/type
     PodInputDataType observationsAndTimes_;
@@ -344,6 +353,8 @@ private:
 
     //! Boolean denoting whether the state history is to be saved on each iteration.
     bool saveStateHistoryForEachIteration_;
+
+    bool weighResiduals_;
 
 };
 
@@ -504,7 +515,7 @@ struct PodOutput
     //! Vector of estimated parameter values.
     Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > parameterEstimate_;
 
-    //! Vector of postfit observation residuals
+    //! Vector of postfit observation residuals/
     Eigen::VectorXd residuals_;
 
     //! Matrix of observation partials (normalixed) used in estimation (may be empty if so requested)

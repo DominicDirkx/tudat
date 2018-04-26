@@ -561,12 +561,13 @@ public:
 
             // Perform least squares calculation for correction to parameter vector.
             std::pair< Eigen::VectorXd, Eigen::MatrixXd > leastSquaresOutput;
+            Eigen::VectorXd weights = getConcatenatedWeightsVector( podInput->getWeightsMatrixDiagonals( ) );
             try
             {
                 leastSquaresOutput =
                         linear_algebra::performLeastSquaresAdjustmentFromInformationMatrix(
                             residualsAndPartials.second.block( 0, 0, residualsAndPartials.second.rows( ), numberOfEstimatedParameters ),
-                            residualsAndPartials.first, getConcatenatedWeightsVector( podInput->getWeightsMatrixDiagonals( ) ),
+                            residualsAndPartials.first, weights,
                             normalizedInverseAprioriCovarianceMatrix );
             }
             catch( std::runtime_error )
@@ -603,16 +604,25 @@ public:
             }
 
             // Calculate mean residual for current iteration.
-            residualRms = linear_algebra::getVectorEntryRootMeanSquare( residualsAndPartials.first );
+            if( podInput->getWeighResiduals( ) )
+            {
+                residualRms = linear_algebra::getVectorEntryRootMeanSquare(
+                            residualsAndPartials.first.cwiseQuotient( ( weights.cwiseAbs( ) ).cwiseSqrt( ) ) );
+            }
+            else
+            {
+                residualRms = linear_algebra::getVectorEntryRootMeanSquare(
+                            residualsAndPartials.first );
+            }
 
             rmsResidualHistory.push_back( residualRms );
             if( podInput->getPrintOutput( ) )
             {
-                std::cout << "Current residual: " << residualRms << std::endl;
+                std::cout << "Current weighted residual: " << residualRms << std::endl;
             }
 
             // If current iteration is better than previous one, update 'best' data.
-            //if( residualRms < bestResidual || !( bestResidual == bestResidual ) )
+            if( residualRms < bestResidual || !( bestResidual == bestResidual ) )
             {
                 bestResidual = residualRms;
                 bestParameterEstimate = oldParameterEstimate;
@@ -621,7 +631,7 @@ public:
                 {
                     bestInformationMatrix = residualsAndPartials.second;
                 }
-                bestWeightsMatrixDiagonal = getConcatenatedWeightsVector( podInput->getWeightsMatrixDiagonals( ) );
+                bestWeightsMatrixDiagonal = weights;
                 bestTransformationData = transformationData;
                 bestInverseNormalizedCovarianceMatrix = leastSquaresOutput.second;
             }
@@ -635,7 +645,7 @@ public:
 
         if( podInput->getPrintOutput( ) )
         {
-            std::cout << "Final residual: " << bestResidual << std::endl;
+            std::cout << "Final weighted residual: " << bestResidual << std::endl;
         }
 
 
@@ -663,7 +673,7 @@ public:
      */
     void resetParameterEstimate( const ParameterVectorType& newParameterEstimate, const bool reintegrateVariationalEquations = 1 )
     {
-       if( integrateAndEstimateOrbit_ )
+        if( integrateAndEstimateOrbit_ )
         {
             variationalEquationsSolver_->resetParameterEstimate( newParameterEstimate, reintegrateVariationalEquations );
         }

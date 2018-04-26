@@ -1050,7 +1050,7 @@ std::pair< Eigen::VectorXd, bool > executeEarthOrbiterBiasEstimation(
     weightPerObservable[ two_way_doppler ] = 1.0 / ( 1.0E-12 * 1.0E-12 );
 
     podInput->setConstantPerObservableWeightsMatrix( weightPerObservable );
-    podInput->defineEstimationSettings( true, false, false, true, false );
+    podInput->defineEstimationSettings( true, false, false, true, false, false, false );
 
     // Perform estimation
     boost::shared_ptr< PodOutput< StateScalarType, TimeType > > podOutput = orbitDeterminationManager.estimateParameters(

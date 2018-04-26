@@ -20,7 +20,6 @@
 #include "Tudat/Mathematics/NumericalIntegrators/euler.h"
 #include "Tudat/Mathematics/NumericalIntegrators/adamsBashforthMoultonIntegrator.h"
 #include "Tudat/Mathematics/NumericalIntegrators/rungeKuttaVariableStepSizeIntegrator.h"
-
 #include "Tudat/Mathematics/NumericalIntegrators/createNumericalIntegrator.h"
 
 namespace tudat
@@ -32,6 +31,7 @@ namespace numerical_integrators
 //! Enum to define available integrators.
 enum AvailableIntegrators
 {
+    hybridIntegrator,
     rungeKutta4,
     euler,
     rungeKuttaVariableStepSize,
@@ -371,6 +371,24 @@ public:
     TimeType bandwidth_;
 };
 
+template< typename TimeType = double >
+class HybridIntegratorSettings: public IntegratorSettings< TimeType >
+{
+public:
+    HybridIntegratorSettings(
+            const boost::shared_ptr< IntegratorSettings< TimeType > > singleArcSettings,
+            const boost::shared_ptr< IntegratorSettings< TimeType > > multiArcSettings ):
+    IntegratorSettings< TimeType >(
+            hybridIntegrator, TUDAT_NAN, TUDAT_NAN ),
+    singleArcSettings_( singleArcSettings ), multiArcSettings_( multiArcSettings ){ }
+
+    boost::shared_ptr< IntegratorSettings< TimeType > > singleArcSettings_;
+
+    boost::shared_ptr< IntegratorSettings< TimeType > > multiArcSettings_;
+
+};
+
+
 
 //! Function to create a numerical integrator.
 /*!
@@ -518,8 +536,11 @@ DependentVariableType, TimeStepType > > createIntegrator(
         }
         break;
     }
+    case hybridIntegrator:
+        throw std::runtime_error( "Error when making integratot, requestfing hybrid integrator. Integrator components must be created separately" );
+        break;
     default:
-        std::runtime_error(
+        throw std::runtime_error(
                     "Error, integrator " +  std::to_string( integratorSettings->integratorType_ ) +
                     "not found. " );    }
     return integrator;

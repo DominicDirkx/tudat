@@ -930,7 +930,7 @@ public:
 
                 singleArcDynamicsSimulators_.push_back(
                             boost::make_shared< SingleArcDynamicsSimulator< StateScalarType, TimeType > >(
-                                bodyMap, integratorSettings, singleArcSettings.at( i ), false, false, true ) );
+                                bodyMap, integratorSettings->clone( ), singleArcSettings.at( i ), false, false, true ) );
                 singleArcDynamicsSimulators_[ i ]->resetSetIntegratedResult( false );
             }
 

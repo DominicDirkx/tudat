@@ -1496,7 +1496,6 @@ public:
             const bool integrateEquationsOnCreation = false ):
         VariationalEquationsSolver< StateScalarType, TimeType >(
             bodyMap, parametersToEstimate, clearNumericalSolution ),
-        integratorSettings_( integratorSettings ),
         arcStartTimes_( arcStartTimes )
     {
         // Cast propagator settings to correct type and check validity
@@ -1593,20 +1592,17 @@ public:
             const VectorType& initialStateEstimate, const bool integrateEquationsConcurrently )
     {
 
-        // Reset initial time and propagate multi-arc equations
-        integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
+        // Propagate multi-arc equations
         singleArcSolver_->integrateVariationalAndDynamicalEquations(
                     initialStateEstimate.block( 0, 0, singleArcDynamicsSize_, 1 ),
                     integrateEquationsConcurrently );
 
 
         // Extract single arc state to update multi-arc initial states
-        integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
         resetMultiArcInitialStatesFromSingleArcPropagation(
                     initialStateEstimate.block( singleArcDynamicsSize_, 0, multiArcDynamicsSize_, 1 ) );
 
-        // Reset initial time and propagate single-arc equations
-        integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
+        // Propagate single-arc equations
         multiArcSolver_->integrateVariationalAndDynamicalEquations(
                     propagatorSettings_->getMultiArcPropagatorSettings( )->getInitialStates( ),
                     integrateEquationsConcurrently );
@@ -1659,18 +1655,14 @@ public:
     void integrateDynamicalEquationsOfMotionOnly(
             const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >& initialStateEstimate )
     {
-        // Reset initial time and propagate multi-arc equations
-        integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
+        // Propagate multi-arc equations
         singleArcSolver_->integrateDynamicalEquationsOfMotionOnly(
                     initialStateEstimate.block( 0, 0, singleArcDynamicsSize_, 1 ) );
 
         // Extract single arc state to update multi-arc initial states
-        integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
         resetMultiArcInitialStatesFromSingleArcPropagation(
                     initialStateEstimate.block( singleArcDynamicsSize_, 0, multiArcDynamicsSize_, 1 ) );
 
-        // Reset initial time and propagate single-arc equations
-        integratorSettings_->initialTime_ = arcStartTimes_.at( 0 );
         multiArcSolver_->integrateDynamicalEquationsOfMotionOnly(
                     propagatorSettings_->getMultiArcPropagatorSettings( )->getInitialStates( ) );
 
@@ -1885,8 +1877,6 @@ protected:
     boost::shared_ptr< HybridArcPropagatorSettings< StateScalarType > > originalPopagatorSettings_;
 
     boost::shared_ptr< HybridArcPropagatorSettings< StateScalarType > > propagatorSettings_;
-
-    boost::shared_ptr< numerical_integrators::IntegratorSettings< TimeType > > integratorSettings_;
 
     //! Size of estimated single-arc dynamical parameters
     int singleArcDynamicsSize_;

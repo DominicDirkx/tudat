@@ -78,6 +78,13 @@ public:
      */
     virtual ~IntegratorSettings( ) { }
 
+    virtual boost::shared_ptr< IntegratorSettings< TimeType > > clone( ) const
+    {
+        return boost::make_shared< IntegratorSettings< TimeType > >(
+                    integratorType_, initialTime_, initialTimeStep_, saveFrequency_,
+                    assessPropagationTerminationConditionDuringIntegrationSubsteps_ );
+    }
+
     //! Type of numerical integrator
     /*!
      *  Type of numerical integrator, from enum of available integrators.
@@ -175,6 +182,23 @@ public:
      */
     ~RungeKuttaVariableStepSizeSettings( ){ }
 
+    boost::shared_ptr< IntegratorSettings< TimeType > > clone( ) const
+    {
+        return boost::make_shared< RungeKuttaVariableStepSizeSettings< TimeType > >(
+                    this->integratorType_,
+                    this->initialTime_,
+                    this->initialTimeStep_,
+                    coefficientSet_,
+                    minimumStepSize_,  maximumStepSize_,
+                    relativeErrorTolerance_,
+                    absoluteErrorTolerance_,
+                    this->saveFrequency_,
+                    this->assessPropagationTerminationConditionDuringIntegrationSubsteps_,
+                    safetyFactorForNextStepSize_,
+                    maximumFactorIncreaseForNextStepSize_,
+                    minimumFactorDecreaseForNextStepSize_ );
+    }
+
     //! Type of numerical integrator (must be an RK variable step type)
     numerical_integrators::RungeKuttaCoefficients::CoefficientSets coefficientSet_;
 
@@ -258,6 +282,23 @@ public:
      *  Destructor
      */
     ~BulirschStoerIntegratorSettings( ){ }
+
+    boost::shared_ptr< IntegratorSettings< TimeType > > clone( ) const
+    {
+        return boost::make_shared< BulirschStoerIntegratorSettings< TimeType > >(
+                    this->initialTime_,
+                    this->initialTimeStep_,
+                    extrapolationSequence_,
+                    maximumNumberOfSteps_,
+                    minimumStepSize_,  maximumStepSize_,
+                    relativeErrorTolerance_,
+                    absoluteErrorTolerance_,
+                    this->saveFrequency_,
+                    this->assessPropagationTerminationConditionDuringIntegrationSubsteps_,
+                    safetyFactorForNextStepSize_,
+                    maximumFactorIncreaseForNextStepSize_,
+                    minimumFactorDecreaseForNextStepSize_ );
+    }
 
     //! Type of sequence that is to be used for Bulirsch-Stoer integrator
     ExtrapolationMethodStepSequences extrapolationSequence_;
@@ -346,6 +387,21 @@ public:
      */
     ~AdamsBashforthMoultonSettings( ){ }
 
+    boost::shared_ptr< IntegratorSettings< TimeType > > clone( ) const
+    {
+        return boost::make_shared< AdamsBashforthMoultonSettings< TimeType > >(
+                    this->initialTime_,
+                    this->initialTimeStep_,
+                    minimumStepSize_,  maximumStepSize_,
+                    relativeErrorTolerance_,
+                    absoluteErrorTolerance_,
+                    minimumOrder_,
+                    maximumOrder_,
+                    this->saveFrequency_,
+                    this->assessPropagationTerminationConditionDuringIntegrationSubsteps_,
+                    bandwidth_ );
+    }
+
     //! Minimum step size for integration.
     /*!
      *  Minimum step size for integration. Integration stops (exception thrown) if time step comes below this value.
@@ -378,13 +434,31 @@ public:
     HybridIntegratorSettings(
             const boost::shared_ptr< IntegratorSettings< TimeType > > singleArcSettings,
             const boost::shared_ptr< IntegratorSettings< TimeType > > multiArcSettings ):
-    IntegratorSettings< TimeType >(
+        IntegratorSettings< TimeType >(
             hybridIntegrator, TUDAT_NAN, TUDAT_NAN ),
-    singleArcSettings_( singleArcSettings ), multiArcSettings_( multiArcSettings ){ }
+        singleArcSettings_( singleArcSettings )
+    {
+        multiArcSettings_.push_back( multiArcSettings );
+    }
+
+    HybridIntegratorSettings(
+            const boost::shared_ptr< IntegratorSettings< TimeType > > singleArcSettings,
+            const std::vector< boost::shared_ptr< numerical_integrators::IntegratorSettings< TimeType > > > multiArcSettings ):
+        IntegratorSettings< TimeType >(
+            hybridIntegrator, TUDAT_NAN, TUDAT_NAN ),
+        singleArcSettings_( singleArcSettings ), multiArcSettings_( multiArcSettings ){ }
+
+    ~HybridIntegratorSettings( ){ }
+
+    boost::shared_ptr< IntegratorSettings< TimeType > > clone( ) const
+    {
+        return boost::make_shared< HybridIntegratorSettings< TimeType > >(
+                    singleArcSettings_, multiArcSettings_ );
+    }
 
     boost::shared_ptr< IntegratorSettings< TimeType > > singleArcSettings_;
 
-    boost::shared_ptr< IntegratorSettings< TimeType > > multiArcSettings_;
+    std::vector< boost::shared_ptr< numerical_integrators::IntegratorSettings< TimeType > > > multiArcSettings_;
 
 };
 
@@ -508,19 +582,19 @@ DependentVariableType, TimeStepType > > createIntegrator(
                       variableStepIntegratorSettings->bandwidth_ );
 
             boost::dynamic_pointer_cast<
-                                AdamsBashforthMoultonIntegrator
-                                < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
+                    AdamsBashforthMoultonIntegrator
+                    < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
                         integrator )->setMinimumOrder( variableStepIntegratorSettings->minimumOrder_ );
             boost::dynamic_pointer_cast<
-                                AdamsBashforthMoultonIntegrator
-                                < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
+                    AdamsBashforthMoultonIntegrator
+                    < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
                         integrator )->setMaximumOrder( variableStepIntegratorSettings->maximumOrder_ );
             if( variableStepIntegratorSettings->minimumOrder_ ==
                     variableStepIntegratorSettings->maximumOrder_ )
             {
                 boost::dynamic_pointer_cast<
-                                    AdamsBashforthMoultonIntegrator
-                                    < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
+                        AdamsBashforthMoultonIntegrator
+                        < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
                             integrator )->setFixedOrder( true );
             }
 
@@ -528,8 +602,8 @@ DependentVariableType, TimeStepType > > createIntegrator(
                     variableStepIntegratorSettings->maximumStepSize_ )
             {
                 boost::dynamic_pointer_cast<
-                                    AdamsBashforthMoultonIntegrator
-                                    < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
+                        AdamsBashforthMoultonIntegrator
+                        < IndependentVariableType, DependentVariableType, DependentVariableType, TimeStepType > >(
                             integrator )->setFixedStepSize( true );
             }
 

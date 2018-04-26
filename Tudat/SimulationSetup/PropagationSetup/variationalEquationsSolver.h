@@ -1529,7 +1529,7 @@ public:
 
         // Create multi-arc solver with original parameter set
         originalMultiArcSolver_ = boost::make_shared< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > >(
-                    bodyMap, integratorSettings, originalPopagatorSettings_->getMultiArcPropagatorSettings( ),
+                    bodyMap, integratorSettings->clone( ), originalPopagatorSettings_->getMultiArcPropagatorSettings( ),
                     originalMultiArcParametersToEstimate_, arcStartTimes, integrateDynamicalAndVariationalEquationsConcurrently,
                     boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ),
                     false, false, false );
@@ -1537,12 +1537,12 @@ public:
         // Create variational equations solvers for single- and multi-arc
         integratorSettings->initialTime_ = arcStartTimes.at( 0 );
         singleArcSolver_ = boost::make_shared< SingleArcVariationalEquationsSolver< StateScalarType, TimeType > >(
-                    bodyMap, integratorSettings, propagatorSettings_->getSingleArcPropagatorSettings( ),
+                    bodyMap, integratorSettings->clone( ), propagatorSettings_->getSingleArcPropagatorSettings( ),
                     singleArcParametersToEstimate_, integrateDynamicalAndVariationalEquationsConcurrently,
                     boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ),
                     false, false );
         multiArcSolver_ = boost::make_shared< MultiArcVariationalEquationsSolver< StateScalarType, TimeType > >(
-                    bodyMap, integratorSettings, extendedMultiArcSettings,
+                    bodyMap, integratorSettings->clone( ), extendedMultiArcSettings,
                     multiArcParametersToEstimate_, arcStartTimes, integrateDynamicalAndVariationalEquationsConcurrently,
                     boost::shared_ptr< numerical_integrators::IntegratorSettings< double > >( ),
                     false, false, false );

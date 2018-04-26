@@ -482,7 +482,7 @@ public:
     std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > > getEquationsOfMotionNumericalSolutionBase( )
     {
         return std::vector< std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > >(
-                    { getEquationsOfMotionNumericalSolution( ) } );
+        { getEquationsOfMotionNumericalSolution( ) } );
     }
 
     //! Function to return the map of dependent variable history that was saved during numerical propagation(base class interface)
@@ -493,7 +493,7 @@ public:
     std::vector< std::map< TimeType, Eigen::VectorXd > > getDependentVariableNumericalSolutionBase( )
     {
         return std::vector< std::map< TimeType, Eigen::VectorXd > >(
-                    { getDependentVariableHistory( ) } );
+        { getDependentVariableHistory( ) } );
     }
 
     std::vector< std::map< TimeType, double > > getCummulativeComputationTimeHistoryBase( )
@@ -675,7 +675,7 @@ public:
     {
         propagationTerminationCondition_ = createPropagationTerminationConditions(
                     propagatorSettings_->getTerminationSettings(), bodyMap_,
-                            integratorSettings_->initialTimeStep_ );
+                    integratorSettings_->initialTimeStep_ );
     }
 
 protected:
@@ -1366,7 +1366,7 @@ public:
         DynamicsSimulator< StateScalarType, TimeType >(
             bodyMap, clearNumericalSolutions, setIntegratedResult ),
         addSingleArcBodiesToMultiArcDynamics_( addSingleArcBodiesToMultiArcDynamics )
-    {       
+    {
         boost::shared_ptr< HybridArcPropagatorSettings< StateScalarType > > hybridPropagatorSettings =
                 boost::dynamic_pointer_cast< HybridArcPropagatorSettings< StateScalarType > >( propagatorSettings );
         if( hybridPropagatorSettings == NULL )
@@ -1383,12 +1383,43 @@ public:
             {
                 std::cerr<<"Warning in hybrid dynamics simulator, setIntegratedResult is false, but single arc propagation will result will be set in environment for consistency with multi-arc "<<std::endl;
             }
-            singleArcDynamicsSimulator_ = boost::make_shared< SingleArcDynamicsSimulator< StateScalarType, TimeType > >(
-                        bodyMap, integratorSettings, hybridPropagatorSettings->getSingleArcPropagatorSettings( ),
-                        false, false, true );
-            multiArcDynamicsSimulator_ = boost::make_shared< MultiArcDynamicsSimulator< StateScalarType, TimeType > >(
-                        bodyMap, integratorSettings, hybridPropagatorSettings->getMultiArcPropagatorSettings( ), arcStartTimes,
-                        false, false, setIntegratedResult );
+
+            if( integratorSettings->integratorType_ != numerical_integrators::hybridIntegrator )
+            {
+                singleArcDynamicsSimulator_ = boost::make_shared< SingleArcDynamicsSimulator< StateScalarType, TimeType > >(
+                            bodyMap, integratorSettings->clone( ), hybridPropagatorSettings->getSingleArcPropagatorSettings( ),
+                            false, false, true );
+                multiArcDynamicsSimulator_ = boost::make_shared< MultiArcDynamicsSimulator< StateScalarType, TimeType > >(
+                            bodyMap, integratorSettings->clone( ), hybridPropagatorSettings->getMultiArcPropagatorSettings( ), arcStartTimes,
+                            false, false, setIntegratedResult );
+            }
+            else
+            {
+                boost::shared_ptr< numerical_integrators::HybridIntegratorSettings< TimeType > > hybridIntegratorSettings =
+                        boost::dynamic_pointer_cast< numerical_integrators::HybridIntegratorSettings< TimeType > >( integratorSettings );
+                if( hybridIntegratorSettings == NULL )
+                {
+                    throw std::runtime_error( "Error when creating hybrid arc dynamics simulator, expected hybrid integrator settings" );
+                }
+
+                singleArcDynamicsSimulator_ = boost::make_shared< SingleArcDynamicsSimulator< StateScalarType, TimeType > >(
+                            bodyMap, hybridIntegratorSettings->singleArcSettings_, hybridPropagatorSettings->getSingleArcPropagatorSettings( ),
+                            false, false, true );
+
+                if( hybridIntegratorSettings->multiArcSettings_.size( ) == 1 )
+                {
+                    multiArcDynamicsSimulator_ = boost::make_shared< MultiArcDynamicsSimulator< StateScalarType, TimeType > >(
+                                bodyMap, hybridIntegratorSettings->multiArcSettings_.at( 0 ), hybridPropagatorSettings->getMultiArcPropagatorSettings( ), arcStartTimes,
+                                false, false, setIntegratedResult );
+                }
+                else
+                {
+                    multiArcDynamicsSimulator_ = boost::make_shared< MultiArcDynamicsSimulator< StateScalarType, TimeType > >(
+                                bodyMap, hybridIntegratorSettings->multiArcSettings_, hybridPropagatorSettings->getMultiArcPropagatorSettings( ),
+                                false, false, setIntegratedResult );
+                }
+
+            }
         }
         else
         {
@@ -1415,7 +1446,7 @@ public:
      *  order into a single Eigen Vector, starting with the single-arc states, followed by the mulit-arc states
      */
     void integrateEquationsOfMotion(
-                const Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic >& initialGlobalStates )
+            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic >& initialGlobalStates )
     {
         singleArcDynamicsSimulator_->integrateEquationsOfMotion(
                     initialGlobalStates.block( 0, 0, singleArcDynamicsSize_, 1 ) );

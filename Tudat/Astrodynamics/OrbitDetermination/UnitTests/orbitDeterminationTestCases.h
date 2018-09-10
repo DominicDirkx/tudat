@@ -716,7 +716,7 @@ std::pair< Eigen::VectorXd, bool > executeEarthOrbiterBiasEstimation(
 
     // Create integrator settings
     boost::shared_ptr< IntegratorSettings< TimeType > > integratorSettings =
-            boost::make_shared< RungeKuttaVariableStepSizeSettings< TimeType > >
+            boost::make_shared< RungeKuttaVariableStepSizeSettings< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic > > >
             ( rungeKuttaVariableStepSize, TimeType( initialEphemerisTime ), 120.0,
               RungeKuttaCoefficients::CoefficientSets::rungeKuttaFehlberg78,
               120.0, 120.0, 1.0, 1.0 );

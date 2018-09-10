@@ -504,7 +504,7 @@ DependentVariableType, IndependentVariableStepType > > createIntegrator(
                 IndependentVariableType, DependentVariableType > >( integratorSettings );
         if( variableStepIntegratorSettings == NULL )
         {
-            std::runtime_error( "Error, type of integrator settings (rungeKuttaVariableStepSize) not compatible with selected integrator (derived class of IntegratorSettings must be RungeKuttaVariableStepSizeSettings for this type)" );
+            throw std::runtime_error( "Error, type of integrator settings (rungeKuttaVariableStepSize) not compatible with selected integrator (derived class of IntegratorSettings must be RungeKuttaVariableStepSizeSettings for this type)" );
         }
         else
         {
@@ -553,7 +553,7 @@ DependentVariableType, IndependentVariableStepType > > createIntegrator(
                     integratorSettings );
         if( bulirschStoerIntegratorSettings == NULL )
         {
-            std::runtime_error( "Error, type of integrator settings (rungeKuttaVariableStepSize) not compatible with selected integrator (derived class of IntegratorSettings must be RungeKuttaVariableStepSizeSettings for this type)" );
+            throw std::runtime_error( "Error, type of integrator settings (rungeKuttaVariableStepSize) not compatible with selected integrator (derived class of IntegratorSettings must be RungeKuttaVariableStepSizeSettings for this type)" );
         }
         else
         {
@@ -582,7 +582,7 @@ DependentVariableType, IndependentVariableStepType > > createIntegrator(
                     integratorSettings );
         if( variableStepIntegratorSettings == NULL )
         {
-            std::runtime_error( "Error, type of integrator settings (AdamsBashforthMoultonSettings) not compatible with selected integrator (derived class of IntegratorSettings must be AdamsBashforthMoultonSettings for this type)" );
+            throw std::runtime_error( "Error, type of integrator settings (AdamsBashforthMoultonSettings) not compatible with selected integrator (derived class of IntegratorSettings must be AdamsBashforthMoultonSettings for this type)" );
         }
         else
         {

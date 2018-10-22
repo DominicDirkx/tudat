@@ -62,6 +62,44 @@ struct TabulatedObservationSimulationTimeSettings: public ObservationSimulationT
     std::vector< TimeType > simulationTimes_;
 };
 
+template< typename TimeType >
+struct ArcLimitedObservationSimulationTimeSettings: public ObservationSimulationTimeSettings< TimeType >
+{
+    ArcLimitedObservationSimulationTimeSettings(
+            const LinkEndType linkEndType, const TimeType startTime, const TimeType endTime, const TimeType observationInterval,
+            const TimeType arcDuration, const int observationLimitPerArc ): ObservationSimulationTimeSettings< TimeType >( linkEndType ),
+        startTime_( startTime ), endTime_( endTime ), observationInterval_( observationInterval ),
+        arcDuration_( arcDuration ), observationLimitPerArc_( observationLimitPerArc ){ }
+
+    ~ArcLimitedObservationSimulationTimeSettings( ){ }
+
+    TimeType startTime_;
+    TimeType endTime_;
+    TimeType observationInterval_;
+
+    TimeType arcDuration_;
+    int observationLimitPerArc_;
+};
+
+template< typename TimeType >
+struct ConstrainedArcLimitedObservationSimulationTimeSettings: public ObservationSimulationTimeSettings< TimeType >
+{
+    ConstrainedArcLimitedObservationSimulationTimeSettings(
+            const LinkEndType linkEndType, const std::vector< std::pair< TimeType, TimeType > > constraintArcs, const TimeType observationInterval,
+            const TimeType arcDuration, const int observationLimitPerArc ): ObservationSimulationTimeSettings< TimeType >( linkEndType ),
+        constraintArcs_( constraintArcs ), observationInterval_( observationInterval ),
+        arcDuration_( arcDuration ), observationLimitPerArc_( observationLimitPerArc ){ }
+
+    ~ConstrainedArcLimitedObservationSimulationTimeSettings( ){ }
+
+    std::vector< std::pair< TimeType, TimeType > > constraintArcs_;
+
+    TimeType observationInterval_;
+    TimeType arcDuration_;
+    int observationLimitPerArc_;
+};
+
+
 //! Function to compute observations at times defined by settings object using a given observation model
 /*!
  *  Function to compute observations at times defined by settings object using a given observation model

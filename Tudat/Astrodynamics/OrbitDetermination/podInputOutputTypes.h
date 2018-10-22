@@ -159,9 +159,9 @@ public:
             if( weightPerObservableAndLinkEnds.count( observablesIterator->first ) == 0 )
             {
                 std::string errorMessage =
-                        "Error when setting  weights per observable, observable " +
+                        "Warning when setting  weights per observable, observable " +
                         std::to_string( observablesIterator->first  ) + " not found";
-                throw std::runtime_error( errorMessage );
+                std::cerr<<errorMessage<<std::endl;
             }
             else
             {
@@ -187,6 +187,55 @@ public:
             }
         }
     }
+
+
+    void setTimeVaryingWeights(
+            const std::map< observation_models::ObservableType,
+            std::map< observation_models::LinkEnds, std::map< double, Eigen::VectorXd > > > observableWeights )
+    {
+        // Iterate over all observables
+        for( typename PodInputDataType::const_iterator observablesIterator = observationsAndTimes_.begin( );
+             observablesIterator != observationsAndTimes_.end( ); observablesIterator++ )
+        {
+            if( ! ( observableWeights.count( observablesIterator->first ) == 0 ) )
+            {
+                // Iterate over all link ends
+                int currentObservableSize = observation_models::getObservableSize(
+                            observablesIterator->first );
+                for( typename SingleObservablePodInputType::const_iterator linkEndIterator =
+                     observablesIterator->second.begin( ); linkEndIterator != observablesIterator->second.end( ); linkEndIterator++  )
+                {
+                    if( !( observableWeights.at( observablesIterator->first ).count( linkEndIterator->first ) == 0 ) )
+                    {
+                        // Retrieve list of observation times.
+                        std::vector< TimeType > observationTimes = linkEndIterator->second.second.first;
+
+                        // Retrieve list of weights to be set.
+                        std::map< double, Eigen::VectorXd > currentWeightsList =
+                                observableWeights.at( observablesIterator->first ).at( linkEndIterator->first );
+
+                        // Set weights to zero
+                        if( weightsMatrixDiagonals_[ observablesIterator->first ][ linkEndIterator->first ].size( ) !=
+                                currentWeightsList.size( ) * currentObservableSize )
+                        {
+                            std::cout<<"Sizes when setting "<<weightsMatrixDiagonals_[ observablesIterator->first ][ linkEndIterator->first ].size( )<<" "<<
+                                currentWeightsList.size( ) * currentObservableSize<<" "<<currentObservableSize<<std::endl;
+                            throw std::runtime_error( "Error when setting time-varying weights, sizes are incompatible" );
+                        }
+
+                        // Set weights element-wise
+                        for( int i = 0; i < observationTimes.size( ); i++ )
+                        {
+                            weightsMatrixDiagonals_[ observablesIterator->first ][ linkEndIterator->first ].segment(
+                                        i * currentObservableSize, currentObservableSize ) =
+                                    currentWeightsList.at( observationTimes.at( i ) );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     //! Function to define specific settings for estimation process
     /*!

@@ -62,6 +62,12 @@ public:
     virtual Eigen::Vector6d getCartesianState(
             const double secondsSinceEpoch ) = 0;
 
+    Eigen::Vector3d getCartesianPosition(
+            const double secondsSinceEpoch )
+    {
+        return getCartesianState( secondsSinceEpoch ).segment( 0, 3 );
+    }
+
     //! Get state from ephemeris (with long double as state scalar).
     /*!
      * Returns state from ephemeris with long double as state scalar at given time. By default, this

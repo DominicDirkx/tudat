@@ -58,4 +58,6 @@
      tudat_statistics tudat_propagators ${TUDAT_EXTERNAL_INTERFACE_LIBRARIES} tudat_basic_astrodynamics tudat_interpolators tudat_root_finders tudat_filters
      tudat_basic_mathematics tudat_input_output tudat_basics ${TUDAT_EXTERNAL_LIBRARIES})
 
+else( )
+    list(APPEND TUDAT_ESTIMATION_LIBRARIES TUDAT_PROPAGATION_LIBRARIES )
  endif( )

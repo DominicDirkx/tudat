@@ -336,6 +336,8 @@ public:
      */
     Eigen::VectorXd normalizeObservationMatrix( Eigen::MatrixXd& observationMatrix )
     {
+        input_output::writeMatrixToFile( observationMatrix, "testPartials.dat" );
+
         Eigen::VectorXd normalizationTerms = Eigen::VectorXd( observationMatrix.cols( ) );
 
         for( int i = 0; i < observationMatrix.cols( ); i++ )

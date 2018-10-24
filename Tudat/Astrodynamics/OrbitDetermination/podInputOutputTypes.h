@@ -29,6 +29,69 @@ namespace tudat
 namespace simulation_setup
 {
 
+template< typename StateScalarType = double, typename TimeType = double >
+std::map< observation_models::ObservableType, std::map< observation_models::LinkEnds,
+std::pair< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, observation_models::LinkEndType > > > >
+mergeObservationsAndTimes(
+        std::map< observation_models::ObservableType, std::map< observation_models::LinkEnds,
+        std::pair< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, observation_models::LinkEndType > > > > firstSet,
+        std::map< observation_models::ObservableType, std::map< observation_models::LinkEnds,
+        std::pair< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, observation_models::LinkEndType > > > > secondSet )
+{
+    std::map< observation_models::ObservableType, std::map< observation_models::LinkEnds,
+    std::pair< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, observation_models::LinkEndType > > > > mergedSet = firstSet;
+    for( auto observableIterator : secondSet )
+    {
+        for( auto linkEndIteror : observableIterator.second )
+        {
+            bool entryIsEmpty = true;
+            if(  mergedSet.count( observableIterator.first ) > 0 )
+            {
+                if(  mergedSet.at( observableIterator.first ).count( linkEndIteror.first ) > 0 )
+                {
+                    entryIsEmpty = false;
+                }
+
+            }
+
+            if( entryIsEmpty )
+            {
+                mergedSet[ observableIterator.first ][ linkEndIteror.first ] =  linkEndIteror.second;
+            }
+            else
+            {
+                std::pair< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, observation_models::LinkEndType > >
+                        originalDataSet = mergedSet.at( observableIterator.first ).at( linkEndIteror.first );
+                std::pair< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >, std::pair< std::vector< TimeType >, observation_models::LinkEndType > >
+                        setToMerge = linkEndIteror.second;
+
+                if( originalDataSet.second.second != setToMerge.second.second )
+                {
+                    throw std::runtime_error( "Error when merging data sets, references are incompatible" );
+                }
+
+                Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > originalObservations =
+                      originalDataSet.first;
+                Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > newObservations =
+                      setToMerge.first;
+                Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > mergedObservations =
+                        Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >::Zero(
+                            originalObservations.rows( ) + newObservations.rows( ) );
+                mergedObservations.segment( 0, originalObservations.rows( ) ) = originalObservations;
+                mergedObservations.segment( originalObservations.rows( ), newObservations.rows( ) ) = newObservations;
+
+                std::vector< TimeType > newTimes = setToMerge.second.first;
+                std::vector< TimeType > originalTimes = originalDataSet.second.first;
+
+                originalTimes.insert( originalTimes.end( ), newTimes.begin( ), newTimes.end( ) );
+                mergedSet[ observableIterator.first ][ linkEndIteror.first ] =
+                        std::make_pair( mergedObservations, std::make_pair( originalTimes, setToMerge.second.second ) );
+            }
+        }
+    }
+    return mergedSet;
+}
+
 //! Data structure used to provide input to orbit determination procedure
 template< typename ObservationScalarType = double, typename TimeType = double >
 class PodInput

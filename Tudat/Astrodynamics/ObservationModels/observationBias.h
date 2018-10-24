@@ -206,16 +206,7 @@ public:
             const int linkEndIndexForTime ):
         arcStartTimes_( arcStartTimes ), observationBiases_( observationBiases ), linkEndIndexForTime_( linkEndIndexForTime )
     {
-        if( arcStartTimes_.size( ) != observationBiases_.size( ) )
-        {
-            throw std::runtime_error( "Error when creating constant arc-wise biases, input is inconsistent" );
-        }
-
-        // Create current arc lookup scheme
-        std::vector< double > lookupSchemeTimes = arcStartTimes_;
-        lookupSchemeTimes.push_back( std::numeric_limits< double >::max( ) );
-        lookupScheme_ = std::make_shared< interpolators::HuntingAlgorithmLookupScheme< double > >(
-                    lookupSchemeTimes );
+        resetArcStartTimes( arcStartTimes_, observationBiases_ );
     }
 
     //! Destructor
@@ -284,6 +275,24 @@ public:
         }
     }
 
+    void resetArcStartTimes( const std::vector< double >& arcStartTimes,
+                             const std::vector< Eigen::Matrix< double, ObservationSize, 1 > >& observationBiases )
+    {
+        arcStartTimes_ = arcStartTimes;
+        observationBiases_ = observationBiases;
+
+        if( arcStartTimes_.size( ) != observationBiases_.size( ) )
+        {
+            throw std::runtime_error( "Error when creating constant arc-wise biases, input is inconsistent" );
+        }
+
+        // Create current arc lookup scheme
+        std::vector< double > lookupSchemeTimes = arcStartTimes_;
+        lookupSchemeTimes.push_back( std::numeric_limits< double >::max( ) );
+        lookupScheme_ = std::make_shared< interpolators::HuntingAlgorithmLookupScheme< double > >(
+                    lookupSchemeTimes );
+
+    }
     //! Function to retrieve start times for arcs in which biases (observationBiases) are used
     /*!
      * Function to retrieve start times for arcs in which biases (observationBiases) are used

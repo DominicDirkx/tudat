@@ -81,24 +81,6 @@ struct ArcLimitedObservationSimulationTimeSettings: public ObservationSimulation
     int observationLimitPerArc_;
 };
 
-template< typename TimeType >
-struct ConstrainedArcLimitedObservationSimulationTimeSettings: public ObservationSimulationTimeSettings< TimeType >
-{
-    ConstrainedArcLimitedObservationSimulationTimeSettings(
-            const LinkEndType linkEndType, const std::vector< std::pair< TimeType, TimeType > > constraintArcs, const TimeType observationInterval,
-            const TimeType arcDuration, const int observationLimitPerArc ): ObservationSimulationTimeSettings< TimeType >( linkEndType ),
-        constraintArcs_( constraintArcs ), observationInterval_( observationInterval ),
-        arcDuration_( arcDuration ), observationLimitPerArc_( observationLimitPerArc ){ }
-
-    ~ConstrainedArcLimitedObservationSimulationTimeSettings( ){ }
-
-    std::vector< std::pair< TimeType, TimeType > > constraintArcs_;
-
-    TimeType observationInterval_;
-    TimeType arcDuration_;
-    int observationLimitPerArc_;
-};
-
 
 //! Function to compute observations at times defined by settings object using a given observation model
 /*!
@@ -134,6 +116,77 @@ simulateSingleObservationSet(
                     tabulatedObservationSettings->simulationTimes_, observationModel, observationsToSimulate->linkEndType_,
                     currentObservationViabilityCalculators );
 
+    }
+    // Simulate observations per arc from settings
+    else if( std::dynamic_pointer_cast< ArcLimitedObservationSimulationTimeSettings< TimeType > >( observationsToSimulate ) != NULL )
+    {
+        std::cout<<"Simulating arc-limited"<<std::endl;
+        std::shared_ptr< ArcLimitedObservationSimulationTimeSettings< TimeType > > arcLimitedObservationSettings =
+                std::dynamic_pointer_cast< ArcLimitedObservationSimulationTimeSettings< TimeType > >( observationsToSimulate );
+
+        // Define constituents of return pair.
+        std::vector< TimeType > times;
+        Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > observations;
+
+        int observableSize = 1;
+        if( ObservationSize != 1 )
+        {
+            std::cerr<<"Error when using arc limited observation settings, obsevation size is not 1"<<std::endl;
+        }
+
+        // Define vector to be used for storing single arc observations.
+        Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 > singleArcObservations =
+                Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 >::Zero(
+                    observableSize * arcLimitedObservationSettings->observationLimitPerArc_ );
+
+        // Set times.
+        TimeType currentTime = arcLimitedObservationSettings->startTime_;
+        TimeType currentArcStartTime = arcLimitedObservationSettings->startTime_;
+
+        int totalNumberOfObservations = 0;
+        int numberOfObservationsInCurrentArc = 0;
+
+        // Simulate observations arcs until provided end time.
+        while( currentTime < arcLimitedObservationSettings->endTime_ - 0.1 )
+        {
+            // Reset variables for start of new arc.
+            numberOfObservationsInCurrentArc = 0;
+            singleArcObservations.setZero( );
+
+            // Simulate observations for sinlge arc
+            while( ( currentTime < currentArcStartTime + arcLimitedObservationSettings->arcDuration_ ) &&
+                   ( numberOfObservationsInCurrentArc < arcLimitedObservationSettings->observationLimitPerArc_ ) &&
+                   ( currentTime < arcLimitedObservationSettings->endTime_ ) )
+            {
+                // Simulate single observation
+                std::pair< Eigen::Matrix< ObservationScalarType, Eigen::Dynamic, 1 >, bool > currentObservation =
+                        simulateObservationWithCheck<
+                        ObservationSize, ObservationScalarType, TimeType >(
+                            currentTime, observationModel, observationsToSimulate->linkEndType_,
+                            currentObservationViabilityCalculators );
+
+                // If observation is possible, set it in current arc observations.
+                if( currentObservation.second )
+                {
+                    times.push_back( currentTime );
+                    singleArcObservations.segment( numberOfObservationsInCurrentArc * observableSize, observableSize ) = currentObservation.first;
+                    numberOfObservationsInCurrentArc += observableSize;
+                }
+                currentTime += arcLimitedObservationSettings->observationInterval_;
+            }
+
+            // Add single arc observations to total observations.
+            observations.conservativeResize( totalNumberOfObservations + numberOfObservationsInCurrentArc );
+            observations.segment( totalNumberOfObservations, numberOfObservationsInCurrentArc ) = singleArcObservations.segment( 0, numberOfObservationsInCurrentArc );
+            totalNumberOfObservations += numberOfObservationsInCurrentArc;
+
+            // Update times to next arc
+            currentArcStartTime += arcLimitedObservationSettings->arcDuration_;
+            currentTime = currentArcStartTime;
+
+        }
+
+        simulatedObservations = std::make_pair( observations, std::make_pair( times, arcLimitedObservationSettings->linkEndType_ ) );
     }
 
     return simulatedObservations;

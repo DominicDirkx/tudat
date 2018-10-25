@@ -275,6 +275,13 @@ public:
         }
     }
 
+
+    //! Function to reset the arc start times for the bias (and associated biases)
+    /*!
+     * Function to reset the arc start times for the bias (and associated biases)
+     * \param arcStartTimes Start times for arcs in which biases (observationBiases) are used
+     * \param observationBiases Absolute biases, constant per arc
+     */
     void resetArcStartTimes( const std::vector< double >& arcStartTimes,
                              const std::vector< Eigen::Matrix< double, ObservationSize, 1 > >& observationBiases )
     {

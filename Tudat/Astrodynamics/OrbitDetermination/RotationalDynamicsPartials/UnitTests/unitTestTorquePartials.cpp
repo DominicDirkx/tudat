@@ -309,6 +309,11 @@ BOOST_AUTO_TEST_CASE( testSecondDegreeGravitationalTorquePartials )
                                        partialWrtPhobosCosineCoefficients, 1.0E-9 );
     TUDAT_CHECK_MATRIX_CLOSE_FRACTION( testPartialWrtPhobosSineCoefficients,
                                        partialWrtPhobosSineCoefficients, 1.0E-9 );
+    std::cout<<testPartialWrtPhobosCosineCoefficients<<std::endl<<std::endl<<
+               partialWrtPhobosCosineCoefficients<<std::endl;
+
+    std::cout<<testPartialWrtPhobosSineCoefficients<<std::endl<<std::endl<<
+               partialWrtPhobosSineCoefficients<<std::endl;
 
     for( int i = 0; i < 3; i++ )
     {

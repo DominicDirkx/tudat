@@ -279,8 +279,9 @@ public:
                                 observableWeights.at( observablesIterator->first ).at( linkEndIterator->first );
 
                         // Set weights to zero
-                        if( weightsMatrixDiagonals_[ observablesIterator->first ][ linkEndIterator->first ].size( ) !=
-                                currentWeightsList.size( ) * currentObservableSize )
+                        if( static_cast< int >(
+                                    weightsMatrixDiagonals_[ observablesIterator->first ][ linkEndIterator->first ].size( ) ) !=
+                                static_cast< int >( currentWeightsList.size( ) * currentObservableSize ) )
                         {
                             std::cout<<"Sizes when setting "<<weightsMatrixDiagonals_[ observablesIterator->first ][ linkEndIterator->first ].size( )<<" "<<
                                 currentWeightsList.size( ) * currentObservableSize<<" "<<currentObservableSize<<std::endl;
@@ -288,7 +289,7 @@ public:
                         }
 
                         // Set weights element-wise
-                        for( int i = 0; i < observationTimes.size( ); i++ )
+                        for( unsigned int i = 0; i < observationTimes.size( ); i++ )
                         {
                             weightsMatrixDiagonals_[ observablesIterator->first ][ linkEndIterator->first ].segment(
                                         i * currentObservableSize, currentObservableSize ) =

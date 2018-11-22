@@ -1613,7 +1613,7 @@ Satellites of Jupiter
  
         BODY501_POLE_RA       = (  268.05          -0.009      0. )
         BODY501_POLE_DEC      = (   64.50           0.003      0. )
-        BODY501_PM            = (  200.39         203.4889538  0. )
+        BODY501_PM            = (  200.007        203.4889538  0. )
         BODY501_LONG_AXIS     = (    0.                           )
  
         BODY501_NUT_PREC_RA   = (    0.   0.     0.094    0.024   )
@@ -1638,7 +1638,7 @@ Satellites of Jupiter
  
         BODY502_POLE_RA       = (  268.08          -0.009      0.   )
         BODY502_POLE_DEC      = (   64.51           0.003      0.   )
-        BODY502_PM            = (   36.022        101.3747235  0.   )
+        BODY502_PM            = (   34.522        101.3747235  0.   )
         BODY502_LONG_AXIS     = (    0.                             )
  
         BODY502_NUT_PREC_RA   = ( 0. 0. 0.   1.086   0.060   0.015   0.009 )
@@ -1660,7 +1660,7 @@ Satellites of Jupiter
     
         BODY503_POLE_RA       = (  268.20         -0.009       0.  )
         BODY503_POLE_DEC      = (   64.57          0.003       0.  )
-        BODY503_PM            = (   44.064        50.3176081   0.  )
+        BODY503_PM            = (   41.6440        50.3176081   0.  )
         BODY503_LONG_AXIS     = (    0.                            )
 
         BODY503_NUT_PREC_RA   = ( 0. 0. 0.  -0.037   0.431   0.091   )
@@ -1683,7 +1683,7 @@ Satellites of Jupiter
   
         BODY504_POLE_RA       = (   268.72    -0.009       0.  )
         BODY504_POLE_DEC      = (    64.83     0.003       0.  )
-        BODY504_PM            = (   259.51    21.5710715   0.  )
+        BODY504_PM            = (   260.41    21.5710715   0.  )
         BODY504_LONG_AXIS     = (     0.                       )
  
         BODY504_NUT_PREC_RA   = ( 0. 0. 0. 0.  -0.068   0.590  0.   0.010 )

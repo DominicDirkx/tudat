@@ -371,7 +371,7 @@ BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
     // Test error range: 2 m in-plane position and 1 micron/s in-plane velocity for Mars
     for( unsigned int j = 0; j < 2; j++ )
     {
-        BOOST_CHECK_SMALL( std::fabs( parameterError( j ) ), 2.0 );
+        BOOST_CHECK_SMALL( std::fabs( parameterError( j ) ), 2.5 );
         BOOST_CHECK_SMALL( std::fabs( parameterError( j + 3 ) ), 1.0E-6  );
     }
 
@@ -385,7 +385,7 @@ BOOST_AUTO_TEST_CASE( test_HybridArcStateEstimation )
         for( unsigned int j = 0; j < 3; j++ )
         {
             BOOST_CHECK_SMALL( std::fabs( parameterError( ( i + 1 )* 6 + j ) ), 1E-1 );
-            BOOST_CHECK_SMALL( std::fabs( parameterError( ( i + 1 ) * 6 + j + 3 ) ), 1.0E-5  );
+            BOOST_CHECK_SMALL( std::fabs( parameterError( ( i + 1 ) * 6 + j + 3 ) ), 2.0E-5  );
         }
     }
 

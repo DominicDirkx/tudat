@@ -907,24 +907,16 @@ BOOST_AUTO_TEST_CASE( testPhobosRotationVariationalEquationCalculation )
 
             Eigen::VectorXd stateDifferenceUp = upPerturbedState - nominalState;
 
-            std::cout<<"Test output "<<test<<" "<<k<<"stateDifferenceUp"<<std::endl<<
-                       stateDifferenceUp<<std::endl<<std::endl<<
-                       "stateTransitionAndSensitivityMatrixAtEpoch"<<std::endl<<
-                                              stateTransitionAndSensitivityMatrixAtEpoch<<std::endl<<std::endl<<
-                       "appliedStateDifferenceUp"<<std::endl<<
-                                              appliedStateDifferenceUp<<std::endl<<std::endl<<
-                       "( stateTransitionAndSensitivityMatrixAtEpoch * appliedStateDifferenceUp )"<<std::endl<<
-                                              ( stateTransitionAndSensitivityMatrixAtEpoch * appliedStateDifferenceUp )<<std::endl<<std::endl;
             if( test == 0 )
             {
                 TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
-                            ( ( stateTransitionAndSensitivityMatrixAtEpoch * appliedStateDifferenceUp ).segment( 0, 6 ) ),
+                            ( ( stateTransitionAndSensitivityMatrixAtEpoch.block( 0, 0, 13, 13 ) * appliedStateDifferenceUp ).segment( 0, 6 ) ),
                             ( stateDifferenceUp.segment( 0, 6 ) ), 1.0E-3 );
             }
             else
             {
                 TUDAT_CHECK_MATRIX_CLOSE_FRACTION(
-                            ( ( stateTransitionAndSensitivityMatrixAtEpoch * appliedStateDifferenceUp ).segment( 6, 7 ) ),
+                            ( ( stateTransitionAndSensitivityMatrixAtEpoch.block( 0, 0, 13, 13 ) * appliedStateDifferenceUp ).segment( 6, 7 ) ),
                             ( stateDifferenceUp.segment( 6, 7 ) ), 1.0E-5 );
             }
         }

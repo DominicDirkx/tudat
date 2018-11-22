@@ -9,8 +9,11 @@
  *
  */
 
+#include <iostream>
+
 #include <Eigen/Geometry>
 
+#include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModelTypes.h"
 #include "Tudat/Astrodynamics/Gravitation/directTidalDissipationAcceleration.h"
 
 namespace tudat
@@ -52,9 +55,9 @@ Eigen::Vector3d computeDirectTidalAccelerationDueToTideOnSatellite(
     double distanceSquared = distance * distance;
     double radialComponentMultiplier = ( includeDirectRadialComponent == true ) ? 1.0 : 0.0;
 
-    return currentTidalAccelerationMultiplier * (
-                 2.0 * radialComponentMultiplier * relativePosition + timeLag * (
-                   7.0 * relativePosition.dot( relativeVelocity ) * relativePosition / distanceSquared ) );
+    return 2.0 * currentTidalAccelerationMultiplier * (
+                 radialComponentMultiplier * relativePosition + timeLag * (
+                   3.5 * relativePosition.dot( relativeVelocity ) * relativePosition / distanceSquared ) );
 
 }
 
@@ -63,6 +66,7 @@ std::vector< std::shared_ptr< DirectTidalDissipationAcceleration > > getTidalDis
         const basic_astrodynamics::AccelerationMap accelerationModelList, const std::string bodyBeingDeformed,
         const std::vector< std::string >& bodiesCausingDeformation )
 {
+    std::cout<<"Searching"<<std::endl;
     // Iterate over all bodies undergoing acceleration
     std::vector< std::shared_ptr< DirectTidalDissipationAcceleration > > selectedDissipationModels;
     for( basic_astrodynamics::AccelerationMap::const_iterator modelIterator1 = accelerationModelList.begin( );
@@ -80,7 +84,7 @@ std::vector< std::shared_ptr< DirectTidalDissipationAcceleration > > getTidalDis
             // Iterate over all accelerations being exerted by bodyExertingAcceleration on bodyUndergoingAcceleration
             for( unsigned int i = 0; i < modelIterator2->second.size( ); i++ )
             {
-                // Check if acceleration model is due to tidal dissipations
+                            // Check if acceleration model is due to tidal dissipations
                 std::shared_ptr< DirectTidalDissipationAcceleration > currentDissipationAcceleration =
                     std::dynamic_pointer_cast< DirectTidalDissipationAcceleration >( modelIterator2->second.at( i ) );
                 if( currentDissipationAcceleration != nullptr )

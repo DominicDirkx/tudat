@@ -24,7 +24,7 @@ namespace observation_partials
 using namespace ephemerides;
 
 //! Function to generate one-way range partial wrt an initial position of a body.
-std::shared_ptr< altimeterCrossoverPartial > createaltimeterCrossoverPartialWrtBodyPosition(
+std::shared_ptr< AltimeterCrossoverPartial > createAltimeterCrossoverPartialWrtBodyPosition(
         const observation_models::LinkEnds altimeterCrossoverLinkEnds,
         const simulation_setup::NamedBodyMap& bodyMap,
         const std::string bodyToEstimate,
@@ -37,10 +37,10 @@ std::shared_ptr< altimeterCrossoverPartial > createaltimeterCrossoverPartialWrtB
             createCartesianStatePartialsWrtBodyState( altimeterCrossoverLinkEnds, bodyMap, bodyToEstimate );
 
     // Create one-range partials if any position partials are created (i.e. if any dependency exists).
-    std::shared_ptr< altimeterCrossoverPartial > altimeterCrossoverPartial;
+    std::shared_ptr< AltimeterCrossoverPartial > altimeterCrossoverPartial;
     if( positionPartials.size( ) > 0 )
     {
-        altimeterCrossoverPartial = std::make_shared< altimeterCrossoverPartial >(
+        altimeterCrossoverPartial = std::make_shared< AltimeterCrossoverPartial >(
                     altimeterCrossoverScaler, positionPartials, std::make_pair(
                         estimatable_parameters::initial_body_state, std::make_pair( bodyToEstimate, "" ) ),
                     lightTimeCorrectionPartialObjects );

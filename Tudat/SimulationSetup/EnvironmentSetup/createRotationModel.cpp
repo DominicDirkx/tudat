@@ -10,6 +10,7 @@
 
 #include <boost/make_shared.hpp>
 #include "Tudat/Astrodynamics/Ephemerides/simpleRotationalEphemeris.h"
+#include "Tudat/Astrodynamics/Ephemerides/fullPlanetaryRotationModel.h"
 
 #if USE_CSPICE
 #include "Tudat/External/SpiceInterface/spiceRotationalEphemeris.h"
@@ -155,6 +156,68 @@ std::shared_ptr< ephemerides::RotationalEphemeris > createRotationModel(
         break;
     }
 #endif
+    case planetary_rotation_model:
+    {
+        std::shared_ptr< PlanetaryRotationModelSettings > planetaryRotationModelSettings =
+                std::dynamic_pointer_cast< PlanetaryRotationModelSettings >( rotationModelSettings );
+        if( planetaryRotationModelSettings == NULL )
+        {
+            std::cerr<<"Error, expected planetary rotation model settings for "<<body<<std::endl;
+        }
+        else
+        {
+
+            Eigen::VectorXd bodyKeplerElements = orbital_element_conversions::convertCartesianToKeplerianElements(
+                        spice_interface::getBodyCartesianStateAtEpoch( body, planetaryRotationModelSettings->getCentralBody( ),
+                                                                       "ECLIPJ2000", "NONE", 0.0 ),
+                        spice_interface::getBodyGravitationalParameter( planetaryRotationModelSettings->getCentralBody( ) ) );
+            double meanAnomalyAtJ2000 = orbital_element_conversions::convertEccentricAnomalyToMeanAnomaly(
+                        orbital_element_conversions::convertTrueAnomalyToEccentricAnomaly( bodyKeplerElements( 5 ), bodyKeplerElements( 1 ) ),
+                        bodyKeplerElements( 1 ) );
+            double meanMotion = orbital_element_conversions::convertSemiMajorAxisToEllipticalMeanMotion(
+                        bodyKeplerElements( 0 ), spice_interface::getBodyGravitationalParameter(
+                            planetaryRotationModelSettings->getCentralBody( ) ) + spice_interface::getBodyGravitationalParameter( body ) );
+
+            std::shared_ptr< PlanetaryOrientationAngleCalculator > planetaryOrientationAnglesCalculator
+                    = std::make_shared< PlanetaryOrientationAngleCalculator >(
+                        planetaryRotationModelSettings->getAnglePsiAtEpoch( ),
+                        planetaryRotationModelSettings->getAnglePsiRateAtEpoch( ),
+                        planetaryRotationModelSettings->getAngleIAtEpoch( ),
+                        planetaryRotationModelSettings->getAngleIRateAtEpoch( ),
+                        planetaryRotationModelSettings->getAnglePhiAtEpoch( ),
+                        planetaryRotationModelSettings->getAnglePhiRateAtEpoch( ),
+                        meanMotion, meanAnomalyAtJ2000, planetaryRotationModelSettings->getOriginalFrame( ),
+                        planetaryRotationModelSettings->getMeanMotionDirectNutationCorrections( ),
+                        planetaryRotationModelSettings->getRotationRateCorrections( ),
+                        planetaryRotationModelSettings->getMeanMotionTimeDependentPhaseNutationCorrections( ),
+                        planetaryRotationModelSettings->getTimeDependentPhaseCorrectionFunctions( ) );
+
+//            std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::Vector3d > > angleInterpolator =
+//                    createInterpolatorForPlanetaryRotationAngles(
+//                        planetaryRotationModelSettings->getInitialTime( ),
+//                        planetaryRotationModelSettings->getFinalTime( ),
+//                        planetaryRotationModelSettings->getTimeStep( ),
+//                        bodyMap[ body ]->getPlanetaryOrientationAnglesCalculator( ) );
+
+            //typedef interpolators::OneDimensionalInterpolator< double, Eigen::Vector3d > LocalInterpolator;
+
+            //            std::function< Eigen::Vector3d( const double ) > angleFunction = std::bind(
+            //                        static_cast< Eigen::Vector3d( LocalInterpolator::* )( const double ) >
+            //                        ( &LocalInterpolator::interpolate ), angleInterpolator, _1 );
+
+//            std::function< Eigen::Vector3d( const double ) > angleFunction = std::bind(
+//                        &PlanetaryOrientationAngleCalculator::updateAndGetRotationAngles,
+//                        bodyMap[ body ]->getPlanetaryOrientationAnglesCalculator( ), std::placeholders::_1 );
+
+            rotationalEphemeris = std::make_shared< PlanetaryRotationModel >(
+                        planetaryRotationModelSettings->getAngleN( ),
+                        planetaryRotationModelSettings->getAngleJ( ),
+                        planetaryOrientationAnglesCalculator,
+                        planetaryRotationModelSettings->getOriginalFrame( ), planetaryRotationModelSettings->getTargetFrame( ) );
+        }
+
+        break;
+    }
     default:
         throw std::runtime_error(
                     "Error, did not recognize rotation model settings type " +

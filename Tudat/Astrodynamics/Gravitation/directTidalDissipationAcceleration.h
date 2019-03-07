@@ -196,8 +196,8 @@ public:
                 currentTidalAccelerationMultiplier_ =
                         - 3.0 * gravitationalParameterFunctionOfBodyExertingTide_( ) * equatorialRadiusToFifthPower_ /
                         distanceToEighthPower * k2LoveNumber_;
-//                currentTidalAccelerationMultiplier_ *= gravitationalParameterFunctionOfBodyExertingTide_( ) /
-//                        gravitationalParameterFunctionOfBodyUndergoingTide_( );
+                currentTidalAccelerationMultiplier_ *= gravitationalParameterFunctionOfBodyExertingTide_( ) /
+                        gravitationalParameterFunctionOfBodyUndergoingTide_( );
 
                 currentAcceleration_ = computeDirectTidalAccelerationDueToTideOnSatellite(
                             currentRelativeState_, currentTidalAccelerationMultiplier_,

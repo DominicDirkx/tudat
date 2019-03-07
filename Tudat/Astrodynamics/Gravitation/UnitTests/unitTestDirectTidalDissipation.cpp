@@ -232,11 +232,6 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
                     getBodyGravitationalParameter( "Jupiter" ), getAverageRadius( "Jupiter" ) / intialKeplerElements( 0 ),
                     intialKeplerElements( 1 ), meanMotion );
 
-        std::cout<<"a rate Jupiter "<<elementRates.first<<" "<<theoreticalSemiMajorAxisRateFromJupiterTide<<" "<<
-                   elementRates.first / theoreticalSemiMajorAxisRateFromJupiterTide<<std::endl;
-        std::cout<<"e rate Jupiter "<<elementRates.second<<" "<<theoreticaEccentricityRateFromJupiterTide<<" "<<
-                   elementRates.second / theoreticaEccentricityRateFromJupiterTide<<std::endl;
-
         BOOST_CHECK_CLOSE_FRACTION( elementRates.first, theoreticalSemiMajorAxisRateFromJupiterTide, 2.0E-3 );
         BOOST_CHECK_CLOSE_FRACTION( elementRates.second, theoreticaEccentricityRateFromJupiterTide, 1.0E-1 );
     }
@@ -245,8 +240,8 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
     std::map< double, Eigen::VectorXd > integrationResultWithDissipationInIo;
     std::map< double, Eigen::VectorXd > integrationResultWithDissipationInIoKepler;
 
-    double satelliteLoveNumber = 100.0;
-    double satelliteTimeLag = 10000.0;
+    double satelliteLoveNumber = 1.0;
+    double satelliteTimeLag = 1000.0;
 
     for( unsigned int i = 0; i < galileanSatellites.size( ); i++ )
     {
@@ -258,15 +253,11 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
         double orbitalPeriod = 2.0 * mathematical_constants::PI / meanMotion;
         double satelliteQualityFactor = 1.0 / std::sin( 2.0 * mathematical_constants::PI * satelliteTimeLag / orbitalPeriod );
 
-        double theoreticalSemiMajorAxisRateFromIoTide =  -21.0 * satelliteLoveNumber / satelliteQualityFactor *
-                getBodyGravitationalParameter( "Jupiter" ) /
-                getBodyGravitationalParameter( galileanSatellites.at( i ) ) *
-                std::pow( getAverageRadius( galileanSatellites.at( i ) ) / intialKeplerElements( 0 ), 5.0 ) *
+        double theoreticalSemiMajorAxisRateFromIoTide =  -21.0 * satelliteLoveNumber / satelliteQualityFactor * getBodyGravitationalParameter( "Jupiter" ) /
+                getBodyGravitationalParameter( galileanSatellites.at( i ) ) * std::pow( getAverageRadius( galileanSatellites.at( i ) ) / intialKeplerElements( 0 ), 5.0 ) *
                 intialKeplerElements( 0 ) * meanMotion * intialKeplerElements( 1 ) * intialKeplerElements( 1 );
-        double theoreticaEccentricityRateFromIoTide =  - 21.0 / 2.0 * satelliteLoveNumber / satelliteQualityFactor *
-                getBodyGravitationalParameter( "Jupiter" ) /
-                getBodyGravitationalParameter( galileanSatellites.at( i ) ) *
-                std::pow( getAverageRadius( galileanSatellites.at( i ) ) / intialKeplerElements( 0 ), 5.0 ) *
+        double theoreticaEccentricityRateFromIoTide =  - 21.0 / 2.0 * satelliteLoveNumber / satelliteQualityFactor * getBodyGravitationalParameter( "Jupiter" ) /
+                getBodyGravitationalParameter( galileanSatellites.at( i ) ) * std::pow( getAverageRadius( galileanSatellites.at( i ) ) / intialKeplerElements( 0 ), 5.0 ) *
                 intialKeplerElements( 1 ) * meanMotion;
 
         // Increase tolerance for more distance moons
@@ -279,13 +270,6 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
         {
             toleranceMultiplier = 20.0;
         }
-
-        std::cout<<"a rate Moon "<<elementRates.first<<" "<<theoreticalSemiMajorAxisRateFromIoTide<<" "<<
-                   elementRates.first / theoreticalSemiMajorAxisRateFromIoTide<<std::endl;
-        std::cout<<"e rate Moon "<<elementRates.second<<" "<<theoreticaEccentricityRateFromIoTide<<" "<<
-                   elementRates.second / theoreticaEccentricityRateFromIoTide<<std::endl;
-        std::cout<<"Mu ratio "<<getBodyGravitationalParameter( galileanSatellites.at( i ) ) /
-                   getBodyGravitationalParameter( "Jupiter" )<<std::endl;
 
         BOOST_CHECK_CLOSE_FRACTION( elementRates.first, theoreticalSemiMajorAxisRateFromIoTide, toleranceMultiplier * 1.0E-3 );
         BOOST_CHECK_CLOSE_FRACTION( elementRates.second, theoreticaEccentricityRateFromIoTide, toleranceMultiplier * 1.0E-3 );

@@ -38,7 +38,7 @@ namespace tudat
 namespace orbital_element_conversions
 {
 
-//! Function to compute orbit semi-latus rectum.
+//! Function to compute orbit se0mi-latus rectum.
 /*!
  * Function to compute orbit semi-latus rectum.
  * \param eccentricity Eccentricity of orbit

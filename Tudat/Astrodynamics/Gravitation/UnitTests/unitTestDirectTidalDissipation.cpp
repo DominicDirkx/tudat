@@ -73,35 +73,67 @@ std::pair< double, double > computeKeplerElementRatesDueToDissipation(
     std::map< double, Eigen::VectorXd > integrationResultWithDissipation;
     std::map< double, Eigen::VectorXd > integrationResultWithDissipationKepler;
 
-    std::map< double, double > semiMajorAxes, eccentricities;
+    std::map< double, Eigen::VectorXd > integrationResultWithoutDissipation;
+    std::map< double, Eigen::VectorXd > integrationResultWithoutDissipationKepler;
+
+    std::vector< double > semiMajorAxisFit;
+    std::vector< double > eccentricityFit;
+
+    for( int useDissipation = 0; useDissipation < 2; useDissipation++ )
     {
-        std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > accelerationsOfIo;
-        accelerationsOfIo[ "Jupiter" ].push_back( std::make_shared< AccelerationSettings >(
-                                                      basic_astrodynamics::central_gravity ) );
-        accelerationsOfIo[ "Jupiter" ].push_back( std::make_shared< DirectTidalDissipationAccelerationSettings >(
-                                                      k2LoveNumber, tidalTimeLag, false, usePlanetDissipation ) );
-        accelerationMap[ satelliteToPropagate ] = accelerationsOfIo;
+
+        std::map< double, double > semiMajorAxes, eccentricities;
+
+        std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > accelerationsOfSatellite;
+        accelerationsOfSatellite[ "Jupiter" ].push_back( std::make_shared< AccelerationSettings >(
+                                                             basic_astrodynamics::central_gravity ) );
+        if( useDissipation == 1 )
+        {
+            accelerationsOfSatellite[ "Jupiter" ].push_back( std::make_shared< DirectTidalDissipationAccelerationSettings >(
+                                                                 k2LoveNumber, tidalTimeLag, false, usePlanetDissipation ) );
+        }
+
+        if( satelliteToPropagate != "Io" )
+        {
+            accelerationsOfSatellite[ "Io" ].push_back( std::make_shared< AccelerationSettings >(
+                                                            basic_astrodynamics::central_gravity ) );
+        }
+
+        if( satelliteToPropagate != "Europa" )
+        {
+            accelerationsOfSatellite[ "Europa" ].push_back( std::make_shared< AccelerationSettings >(
+                                                                basic_astrodynamics::central_gravity ) );
+        }
+
+//        if( satelliteToPropagate != "Ganymede" )
+//        {
+//            accelerationsOfSatellite[ "Ganymede" ].push_back( std::make_shared< AccelerationSettings >(
+//                                                                  basic_astrodynamics::central_gravity ) );
+//        }
+
+        accelerationMap[ satelliteToPropagate ] = accelerationsOfSatellite;
         basic_astrodynamics::AccelerationMap accelerationModelMap = createAccelerationModelsMap(
                     bodyMap, accelerationMap, bodiesToPropagate, centralBodies );
 
 
         // Save dependent variables
-        std::vector< std::shared_ptr< SingleDependentVariableSaveSettings > > dependentVariablesToSave;
-        if( usePlanetDissipation )
-        {
-            dependentVariablesToSave.push_back(
-                        std::make_shared< SingleAccelerationDependentVariableSaveSettings >(
-                            direct_tidal_dissipation_in_central_body_acceleration, satelliteToPropagate, "Jupiter" ) );
-        }
-        else
-        {
-            dependentVariablesToSave.push_back(
-                        std::make_shared< SingleAccelerationDependentVariableSaveSettings >(
-                            direct_tidal_dissipation_in_orbiting_body_acceleration, satelliteToPropagate, "Jupiter" ) );
-        }
+        std::shared_ptr< DependentVariableSaveSettings > dependentVariableSaveSettings;
+//        std::vector< std::shared_ptr< SingleDependentVariableSaveSettings > > dependentVariablesToSave;
+//        if( usePlanetDissipation )
+//        {
+//            dependentVariablesToSave.push_back(
+//                        std::make_shared< SingleAccelerationDependentVariableSaveSettings >(
+//                            direct_tidal_dissipation_in_central_body_acceleration, satelliteToPropagate, "Jupiter" ) );
+//        }
+//        else
+//        {
+//            dependentVariablesToSave.push_back(
+//                        std::make_shared< SingleAccelerationDependentVariableSaveSettings >(
+//                            direct_tidal_dissipation_in_orbiting_body_acceleration, satelliteToPropagate, "Jupiter" ) );
+//        }
 
-        std::shared_ptr< DependentVariableSaveSettings > dependentVariableSaveSettings =
-                std::make_shared< DependentVariableSaveSettings >( dependentVariablesToSave, 0 ) ;
+//        dependentVariableSaveSettings =
+//                std::make_shared< DependentVariableSaveSettings >( dependentVariablesToSave, 0 ) ;
 
         std::shared_ptr< TranslationalStatePropagatorSettings< double > > propagatorSettings =
                 std::make_shared< TranslationalStatePropagatorSettings< double > >
@@ -116,37 +148,56 @@ std::pair< double, double > computeKeplerElementRatesDueToDissipation(
         // Create simulation object and propagate dynamics.
         SingleArcDynamicsSimulator< > dynamicsSimulator(
                     bodyMap, integratorSettings, propagatorSettings, true, false, false );
-        integrationResultWithDissipation = dynamicsSimulator.getEquationsOfMotionNumericalSolution( );
 
-        for( std::map< double, Eigen::VectorXd >::const_iterator mapIterator = integrationResultWithDissipation.begin( );
-             mapIterator != integrationResultWithDissipation.end( ); mapIterator++ )
+        if( useDissipation == 1 )
         {
-            integrationResultWithDissipationKepler[ mapIterator->first ] =
-                    orbital_element_conversions::convertCartesianToKeplerianElements< double >(
-                        mapIterator->second, getBodyGravitationalParameter( "Jupiter" ) +
-                        getBodyGravitationalParameter( satelliteToPropagate ) );
-            semiMajorAxes[ mapIterator->first ] = integrationResultWithDissipationKepler[ mapIterator->first ]( 0 ) -
-                    integrationResultWithDissipationKepler.begin( )->second( 0 );
-            eccentricities[ mapIterator->first ] = integrationResultWithDissipationKepler[ mapIterator->first ]( 1 ) -
-                    integrationResultWithDissipationKepler.begin( )->second( 1 );
+            integrationResultWithDissipation = dynamicsSimulator.getEquationsOfMotionNumericalSolution( );
 
+            std::cout<<"Comp B"<<std::endl;
+            for( std::map< double, Eigen::VectorXd >::const_iterator mapIterator = integrationResultWithDissipation.begin( );
+                 mapIterator != integrationResultWithDissipation.end( ); mapIterator++ )
+            {
+                integrationResultWithDissipationKepler[ mapIterator->first ] =
+                        orbital_element_conversions::convertCartesianToKeplerianElements< double >(
+                            mapIterator->second, getBodyGravitationalParameter( "Jupiter" ) +
+                            getBodyGravitationalParameter( satelliteToPropagate ) );
+                semiMajorAxes[ mapIterator->first ] = integrationResultWithDissipationKepler[ mapIterator->first ]( 0 ) -
+                        integrationResultWithoutDissipationKepler[ mapIterator->first ]( 0 );
+                eccentricities[ mapIterator->first ] = integrationResultWithDissipationKepler[ mapIterator->first ]( 1 ) -
+                        integrationResultWithoutDissipationKepler[ mapIterator->first ]( 1 );
+
+            }
+
+            semiMajorAxisFit = linear_algebra::getLeastSquaresPolynomialFit(
+                        semiMajorAxes, { 0, 1 } );
+            eccentricityFit = linear_algebra::getLeastSquaresPolynomialFit(
+                        eccentricities, { 0, 1 } );
         }
+        else if( useDissipation == 0 )
+        {
+            std::cout<<"Comp A"<<std::endl;
+
+            integrationResultWithoutDissipation = dynamicsSimulator.getEquationsOfMotionNumericalSolution( );
+
+            for( std::map< double, Eigen::VectorXd >::const_iterator mapIterator = integrationResultWithoutDissipation.begin( );
+                 mapIterator != integrationResultWithoutDissipation.end( ); mapIterator++ )
+            {
+                integrationResultWithoutDissipationKepler[ mapIterator->first ] =
+                        orbital_element_conversions::convertCartesianToKeplerianElements< double >(
+                            mapIterator->second, getBodyGravitationalParameter( "Jupiter" ) +
+                            getBodyGravitationalParameter( satelliteToPropagate ) );
+            }
+        }
+
+        //    input_output::writeDataMapToTextFile( integrationResultWithDissipationKepler,
+        //                                          "keplerElements_"  + std::to_string( usePlanetDissipation ) +
+        //                                          satelliteToPropagate + ".dat" );
+
+        intialKeplerElements = integrationResultWithoutDissipationKepler.begin( )->second;
+        meanMotion = basic_astrodynamics::computeKeplerMeanMotion(
+                    intialKeplerElements( 0 ), getBodyGravitationalParameter( "Jupiter" ) +
+                    getBodyGravitationalParameter( satelliteToPropagate ) );
     }
-
-    //    input_output::writeDataMapToTextFile( integrationResultWithDissipationKepler,
-    //                                          "keplerElements_"  + std::to_string( usePlanetDissipation ) +
-    //                                          satelliteToPropagate + ".dat" );
-
-    std::vector< double > semiMajorAxisFit = linear_algebra::getLeastSquaresPolynomialFit(
-                semiMajorAxes, { 0, 1 } );
-    std::vector< double > eccentricityFit = linear_algebra::getLeastSquaresPolynomialFit(
-                eccentricities, { 0, 1 } );
-
-    intialKeplerElements = integrationResultWithDissipationKepler.begin( )->second;
-    meanMotion = basic_astrodynamics::computeKeplerMeanMotion(
-                intialKeplerElements( 0 ), getBodyGravitationalParameter( "Jupiter" ) +
-                getBodyGravitationalParameter( satelliteToPropagate ) );
-
     return std::make_pair( semiMajorAxisFit.at( 1 ), eccentricityFit.at( 1 ) );
 }
 
@@ -212,6 +263,7 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
     double jupiterLoveNumber = 0.1;
     double jupiterTimeLag = 100.0;
 
+    std::cout<<"********************** JUPITER TIDES **********************"<<std::endl;
     for( unsigned int i = 0; i < galileanSatellites.size( ); i++ )
     {
         Eigen::Vector6d intialKeplerElements;
@@ -232,6 +284,9 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
                     getBodyGravitationalParameter( "Jupiter" ), getAverageRadius( "Jupiter" ) / intialKeplerElements( 0 ),
                     intialKeplerElements( 1 ), meanMotion );
 
+        std::cout<<"Semi-major axis rates "<<elementRates.first<<" "<<theoreticalSemiMajorAxisRateFromJupiterTide<<std::endl;
+        std::cout<<"Eccentricity rates "<<elementRates.second<<" "<<theoreticaEccentricityRateFromJupiterTide<<std::endl;
+
         BOOST_CHECK_CLOSE_FRACTION( elementRates.first, theoreticalSemiMajorAxisRateFromJupiterTide, 2.0E-3 );
         BOOST_CHECK_CLOSE_FRACTION( elementRates.second, theoreticaEccentricityRateFromJupiterTide, 1.0E-1 );
     }
@@ -242,6 +297,8 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
 
     double satelliteLoveNumber = 1.0;
     double satelliteTimeLag = 1000.0;
+
+    std::cout<<"********************** MOON TIDES **********************"<<std::endl;
 
     for( unsigned int i = 0; i < galileanSatellites.size( ); i++ )
     {
@@ -270,6 +327,9 @@ BOOST_AUTO_TEST_CASE( testTidalDissipationInPlanetAndSatellite )
         {
             toleranceMultiplier = 20.0;
         }
+
+        std::cout<<"Semi-major axis rates "<<elementRates.first<<" "<<theoreticalSemiMajorAxisRateFromIoTide<<std::endl;
+        std::cout<<"Eccentricity rates "<<elementRates.second<<" "<<theoreticaEccentricityRateFromIoTide<<std::endl;
 
         BOOST_CHECK_CLOSE_FRACTION( elementRates.first, theoreticalSemiMajorAxisRateFromIoTide, toleranceMultiplier * 1.0E-3 );
         BOOST_CHECK_CLOSE_FRACTION( elementRates.second, theoreticaEccentricityRateFromIoTide, toleranceMultiplier * 1.0E-3 );

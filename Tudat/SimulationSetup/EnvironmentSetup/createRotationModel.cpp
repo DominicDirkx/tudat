@@ -13,12 +13,14 @@
 
 #if USE_CSPICE
 #include "Tudat/External/SpiceInterface/spiceRotationalEphemeris.h"
+#include "Tudat/External/SpiceInterface/spiceInterface.h"
 #endif
 
 #include "Tudat/SimulationSetup/EnvironmentSetup/createRotationModel.h"
 
 #if USE_SOFA
 #include "Tudat/Astrodynamics/Ephemerides/itrsToGcrsRotationModel.h"
+#include "Tudat/Astrodynamics/Ephemerides/tidallyLockedRotationalEphemeris.h"
 #include "Tudat/Astrodynamics/EarthOrientation/earthOrientationCalculator.h"
 #include "Tudat/Astrodynamics/EarthOrientation/shortPeriodEarthOrientationCorrectionCalculator.h"
 #include "Tudat/Mathematics/Interpolators/jumpDataLinearInterpolator.h"
@@ -30,10 +32,180 @@ namespace tudat
 namespace simulation_setup
 {
 
+std::function< Eigen::Vector6d( const double, bool ) > createRelativeStateFunction(
+        const NamedBodyMap& bodyMap,
+        const std::string orbitingBody,
+        const std::string centralBody )
+{
+    std::function< Eigen::Vector6d( const double ) > bodyInertialStateFunction =
+            std::bind( &Body::getState, bodyMap.at( orbitingBody ) );
+    std::function< Eigen::Vector6d( const double ) > centralBodyInertialStateFunction =
+            std::bind( &Body::getState, bodyMap.at(  centralBody ) );
+
+    std::function< Eigen::Vector6d( const double ) > fromBodyStateFunction =
+            std::bind(
+                &ephemerides::getDifferenceBetweenStates, bodyInertialStateFunction, centralBodyInertialStateFunction, std::placeholders::_1 );
+    std::function< Eigen::Vector6d( const double ) > fromEphemerisStateFunction;
+
+    if( bodyMap.at( orbitingBody )->getEphemeris( )->getReferenceFrameOrigin( ) == centralBody )
+    {
+        fromEphemerisStateFunction = std::bind( &ephemerides::Ephemeris::getCartesianState,
+                                                  bodyMap.at( orbitingBody )->getEphemeris( ), std::placeholders::_1 );
+
+    }
+    else
+    {
+        std::function< Eigen::Vector6d( const double ) > ephemerisInertialStateFunction =
+                std::bind( &Body::getStateInBaseFrameFromEphemeris< double, double >, bodyMap.at( orbitingBody ), std::placeholders::_1 );
+        std::function< Eigen::Vector6d( const double ) > ephemerisCentralBodyInertialStateFunction =
+                std::bind( &Body::getStateInBaseFrameFromEphemeris< double, double >, bodyMap.at( centralBody ), std::placeholders::_1 );
+        fromEphemerisStateFunction = std::bind(
+                    &ephemerides::getDifferenceBetweenStates,
+                    ephemerisInertialStateFunction,
+                    ephemerisCentralBodyInertialStateFunction, std::placeholders::_1 );
+    }
+
+    return std::bind( &ephemerides::getStateFromSelectedStateFunction, std::placeholders::_1, std::placeholders::_2,
+                      fromBodyStateFunction, fromEphemerisStateFunction );
+}
+
+std::shared_ptr< RotationModelSettings > getGalileanMoonLockedRotationModel(
+        const std::string bodyName,
+        const std::string globalFrameOrientation )
+{
+    std::shared_ptr< RotationModelSettings > rotationModelSettings;
+
+    if( bodyName == "Io" )
+    {
+        double conversionFactor = mathematical_constants::PI / 180.0;
+
+        std::map< double, std::pair< double, double > > periodicTerms;
+        periodicTerms[ conversionFactor * 0.094 ] = std::make_pair( 4850.7 * conversionFactor, 283.9 * conversionFactor );//J3
+        periodicTerms[ conversionFactor * 0.024 ] = std::make_pair( 1191.3 * conversionFactor, 355.8 * conversionFactor);//J4
+
+        std::function< double( const double ) > rightAscensionFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             268.05 * conversionFactor,
+                             -0.009  * conversionFactor, periodicTerms, std::placeholders::_1, 0 );
+
+        periodicTerms.clear( );
+        periodicTerms[ conversionFactor * 0.040 ] = std::make_pair( 4850.7 * conversionFactor, 283.9 * conversionFactor );//J3
+        periodicTerms[ conversionFactor * 0.011 ] = std::make_pair( 1191.3 * conversionFactor, 355.8 * conversionFactor);//J4
+
+        std::function< double( const double ) > declinationFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             64.5 * conversionFactor,
+                             0.003 * conversionFactor, periodicTerms, std::placeholders::_1, 1 );
+
+        rotationModelSettings = std::make_shared< TidallyLockedRotationModelSettings >(
+                    rightAscensionFunction, declinationFunction, "Jupiter", globalFrameOrientation, "IAU_Io",
+                    spice_interface::computeRotationQuaternionBetweenFrames( "J2000", globalFrameOrientation, 0.0 ) );
+
+
+    }
+    else if( bodyName == "Ganymede" )
+    {
+        double conversionFactor = mathematical_constants::PI / 180.0;
+
+        std::map< double, std::pair< double, double > > periodicTerms;
+        periodicTerms[ conversionFactor * -0.037 ] = std::make_pair( 1191.3 * conversionFactor, 355.8 * conversionFactor);//J4
+        periodicTerms[ conversionFactor * 0.431 ] = std::make_pair( 262.1 * conversionFactor, 119.9 * conversionFactor);//J5
+        periodicTerms[ conversionFactor * 0.091 ] = std::make_pair( 64.3 * conversionFactor, 229.8 * conversionFactor);//J6
+
+        std::function< double( const double ) > rightAscensionFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             268.2 * conversionFactor,
+                             -0.009 * conversionFactor, periodicTerms, std::placeholders::_1, 0 );
+
+        periodicTerms.clear( );
+        periodicTerms[ conversionFactor * -0.016 ] = std::make_pair( 1191.3 * conversionFactor, 355.8 * conversionFactor);//J4
+        periodicTerms[ conversionFactor * 0.186 ] = std::make_pair( 262.1 * conversionFactor, 119.9 * conversionFactor);//J5
+        periodicTerms[ conversionFactor * 0.039 ] = std::make_pair( 64.3 * conversionFactor, 229.8 * conversionFactor);//J6
+        std::function< double( const double ) > declinationFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             64.57 * conversionFactor,
+                             0.003 * conversionFactor, periodicTerms, std::placeholders::_1, 1 );
+
+        rotationModelSettings = std::make_shared< TidallyLockedRotationModelSettings >(
+                    rightAscensionFunction, declinationFunction, "Jupiter", globalFrameOrientation, "IAU_Ganymede",
+                    spice_interface::computeRotationQuaternionBetweenFrames( "J2000", globalFrameOrientation, 0.0 ) );
+
+
+    }
+    else if( bodyName == "Europa" )
+    {
+        double conversionFactor = mathematical_constants::PI / 180.0;
+
+        std::map< double, std::pair< double, double > > periodicTerms;
+        periodicTerms[ conversionFactor * 1.086 ] = std::make_pair( 1191.3 * conversionFactor, 355.8 * conversionFactor);//J4
+        periodicTerms[ conversionFactor * 0.060 ] = std::make_pair( 262.1 * conversionFactor, 119.9 * conversionFactor);//J5
+        periodicTerms[ conversionFactor * 0.015 ] = std::make_pair( 64.3 * conversionFactor, 229.8 * conversionFactor);//J6
+        periodicTerms[ conversionFactor * 0.009 ] = std::make_pair( 2382.6 * conversionFactor, 352.25 * conversionFactor);//J7
+
+        std::function< double( const double ) > rightAscensionFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             268.08 * conversionFactor,
+                             -0.009 * conversionFactor, periodicTerms, std::placeholders::_1, 0 );
+
+        periodicTerms.clear( );
+        periodicTerms[ conversionFactor * 0.468 ] = std::make_pair( 1191.3 * conversionFactor, 355.8 * conversionFactor);//J4
+        periodicTerms[ conversionFactor * 0.026 ] = std::make_pair( 262.1 * conversionFactor, 119.9 * conversionFactor);//J5
+        periodicTerms[ conversionFactor * 0.007 ] = std::make_pair( 64.3 * conversionFactor, 229.8 * conversionFactor);//J6
+        periodicTerms[ conversionFactor * 0.002 ] = std::make_pair( 2382.6 * conversionFactor, 352.25 * conversionFactor);//J7
+        std::function< double( const double ) > declinationFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             64.51 * conversionFactor,
+                             0.003 * conversionFactor, periodicTerms, std::placeholders::_1, 1 );
+
+
+        rotationModelSettings = std::make_shared< TidallyLockedRotationModelSettings >(
+                    rightAscensionFunction, declinationFunction, "Jupiter", globalFrameOrientation, "IAU_Europa",
+                    spice_interface::computeRotationQuaternionBetweenFrames( "J2000", globalFrameOrientation, 0.0 ) );
+
+
+    }
+    else if( bodyName == "Callisto" )
+    {
+        double conversionFactor = mathematical_constants::PI / 180.0;
+
+        std::map< double, std::pair< double, double > > periodicTerms;
+        periodicTerms[ conversionFactor * -0.068 ] = std::make_pair( 262.1 * conversionFactor, 119.9 * conversionFactor);//J5
+        periodicTerms[ conversionFactor * 0.59 ] = std::make_pair( 64.3 * conversionFactor, 229.8 * conversionFactor);//J6
+        periodicTerms[ conversionFactor * 0.01 ] = std::make_pair( 6070.0 * conversionFactor, 113.35 * conversionFactor);//J8
+
+        std::function< double( const double ) > rightAscensionFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             268.72 * conversionFactor,
+                             -0.009 * conversionFactor, periodicTerms, std::placeholders::_1, 0 );
+
+        periodicTerms.clear( );
+        periodicTerms[ conversionFactor * -0.029 ] = std::make_pair( 262.1 * conversionFactor, 119.9 * conversionFactor);//J5
+        periodicTerms[ conversionFactor * 0.254 ] = std::make_pair( 64.3 * conversionFactor, 229.8 * conversionFactor);//J6
+        periodicTerms[ conversionFactor * -0.004 ] = std::make_pair( 6070.0 * conversionFactor, 113.35 * conversionFactor);//J8
+        std::function< double( const double ) > declinationFunction =
+                std::bind( &ephemerides::evaluateRightAscensionDeclinationFunction,
+                             64.83 * conversionFactor,
+                             0.003 * conversionFactor, periodicTerms, std::placeholders::_1, 1 );
+
+        rotationModelSettings = std::make_shared< TidallyLockedRotationModelSettings >(
+                    rightAscensionFunction, declinationFunction, "Jupiter", globalFrameOrientation,  "IAU_Callisto",
+                    spice_interface::computeRotationQuaternionBetweenFrames( "J2000", globalFrameOrientation, 0.0 ) );
+
+
+    }
+    else
+    {
+        throw std::runtime_error( "Error when getting Galilean moon rotation model " + bodyName + " is not a Galilean moon." );
+    }
+
+    return rotationModelSettings;
+}
+
 //! Function to create a rotation model.
 std::shared_ptr< ephemerides::RotationalEphemeris > createRotationModel(
         const std::shared_ptr< RotationModelSettings > rotationModelSettings,
-        const std::string& body )
+        const std::string& body,
+        const NamedBodyMap& bodyMap )
 {
     using namespace tudat::ephemerides;
 
@@ -155,6 +327,39 @@ std::shared_ptr< ephemerides::RotationalEphemeris > createRotationModel(
         break;
     }
 #endif
+    case tidally_locked_rotation_model:
+    {
+        std::shared_ptr< TidallyLockedRotationModelSettings > tidallyLockedRotationSettings =
+                std::dynamic_pointer_cast< TidallyLockedRotationModelSettings >( rotationModelSettings );
+        if( tidallyLockedRotationSettings == NULL )
+        {
+            std::cerr<<"Error, expected tidally locked rotation model settings for "<<body<<std::endl;
+        }
+        else
+        {
+            if( bodyMap.at( body )->getEphemeris( )->getReferenceFrameOrigin( ) == tidallyLockedRotationSettings->getCentralBodyName( ) )
+            {
+                if( bodyMap.at( body )->getEphemeris( )->getReferenceFrameOrientation( ) !=
+                        tidallyLockedRotationSettings->getOriginalFrame( ) )
+                {
+                    std::cerr<<"Error, ephemeris of body "<<body<<" is in "<< bodyMap.at( body )->getEphemeris( )->getReferenceFrameOrientation( )<<
+                               " frame when making tidally locked rotation model, expected "<<
+                               tidallyLockedRotationSettings->getOriginalFrame( ) <<" frame."<<std::endl;
+                }
+            }
+            std::shared_ptr< TidallyLockedRotationalEphemeris > lockedRotationalEphemeris = std::make_shared< TidallyLockedRotationalEphemeris >(
+                        tidallyLockedRotationSettings->getRightAscensionFunction( ),
+                        tidallyLockedRotationSettings->getDeclinationFunction( ),
+                        createRelativeStateFunction( bodyMap, body, tidallyLockedRotationSettings->getCentralBodyName( ) ),
+                        tidallyLockedRotationSettings->getCentralBodyName( ),
+                        tidallyLockedRotationSettings->getOriginalFrame( ),
+                        tidallyLockedRotationSettings->getTargetFrame( ),
+                        tidallyLockedRotationSettings->getIntermediateToBaseFrameRotation( ) );
+
+            rotationalEphemeris = lockedRotationalEphemeris;
+        }
+        break;
+    }
     default:
         throw std::runtime_error(
                     "Error, did not recognize rotation model settings type " +

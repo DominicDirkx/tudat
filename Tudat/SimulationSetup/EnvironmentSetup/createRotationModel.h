@@ -38,7 +38,8 @@ enum RotationModelType
 {
     simple_rotation_model,
     spice_rotation_model,
-    gcrs_to_itrs_rotation_model
+    gcrs_to_itrs_rotation_model,
+    tidally_locked_rotation_model
 };
 
 //! Class for providing settings for rotation model.
@@ -337,6 +338,63 @@ private:
 };
 #endif
 
+
+class TidallyLockedRotationModelSettings: public RotationModelSettings
+{
+public:
+    TidallyLockedRotationModelSettings(
+            const boost::function< double( const double ) > rightAscensionFunction,
+            const boost::function< double( const double ) > declinationFunction,
+            const std::string& centralBodyName,
+            const std::string& baseFrameOrientation,
+            const std::string& targetFrameOrientation,
+            const Eigen::Quaterniond& intermediateToBaseFrameRotation = Eigen::Quaterniond( Eigen::Matrix3d::Identity( ) ) ):
+        RotationModelSettings( tidally_locked_rotation_model, baseFrameOrientation, targetFrameOrientation ),
+        centralBodyName_( centralBodyName ),
+        rightAscensionFunction_( rightAscensionFunction ),
+        declinationFunction_( declinationFunction ),
+        intermediateToBaseFrameRotation_( intermediateToBaseFrameRotation ){ }
+
+    std::string getCentralBodyName( )
+    {
+        return centralBodyName_;
+    }
+
+    boost::function< double( const double ) > getRightAscensionFunction( )
+    {
+        return rightAscensionFunction_;
+    }
+
+    boost::function< double( const double ) > getDeclinationFunction( )
+    {
+        return declinationFunction_;
+    }
+
+    Eigen::Quaterniond getIntermediateToBaseFrameRotation( )
+    {
+        return intermediateToBaseFrameRotation_;
+    }
+
+private:
+
+    std::string centralBodyName_;
+
+    boost::function< double( const double ) > rightAscensionFunction_;
+
+    boost::function< double( const double ) > declinationFunction_;
+
+    Eigen::Quaterniond intermediateToBaseFrameRotation_;
+};
+
+std::function< Eigen::Vector6d( const double, bool ) > createRelativeStateFunction(
+        const NamedBodyMap& bodyMap,
+        const std::string orbitingBody,
+        const std::string centralBody );
+
+std::shared_ptr< RotationModelSettings > getGalileanMoonLockedRotationModel(
+        const std::string bodyName,
+        const std::string globalFrameOrientation  );
+
 //! Function to create a rotation model.
 /*!
  *  Function to create a rotation model based on model-specific settings for the rotation.
@@ -347,7 +405,8 @@ private:
  */
 std::shared_ptr< ephemerides::RotationalEphemeris > createRotationModel(
         const std::shared_ptr< RotationModelSettings > rotationModelSettings,
-        const std::string& body );
+        const std::string& body,
+        const NamedBodyMap& bodyMap = NamedBodyMap( ) );
 
 } // namespace simulation_setup
 

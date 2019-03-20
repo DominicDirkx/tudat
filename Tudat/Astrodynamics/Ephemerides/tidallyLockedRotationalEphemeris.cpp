@@ -56,8 +56,9 @@ Eigen::Quaterniond TidallyLockedRotationalEphemeris::getRotationToBaseFrame(
 {
     Eigen::Quaterniond secondIntermediateRotationToTargetFrame = getSecondIntermediateRotationToTargetFrame( currentRightAscension, currentDeclination );
 
-    double currentRotationAngle = getTotalRotationAngle(
-                secondIntermediateRotationToTargetFrame, relativeState );
+    throw std::runtime_error( "Need to correct line of code ");
+    double currentRotationAngle;// = getFullyLockedRotationAngle(
+//                secondIntermediateRotationToTargetFrame, relativeState );
 
     return secondIntermediateRotationToTargetFrame.inverse( ) *
             reference_frames::getRotatingPlanetocentricToInertialFrameTransformationQuaternion(
@@ -100,43 +101,6 @@ Eigen::Matrix3d TidallyLockedRotationalEphemeris::getDerivativeOfRotationToBaseF
             Eigen::Matrix3d( reference_frames::getRotatingPlanetocentricToInertialFrameTransformationQuaternion(
                             currentDeclination, currentRightAscension, 0.0 ) ) * auxiliaryMatrix * tudat::reference_frames::
                                    getInertialToPlanetocentricFrameTransformationQuaternion( -currentRotationAngle );
-}
-
-void TidallyLockedRotationalEphemeris::getFullRotationalQuantitiesToTargetFrame(
-        Eigen::Quaterniond& currentRotationToLocalFrame,
-        Eigen::Matrix3d& currentRotationToLocalFrameDerivative,
-        Eigen::Vector3d& currentAngularVelocityVectorInGlobalFrame,
-        const double currentTime )
-{
-    double currentRightAscension = rightAscensionFunction_( currentTime );
-    double currentDeclination = declinationFunction_( currentTime );
-
-    Eigen::Vector6d currentRelativeState = ( relativeStateFunction_( currentTime, isBodyInPropagation_ ) );
-
-    Eigen::Quaterniond intermediateRotationToTargetFrame = getSecondIntermediateRotationToTargetFrame( currentRightAscension, currentDeclination );
-
-    Eigen::Vector2d currentRelativeCentralBodyPosition = ( intermediateRotationToTargetFrame * ( -currentRelativeState.segment( 0, 3 ) ) ).segment( 0, 2 );
-    Eigen::Vector2d currentRelativeCentralBodyVelocity  = ( intermediateRotationToTargetFrame * ( -currentRelativeState.segment( 3, 3 ) ) ).segment( 0, 2 );
-
-    double currentRotationAngle = std::atan2( currentRelativeCentralBodyPosition( 1 ), currentRelativeCentralBodyPosition( 0 ) );
-
-    double currentRotationRate = currentRelativeCentralBodyPosition( 0 ) * currentRelativeCentralBodyVelocity( 1 ) -
-            currentRelativeCentralBodyPosition( 1 ) * currentRelativeCentralBodyVelocity( 0 );
-    currentRotationRate /= ( currentRelativeCentralBodyPosition.norm( ) * currentRelativeCentralBodyPosition.norm( ) );
-
-    Eigen::Matrix3d auxiliaryMatrix;
-    auxiliaryMatrix<< 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-
-    currentRotationToLocalFrame =  reference_frames::getInertialToPlanetocentricFrameTransformationQuaternion(
-                    currentDeclination, currentRightAscension, currentRotationAngle ) * intermediateToBaseFrameRotation_.inverse( );
-
-    currentRotationToLocalFrameDerivative = ( -currentRotationRate * Eigen::Matrix3d( intermediateToBaseFrameRotation_ ) *
-            Eigen::Matrix3d( reference_frames::getRotatingPlanetocentricToInertialFrameTransformationQuaternion(
-                            currentDeclination, currentRightAscension, 0.0 ) ) * auxiliaryMatrix * tudat::reference_frames::
-                                   getInertialToPlanetocentricFrameTransformationQuaternion( -currentRotationAngle ) ).transpose( );
-
-    currentAngularVelocityVectorInGlobalFrame = getRotationalVelocityVectorInBaseFrameFromMatrices(
-                Eigen::Matrix3d( currentRotationToLocalFrame ), currentRotationToLocalFrameDerivative.transpose( ) );
 }
 
 }

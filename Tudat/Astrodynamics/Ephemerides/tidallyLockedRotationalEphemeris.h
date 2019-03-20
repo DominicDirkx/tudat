@@ -69,12 +69,6 @@ public:
         return getDerivativeOfRotationToBaseFrame( currentTime ).transpose( );
     }
 
-    void getFullRotationalQuantitiesToTargetFrame(
-            Eigen::Quaterniond& currentRotationToLocalFrame,
-            Eigen::Matrix3d& currentRotationToLocalFrameDerivative,
-            Eigen::Vector3d& currentAngularVelocityVectorInGlobalFrame,
-            const double currentTime );
-
     void setIsBodyInPropagation( const bool isBodyInPropagation )
     {
         isBodyInPropagation_ = isBodyInPropagation;
@@ -85,25 +79,6 @@ public:
         return intermediateToBaseFrameRotation_;
     }
 
-    std::function< double( const double ) > getRightAscensionFunction( )
-    {
-        return rightAscensionFunction_;
-    }
-
-    std::function< double( const double ) > getDeclinationFunction( )
-    {
-        return declinationFunction_;
-    }
-
-    std::string getCentralBodyName( )
-    {
-        return centralBodyName_;
-    }
-
-    Eigen::Vector6d getCurrentRelativeState( const double time )
-    {
-        return relativeStateFunction_( time, isBodyInPropagation_ );
-    }
 
     Eigen::Quaterniond getSecondIntermediateRotationToTargetFrame(
             const double currentRightAscension, const double currentDeclination )
@@ -112,25 +87,11 @@ public:
                     currentDeclination, currentRightAscension, 0.0 ) * intermediateToBaseFrameRotation_.inverse( );
     }
 
-    Eigen::Quaterniond getSecondIntermediateRotationToTargetFrame( const double currentTime )
-    {
-        return reference_frames::getInertialToPlanetocentricFrameTransformationQuaternion(
-                    declinationFunction_( currentTime ), rightAscensionFunction_( currentTime ), 0.0 ) * intermediateToBaseFrameRotation_.inverse( );
-    }
-
     double getFullyLockedRotationAngle( const Eigen::Vector3d& relativeCentralBodyStateInSecondIntermediateFrame )
     {
         return std::atan2( relativeCentralBodyStateInSecondIntermediateFrame( 1 ),
                            relativeCentralBodyStateInSecondIntermediateFrame( 0 ) );
     }
-
-    double getTotalRotationAngle( const Eigen::Quaterniond& secondIntermediateRotationToTargetFrame,
-                                  const Eigen::Vector6d& relativeState )
-    {
-        double currentRotationAngle = getFullyLockedRotationAngle( secondIntermediateRotationToTargetFrame * ( -relativeState.segment( 0, 3 ) ) );
-        return currentRotationAngle;
-    }
-
 
 private:
 

@@ -219,7 +219,6 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >  cr
         const bool sumGravitationalParameters,
         const bool isCentralBody )
 {
-    std::cout<<"CREATING SCALED MODEL "<<nameOfBodyUndergoingAcceleration<<" "<<nameOfBodyExertingAcceleration<<std::endl;
     typedef std::multimap< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >, bool > ExistingAccelerationsMap;
 
     if( identifiedAccelerationModels.size( ) == 0 )
@@ -292,10 +291,6 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >  cr
                 currentShAccelerationModel = std::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
                             accelerationIterator->first );
 
-                std::cout<<accelerationIterator->second<<" "<<currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).rows( )<<" "<<
-                           shAccelerationSettings->maximumDegree_ + 1 <<" "<<
-                           currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).cols( )<<" "<<shAccelerationSettings->maximumOrder_ + 1<<std::endl;
-
                 if( accelerationIterator->second == 0 && currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).rows( ) ==
                         shAccelerationSettings->maximumDegree_ + 1 &&
                         currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).cols( ) == shAccelerationSettings->maximumOrder_ + 1 )
@@ -319,7 +314,6 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >  cr
             }
             else
             {
-                std::cout<<"Identical model not available "<<std::endl;
                 std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCache =
                         std::make_shared< basic_mathematics::SphericalHarmonicsCache >( );
 
@@ -485,8 +479,6 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > cre
         const bool scaleExistingAccelerations,
         const AccelerationMap& accelerationMap )
 {
-    std::cout<<"Creating direct acceleration model "<<nameOfBodyUndergoingAcceleration<<" "<<nameOfBodyExertingAcceleration<<std::endl;
-
     // Check if sum of gravitational parameters (i.e. inertial force w.r.t. central body) should be used.
     bool sumGravitationalParameters = 0;
     if( ( nameOfCentralBody == nameOfBodyExertingAcceleration ) && bodyUndergoingAcceleration != nullptr )
@@ -567,9 +559,6 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > cre
         const bool scaleExistingAccelerations,
         const AccelerationMap& accelerationMap )
 {
-    std::cout<<"Creating third-body acceleration model "<<nameOfBodyUndergoingAcceleration<<" "<<nameOfBodyExertingAcceleration<<" "<<
-               nameOfCentralBody<<std::endl;
-
     // Check type of acceleration model and create.
     std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > accelerationModel;
     switch( accelerationSettings->accelerationType_ )
@@ -633,8 +622,6 @@ std::shared_ptr< AccelerationModel< Eigen::Vector3d > > createGravitationalAccel
         const bool scaleExistingAccelerations )
 {
 
-    std::cout<<std::endl<<"Creating acceleration model "<<nameOfBodyUndergoingAcceleration<<" "<<nameOfBodyExertingAcceleration<<std::endl;
-
     std::shared_ptr< AccelerationModel< Eigen::Vector3d > > accelerationModelPointer;
     if( accelerationSettings->accelerationType_ != central_gravity &&
             accelerationSettings->accelerationType_ != spherical_harmonic_gravity &&
@@ -677,7 +664,6 @@ std::shared_ptr< CentralGravitationalAccelerationModel3d > createCentralGravityA
         const std::string& nameOfBodyExertingAcceleration,
         const bool useCentralBodyFixedFrame )
 {
-    std::cout<<"Creating central acceleration model "<<nameOfBodyUndergoingAcceleration<<" "<<nameOfBodyExertingAcceleration<<std::endl;
 
     // Declare pointer to return object.
     std::shared_ptr< CentralGravitationalAccelerationModel3d > accelerationModelPointer;
@@ -742,7 +728,6 @@ createSphericalHarmonicsGravityAcceleration(
         const bool useDegreeZeroTerm,
         const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCache )
 {
-    std::cout<<"Creating spherical harmonic acceleration model "<<nameOfBodyUndergoingAcceleration<<" "<<nameOfBodyExertingAcceleration<<std::endl;
 
     // Declare pointer to return object
     std::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > accelerationModel;
@@ -868,7 +853,6 @@ createMutualSphericalHarmonicsGravityAcceleration(
         const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCacheForBodyExertingAcceleration,
         const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCacheForBodyUndergoingAcceleration )
 {
-    std::cout<<"Creating mutual spherical harmonic acceleration model "<<nameOfBodyUndergoingAcceleration<<" "<<nameOfBodyExertingAcceleration<<std::endl;
 
     using namespace basic_astrodynamics;
 

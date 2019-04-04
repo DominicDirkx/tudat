@@ -110,7 +110,7 @@ target_link_libraries(test_DirectTidalDissipationAcceleration ${TUDAT_PROPAGATIO
 
 add_executable(test_ScaledGravitationalAcceleration "${SRCROOT}${GRAVITATIONDIR}/UnitTests/unitTestScaledGravitationalAcceleration.cpp")
 setup_custom_test_program(test_ScaledGravitationalAcceleration "${SRCROOT}${GRAVITATIONDIR}")
-target_link_libraries(test_ScaledGravitationalAcceleration tudat_gravitation tudat_basic_astrodynamics tudat_basic_mathematics ${Boost_LIBRARIES} )
+target_link_libraries(test_ScaledGravitationalAcceleration ${TUDAT_PROPAGATION_LIBRARIES} ${Boost_LIBRARIES})
 
 if(USE_CSPICE)
 add_executable(test_GravityFieldVariations "${SRCROOT}${GRAVITATIONDIR}/UnitTests/unitTestGravityFieldVariations.cpp")

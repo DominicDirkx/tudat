@@ -482,7 +482,7 @@ BOOST_AUTO_TEST_CASE( testIdenticalGravitySetup )
                     std::vector< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > >
                             unscaledAccelerationList = unscaledInnerIterator->second;
 
-                    for( int m = 0; m < scaledAccelerationList.size( ); m++ )
+                    for( unsigned int m = 0; m < scaledAccelerationList.size( ); m++ )
                     {
                         scaledAccelerationList.at( m )->resetTime( TUDAT_NAN );
                         unscaledAccelerationList.at( m )->resetTime( TUDAT_NAN );
@@ -492,12 +492,11 @@ BOOST_AUTO_TEST_CASE( testIdenticalGravitySetup )
                         Eigen::Vector3d unscaledAcceleration = updateAndGetAcceleration(
                                     unscaledAccelerationList.at( m ), currentTime );
 
-                        TUDAT_CHECK_MATRIX_CLOSE_FRACTION( scaledAcceleration, unscaledAcceleration, 1.0E-15 );
-
-                        std::cout<<unscaledIterator->first<<" "<<unscaledInnerIterator->first<<" "<<j<<std::endl;
-                        std::cout<<std::setprecision( 16 )<<scaledAcceleration.transpose( )<<std::endl;
-                        std::cout<<std::setprecision( 16 )<<unscaledAcceleration.transpose( )<<std::endl<<std::endl;
-
+                        for( int i = 0; i < 3; i++ )
+                        {
+                            BOOST_CHECK_SMALL( std::fabs( scaledAcceleration( i ) - unscaledAcceleration ( i ) ),
+                                               ( 1.0E-14 * scaledAcceleration.norm( ) ) );
+                        }
                     }
 
                     unscaledInnerIterator++;

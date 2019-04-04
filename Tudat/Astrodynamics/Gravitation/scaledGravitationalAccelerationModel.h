@@ -139,7 +139,6 @@ private:
 
     bool invertPositionVectors_;
 
-    Eigen::Vector3d currentAcceleration_;
 };
 
 template< >

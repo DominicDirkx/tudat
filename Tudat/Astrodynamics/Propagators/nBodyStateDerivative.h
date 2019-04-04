@@ -450,11 +450,11 @@ protected:
     std::vector< int > bodyOrder_;
 
     //! Predefined iterator to save (de-)allocation time.
-    std::unordered_map< std::string, std::vector<
+    std::map< std::string, std::vector<
     std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > > >::iterator innerAccelerationIterator;
 
     //! Predefined iterator to save (de-)allocation time.
-    std::unordered_map< std::string, std::unordered_map< std::string, std::vector<
+    std::map< std::string, std::map< std::string, std::vector<
     std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > > > >::iterator outerAccelerationIterator;
 
     //! List of states of the central bodies of the propagated bodies.

@@ -4,8 +4,10 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "Tudat/Basics/testMacros.h"
 #include "Tudat/SimulationSetup/tudatSimulationHeader.h"
 #include "Tudat/Astrodynamics/Gravitation/scaledGravitationalAccelerationModel.h"
+#include "Tudat/Mathematics/Statistics/randomVariableGenerator.h"
 
 
 namespace tudat
@@ -198,7 +200,7 @@ void verifyAccelerationModelTypesAndScalings(
                                     accelerationIterator->second.at( i ) );
 
                         BOOST_CHECK_EQUAL( ( scaledAcceleration != nullptr ), expectScaledAccelerations );
-                        if( expectScaledAccelerations )
+                        if( expectScaledAccelerations && ( scaledAcceleration != nullptr ) )
                         {
                             checkGravitationalAccelerationScaling(
                                         scaledAcceleration, bodyMap, fullAccelerationIterator->first, accelerationIterator->first );
@@ -253,8 +255,6 @@ void verifyAccelerationModelTypesAndScalings(
                 }
                 else
                 {
-                    std::cout<<"B"<<std::endl;
-
                     BOOST_CHECK_EQUAL( ( castToBaseAcceleration< BaseAcceleration >(
                                              accelerationIterator->second.at( i ) ) == nullptr ), 1 );
                     BOOST_CHECK_EQUAL( ( castToScaledAcceleration< BaseAcceleration >(
@@ -274,13 +274,11 @@ void verifyAccelerationModelTypesAndScalings(
                                 thirdBodyAcceleration->getAccelerationModelForBodyUndergoingAcceleration( ) );
 
                     BOOST_CHECK_EQUAL( ( scaledAcceleration != nullptr ), expectScaledAccelerations );
-                    if( expectScaledAccelerations )
+                    if( expectScaledAccelerations && ( scaledAcceleration != nullptr ) )
                     {
                         checkGravitationalAccelerationScaling(
                                     scaledAcceleration, bodyMap, fullAccelerationIterator->first, accelerationIterator->first );
                     }
-
-                    std::cout<<"C"<<std::endl;
 
                     BOOST_CHECK_EQUAL( ( castToBaseAcceleration< BaseAcceleration >(
                                              thirdBodyAcceleration->getAccelerationModelForCentralBody( ) ) != nullptr ), 1 );
@@ -289,7 +287,6 @@ void verifyAccelerationModelTypesAndScalings(
 
                     scaledAcceleration = castToScaledAcceleration< BaseAcceleration >(
                                 thirdBodyAcceleration->getAccelerationModelForCentralBody( ) );
-                    std::cout<<"D"<<std::endl;
 
                     bool expectThirdBodyScaledAcceleration = 0;
                     if( std::find( calculatedExertingBodies.begin( ), calculatedExertingBodies.end( ), accelerationIterator->first ) != calculatedExertingBodies.end( ) ||
@@ -300,26 +297,21 @@ void verifyAccelerationModelTypesAndScalings(
                             expectThirdBodyScaledAcceleration = 1;
                         }
                     }
-                    std::cout<<"E "<<expectThirdBodyScaledAcceleration<<std::endl;
 
                     BOOST_CHECK_EQUAL( ( scaledAcceleration != nullptr ), expectThirdBodyScaledAcceleration );
                     if( expectThirdBodyScaledAcceleration &&  ( scaledAcceleration != nullptr ) )
                     {
                         if( accelerationIterator->first == accelerationModelMap.begin( )->first && expectScaledAccelerations )
                         {
-                            std::cout<<"G"<<std::endl;
                             checkGravitationalAccelerationScaling(
                                         scaledAcceleration, bodyMap, "Jupiter", accelerationIterator->first );
                         }
                         else
                         {
-                            std::cout<<"H"<<std::endl;
                             checkGravitationalAccelerationScaling(
                                         scaledAcceleration, bodyMap, accelerationIterator->first, accelerationIterator->first, 0 );
                         }
                     }
-                    std::cout<<"F"<<std::endl;
-
                 }
             }
             calculatedExertingBodies.push_back( accelerationIterator->first );
@@ -338,24 +330,40 @@ BOOST_AUTO_TEST_CASE( testIdenticalGravitySetup )
     // Create bodies needed in simulation
     std::vector< std::string > bodyNames;
     bodyNames.push_back( "Europa" );
+    bodyNames.push_back( "Ganymede" );
     bodyNames.push_back( "Io" );
     bodyNames.push_back( "Jupiter" );
-    //    bodyNames.push_back( "Ganymede" );
-//    bodyNames.push_back( "Sun" );
 
 
     std::map< std::string, std::shared_ptr< BodySettings > > bodySettings =
             getDefaultBodySettings( bodyNames );
 
+    std::function< double( ) > randomNumberGenerator =
+            statistics::createBoostContinuousRandomVariableGeneratorFunction(
+                statistics::normal_boost_distribution,
+    { 0.0, 1.0E-4 }, 0.0 );
+
     // Set spherical harmonic gravity fields (dummy coefficients) for all bodies in Jovian system
-    Eigen::MatrixXd cosineCoefficients = Eigen::MatrixXd::Zero( 5, 5 );
-    Eigen::MatrixXd sineCoefficients = Eigen::MatrixXd::Zero( 5, 5 );
-    for( unsigned int i = 1; i < bodyNames.size( ); i++ )
+
+    for( unsigned int i = 0; i < bodyNames.size( ); i++ )
     {
+        Eigen::MatrixXd cosineCoefficients = Eigen::MatrixXd::Zero( 5, 5 );
+        Eigen::MatrixXd sineCoefficients = Eigen::MatrixXd::Zero( 5, 5 );
+        cosineCoefficients( 0, 0 ) = 1.0;
+        for( int l = 2; l < 5; l++ )
+        {
+            for( int m = 0; m <= l; m++ )
+            {
+                cosineCoefficients( l, m ) = randomNumberGenerator( );
+                sineCoefficients( l, m ) = randomNumberGenerator( );
+            }
+        }
+
         bodySettings[ bodyNames.at( i ) ]->gravityFieldSettings =
                 std::make_shared< SphericalHarmonicsGravityFieldSettings >(
                     tudat::spice_interface::getBodyGravitationalParameter( bodyNames.at( i ) ),
-                    1.0E5, cosineCoefficients, sineCoefficients, "IAU_" + bodyNames.at( i ) + "_SIMPLIFIED" );
+                    tudat::spice_interface::getAverageRadius( bodyNames.at( i ) ), cosineCoefficients,
+                    sineCoefficients, "IAU_" + bodyNames.at( i ) );
     }
 
     // Finalize body creation
@@ -365,106 +373,145 @@ BOOST_AUTO_TEST_CASE( testIdenticalGravitySetup )
 
     std::vector< std::string > acceleratedBodies;
     acceleratedBodies.push_back( "Europa" );
-//    acceleratedBodies.push_back( "Ganymede" );
+    acceleratedBodies.push_back( "Ganymede" );
     acceleratedBodies.push_back( "Io" );
 
-    for( int useScaledAccelerations = 1; useScaledAccelerations < 2; useScaledAccelerations++ )
+
+    std::map< std::string, std::string > centralBodyMap;
+    SelectedAccelerationMap centralAccelerationMap;
+    SelectedAccelerationMap sphericalHarmonicAccelerationMap;
+    SelectedAccelerationMap mutualSphericalHarmonicAccelerationMap;
+
+    for( unsigned int i = 0; i < acceleratedBodies.size( ); i++ )
     {
-        std::cout<<"Central gravity; scaled "<<useScaledAccelerations<<std::endl;
+        centralBodyMap[ acceleratedBodies.at( i ) ] = "Jupiter";
+        std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > centralAccelerationsOfCurrentMoon;
+        std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > sphericalHarmonicAccelerationsOfCurrentMoon;
+        std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > mutualSphericalHarmonicAccelerationsOfCurrentMoon;
 
-        std::map< std::string, std::string > centralBodyMap;
-        SelectedAccelerationMap accelerationMap;
-        for( unsigned int i = 0; i < acceleratedBodies.size( ); i++ )
+        for( unsigned int j = 0; j < bodyNames.size( ); j++ )
         {
-            centralBodyMap[ acceleratedBodies.at( i ) ] = "Jupiter";
-            std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > accelerationsOfCurrentMoon;
-
-            for( unsigned int j = 0; j < bodyNames.size( ); j++ )
+            if( acceleratedBodies.at( i ) != bodyNames.at( j ) )
             {
-                if( acceleratedBodies.at( i ) != bodyNames.at( j ) )
+                centralAccelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back(
+                            std::make_shared< AccelerationSettings >( central_gravity ) );
+                sphericalHarmonicAccelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back(
+                            std::make_shared< SphericalHarmonicAccelerationSettings >( 2, 2 ) );
+
+                if( bodyNames.at( j ) == "Jupiter" )
                 {
-                    accelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back(
-                                std::make_shared< AccelerationSettings >( central_gravity ) );
+                    mutualSphericalHarmonicAccelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back(
+                                std::make_shared< MutualSphericalHarmonicAccelerationSettings >( 4, 4, 2, 2 ) );
+                }
+                else
+                {
+                    mutualSphericalHarmonicAccelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back(
+                                std::make_shared< MutualSphericalHarmonicAccelerationSettings >( 2, 2, 2, 2, 4, 4 ) );
                 }
             }
 
-            accelerationMap[ acceleratedBodies.at( i ) ] = accelerationsOfCurrentMoon;
-            accelerationsOfCurrentMoon.clear( );
         }
 
-        AccelerationMap accelerationModelMap = createAccelerationModelsMap(
-                    bodyMap, accelerationMap, centralBodyMap, useScaledAccelerations );
+        centralAccelerationMap[ acceleratedBodies.at( i ) ] = centralAccelerationsOfCurrentMoon;
+        sphericalHarmonicAccelerationMap[ acceleratedBodies.at( i ) ] = sphericalHarmonicAccelerationsOfCurrentMoon;
+        mutualSphericalHarmonicAccelerationMap[ acceleratedBodies.at( i ) ] = mutualSphericalHarmonicAccelerationsOfCurrentMoon;
 
-        std::cout<<std::endl;
+        centralAccelerationsOfCurrentMoon.clear( );
+    }
 
-        verifyAccelerationModelTypesAndScalings< CentralGravitationalAccelerationModel3d >(
-                    accelerationModelMap, bodyMap, useScaledAccelerations );
+    std::vector< AccelerationMap > accelerationModelMaps;
+
+    accelerationModelMaps.push_back( createAccelerationModelsMap(
+                                         bodyMap, centralAccelerationMap, centralBodyMap, false ) );
+    accelerationModelMaps.push_back( createAccelerationModelsMap(
+                                         bodyMap, centralAccelerationMap, centralBodyMap, true ) );
+    accelerationModelMaps.push_back( createAccelerationModelsMap(
+                                         bodyMap, sphericalHarmonicAccelerationMap, centralBodyMap, false ) );
+    accelerationModelMaps.push_back( createAccelerationModelsMap(
+                                         bodyMap, sphericalHarmonicAccelerationMap, centralBodyMap, true ) );
+    accelerationModelMaps.push_back( createAccelerationModelsMap(
+                                         bodyMap, mutualSphericalHarmonicAccelerationMap, centralBodyMap, false ) );
+    accelerationModelMaps.push_back( createAccelerationModelsMap(
+                                         bodyMap, mutualSphericalHarmonicAccelerationMap, centralBodyMap, true ) );
+    for( int i = 0; i < 6; i++ )
+    {
+        std::cout<<"******************************************************* "<<i<<std::endl;
+        if( i < 2 )
+        {
+            verifyAccelerationModelTypesAndScalings< CentralGravitationalAccelerationModel3d >(
+                        accelerationModelMaps.at( i ), bodyMap, i % 2 );
+        }
+        else if( i < 4 )
+        {
+            verifyAccelerationModelTypesAndScalings< SphericalHarmonicsGravitationalAccelerationModel >(
+                        accelerationModelMaps.at( i ), bodyMap, i % 2 );
+        }
+        else
+        {
+            verifyAccelerationModelTypesAndScalings< MutualSphericalHarmonicsGravitationalAccelerationModel >(
+                        accelerationModelMaps.at( i ), bodyMap, i % 2 );
+        }
+    }
+
+    for( int i = 0; i < 100; i++ )
+    {
+        double currentTime = 86400.0 * static_cast< double >( i );
+        for( unsigned int j = 0; j < bodyNames.size( ); j++ )
+        {
+            bodyMap.at( bodyNames.at( j ) )->setStateFromEphemeris( currentTime );
+            bodyMap.at( bodyNames.at( j ) )->setCurrentRotationalStateToLocalFrameFromEphemeris( currentTime );
+        }
+
+        for( int j = 0; j < 3; j++ )
+        {
+            AccelerationMap unscaledAccelerationMap = accelerationModelMaps.at( 2 * j );
+            AccelerationMap scaledAccelerationMap = accelerationModelMaps.at( 2 * j + 1 );
+
+            auto unscaledIterator = unscaledAccelerationMap.begin( );
+            auto scaledIterator = scaledAccelerationMap.begin( );
+
+            for( unsigned int k = 0; k < scaledAccelerationMap.size( ); k++ )
+            {
+                auto unscaledInnerIterator = unscaledIterator->second.begin( );
+                auto scaledInnerIterator = scaledIterator->second.begin( );
+
+                for( unsigned int l = 0; l < scaledAccelerationMap.size( ); l++ )
+                {
+                    std::vector< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > >
+                            scaledAccelerationList = scaledInnerIterator->second;
+                    std::vector< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > >
+                            unscaledAccelerationList = unscaledInnerIterator->second;
+
+                    for( int m = 0; m < scaledAccelerationList.size( ); m++ )
+                    {
+                        scaledAccelerationList.at( m )->resetTime( TUDAT_NAN );
+                        unscaledAccelerationList.at( m )->resetTime( TUDAT_NAN );
+
+                        Eigen::Vector3d scaledAcceleration = updateAndGetAcceleration(
+                                    scaledAccelerationList.at( m ), currentTime );
+                        Eigen::Vector3d unscaledAcceleration = updateAndGetAcceleration(
+                                    unscaledAccelerationList.at( m ), currentTime );
+
+                        TUDAT_CHECK_MATRIX_CLOSE_FRACTION( scaledAcceleration, unscaledAcceleration, 1.0E-15 );
+
+                        std::cout<<unscaledIterator->first<<" "<<unscaledInnerIterator->first<<" "<<j<<std::endl;
+                        std::cout<<std::setprecision( 16 )<<scaledAcceleration.transpose( )<<std::endl;
+                        std::cout<<std::setprecision( 16 )<<unscaledAcceleration.transpose( )<<std::endl<<std::endl;
+
+                    }
+
+                    unscaledInnerIterator++;
+                    scaledInnerIterator++;
+                }
+
+                unscaledIterator++;
+                scaledIterator++;
+            }
+
+        }
 
     }
 
-//    {
-//        std::map< std::string, std::string > centralBodyMap;
-
-//        SelectedAccelerationMap accelerationMap;
-//        for( unsigned int i = 0; i < acceleratedBodies.size( ); i++ )
-//        {
-//            centralBodyMap[ acceleratedBodies.at( i ) ] = "Jupiter";
-//            std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > accelerationsOfCurrentMoon;
-
-//            for( unsigned int j = 1; j < bodyNames.size( ); j++ )
-//            {
-//                if( acceleratedBodies.at( i ) != bodyNames.at( j ) )
-//                {
-//                    accelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back( std::make_shared< SphericalHarmonicAccelerationSettings >( 2, 2 ) );
-//                }
-//            }
-
-//            accelerationMap[ acceleratedBodies.at( i ) ] = accelerationsOfCurrentMoon;
-//            accelerationsOfCurrentMoon.clear( );
-//        }
-
-//        AccelerationMap accelerationModelMap = createAccelerationModelsMap(
-//                    bodyMap, accelerationMap, centralBodyMap );
-
-//        verifyAccelerationModelTypesAndScalings< SphericalHarmonicsGravitationalAccelerationModel >(
-//                    accelerationModelMap, bodyMap, 0 );
-//    }
-//    std::cout<<"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"<<std::endl;
-
-//    {
-//        std::map< std::string, std::string > centralBodyMap;
-
-//        SelectedAccelerationMap accelerationMap;
-//        for( unsigned int i = 0; i < acceleratedBodies.size( ); i++ )
-//        {
-//            centralBodyMap[ acceleratedBodies.at( i ) ] = "Jupiter";
-//            std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > accelerationsOfCurrentMoon;
-
-//            for( unsigned int j = 1; j < bodyNames.size( ); j++ )
-//            {
-//                if( acceleratedBodies.at( i ) != bodyNames.at( j ) )
-//                {
-//                    if( bodyNames.at( j ) == "Jupiter" )
-//                    {
-//                        accelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back( std::make_shared< MutualSphericalHarmonicAccelerationSettings >( 4, 4, 2, 2 ) );
-//                    }
-//                    else
-//                    {
-//                        accelerationsOfCurrentMoon[ bodyNames.at( j ) ].push_back( std::make_shared< MutualSphericalHarmonicAccelerationSettings >( 2, 2, 2, 2, 4, 4 ) );
-//                    }
-//                }
-//            }
-
-//            accelerationMap[ acceleratedBodies.at( i ) ] = accelerationsOfCurrentMoon;
-//            accelerationsOfCurrentMoon.clear( );
-//        }
-
-//        AccelerationMap accelerationModelMap = createAccelerationModelsMap(
-//                    bodyMap, accelerationMap, centralBodyMap );
-
-//        verifyAccelerationModelTypesAndScalings< MutualSphericalHarmonicsGravitationalAccelerationModel >(
-//                    accelerationModelMap, bodyMap );
-//    }
 }
 
 BOOST_AUTO_TEST_SUITE_END( )

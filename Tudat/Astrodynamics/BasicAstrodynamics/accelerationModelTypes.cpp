@@ -310,11 +310,11 @@ AvailableAcceleration getThirdBodyEquivalentAccelerationModelType(
         thirdBodyAccelerationType = third_body_mutual_spherical_harmonic_gravity;
         break;
     default:
-        std::cerr<<"Error when getting equivalent third body acceleration model, cannot parse type "<<basicAccelerationModelType<<std::endl;
+       throw std::runtime_error( "Error when getting equivalent third body acceleration model, cannot parse type " +
+                                 std::to_string( basicAccelerationModelType ) );
     }
     return thirdBodyAccelerationType;
 }
-
 
 } // namespace basic_astrodynamics
 

@@ -292,6 +292,10 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >  cr
                 currentShAccelerationModel = std::dynamic_pointer_cast< SphericalHarmonicsGravitationalAccelerationModel >(
                             accelerationIterator->first );
 
+                std::cout<<accelerationIterator->second<<" "<<currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).rows( )<<" "<<
+                           shAccelerationSettings->maximumDegree_ + 1 <<" "<<
+                           currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).cols( )<<" "<<shAccelerationSettings->maximumOrder_ + 1<<std::endl;
+
                 if( accelerationIterator->second == 0 && currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).rows( ) ==
                         shAccelerationSettings->maximumDegree_ + 1 &&
                         currentShAccelerationModel->getCurrentCosineHarmonicCoefficients( ).cols( ) == shAccelerationSettings->maximumOrder_ + 1 )
@@ -315,7 +319,9 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >  cr
             }
             else
             {
-                std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCache;
+                std::cout<<"Identical model not available "<<std::endl;
+                std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCache =
+                        std::make_shared< basic_mathematics::SphericalHarmonicsCache >( );
 
 
                 for( ExistingAccelerationsMap::const_iterator accelerationIterator = identifiedAccelerationModels.begin( );

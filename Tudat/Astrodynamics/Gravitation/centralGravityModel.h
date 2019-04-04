@@ -256,7 +256,6 @@ public:
 
 
 protected:
-private:
 
     Eigen::Vector3d currentAcceleration_;
 };

@@ -195,13 +195,13 @@ protected:
      * Pointer to function that returns the current position of the body subject to the
      * gravitational acceleration.
      */
-    const StateFunction subjectPositionFunction;
+    StateFunction subjectPositionFunction;
 
     //! Function returning a gravitational parameter [m^3 s^-2].
     /*!
      * Function returning current gravitational parameter of body exerting acceleration [m^3 s^-2].
      */
-    const std::function< double( ) > gravitationalParameterFunction;
+    std::function< double( ) > gravitationalParameterFunction;
 
     //! Gravitational parameter [m^3 s^-2].
     /*!
@@ -220,7 +220,7 @@ protected:
      * Pointer to function that returns the current position of the body exerting the
      * gravitational acceleration.
      */
-    const StateFunction sourcePositionFunction;
+    StateFunction sourcePositionFunction;
 
     //! Variable denoting whether mutual acceleration between bodies is included.
     /*!

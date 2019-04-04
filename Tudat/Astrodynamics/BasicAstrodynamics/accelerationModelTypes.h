@@ -19,6 +19,7 @@
 #include "Tudat/Astrodynamics/Gravitation/mutualSphericalHarmonicGravityModel.h"
 #include "Tudat/Astrodynamics/Gravitation/thirdBodyPerturbation.h"
 #include "Tudat/Astrodynamics/Gravitation/directTidalDissipationAcceleration.h"
+#include "Tudat/Astrodynamics/Gravitation/scaledGravitationalAccelerationModel.h"
 #include "Tudat/Astrodynamics/Aerodynamics/aerodynamicAcceleration.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/massRateModel.h"
 #include "Tudat/Astrodynamics/Propulsion/thrustAccelerationModel.h"
@@ -136,6 +137,12 @@ bool isAccelerationFromThirdBody( const AvailableAcceleration accelerationType )
  * \return Third-body counterpart of accelerationType.
  */
 AvailableAcceleration getAssociatedThirdBodyAcceleration( const AvailableAcceleration accelerationType );
+
+bool isAccelerationScaledOriginal(
+        const std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > accelerationModel );
+
+AvailableAcceleration getThirdBodyEquivalentAccelerationModelType(
+        const AvailableAcceleration basicAccelerationModelType );
 
 } // namespace basic_astrodynamics
 

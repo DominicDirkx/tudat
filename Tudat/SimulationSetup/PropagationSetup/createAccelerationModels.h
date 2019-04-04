@@ -31,6 +31,38 @@ namespace tudat
 namespace simulation_setup
 {
 
+std::function< double( ) >getGravitationalParameterFunction(
+        const std::shared_ptr< Body > body,
+        const std::string& nameOfBody );
+
+std::vector< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > > findDirectExistingGravitationalAccelerationsFromList(
+        const std::string& nameOfBodyUndergoingAcceleration,
+        const std::string& nameOfBodyExertingAcceleration,
+        const basic_astrodynamics::AccelerationMap& accelerationMap,
+        const basic_astrodynamics::AvailableAcceleration accelerationType );
+
+std::vector< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > > findExistingCentralBodyGravitationalAccelerationsFromList(
+        const std::string& nameOfCentralBody,
+        const std::string& nameOfBodyExertingAcceleration,
+        const basic_astrodynamics::AccelerationMap& accelerationMap,
+        const basic_astrodynamics::AvailableAcceleration accelerationType );
+
+std::multimap< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >, bool > findExistingGravitationalAccelerationFromList(
+        const std::string& nameOfBodyUndergoingAcceleration,
+        const std::string& nameOfBodyExertingAcceleration,
+        const basic_astrodynamics::AccelerationMap& accelerationMap,
+        const basic_astrodynamics::AvailableAcceleration accelerationType );
+
+std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >  createGravitationalAccelerationFromPreExistingModel(
+        const std::multimap< std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > >, bool >& identifiedAccelerationModels,
+        const std::shared_ptr< Body > bodyUndergoingAcceleration,
+        const std::shared_ptr< Body > bodyExertingAcceleration,
+        const std::string& nameOfBodyUndergoingAcceleration,
+        const std::string& nameOfBodyExertingAcceleration,
+        const std::shared_ptr< AccelerationSettings > accelerationSettings,
+        const bool sumGravitationalParameters,
+        const bool isCentralBody );
+
 //! Function to create a direct (i.e. not third-body) gravitational acceleration (of any type)
 /*!
  * Function to create a direct (i.e. not third-body) gravitational acceleration of any type (i.e. point mass,
@@ -55,7 +87,10 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > cre
         const std::string& nameOfBodyExertingAcceleration,
         const std::shared_ptr< AccelerationSettings > accelerationSettings,
         const std::string& nameOfCentralBody = "",
-        const bool isCentralBody = 0 );
+        const bool isCentralBody = 0,
+        const bool scaleExistingAccelerations = true,
+        const basic_astrodynamics::AccelerationMap& accelerationMap =
+        basic_astrodynamics::AccelerationMap( ) );
 
 //! Function to create a third-body gravitational acceleration (of any type)
 /*!
@@ -78,7 +113,10 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > cre
         const std::string& nameOfBodyUndergoingAcceleration,
         const std::string& nameOfBodyExertingAcceleration,
         const std::string& nameOfCentralBody,
-        const std::shared_ptr< AccelerationSettings > accelerationSettings );
+        const std::shared_ptr< AccelerationSettings > accelerationSettings,
+        const bool scaleExistingAccelerations = true,
+        const basic_astrodynamics::AccelerationMap& accelerationMap =
+        basic_astrodynamics::AccelerationMap( ) );
 
 //! Function to create gravitational acceleration (of any type)
 /*!
@@ -101,7 +139,9 @@ std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > cre
         const std::string& nameOfBodyUndergoingAcceleration,
         const std::string& nameOfBodyExertingAcceleration,
         const std::shared_ptr< Body > centralBody,
-        const std::string& nameOfCentralBody );
+        const std::string& nameOfCentralBody,
+        const basic_astrodynamics::AccelerationMap& accelerationMap = basic_astrodynamics::AccelerationMap( ),
+        const bool scaleExistingAccelerations = true );
 
 //! Function to create central gravity acceleration model.
 /*!
@@ -157,7 +197,9 @@ createSphericalHarmonicsGravityAcceleration(
         const std::string& nameOfBodyExertingAcceleration,
         const std::shared_ptr< AccelerationSettings > accelerationSettings,
         const bool useCentralBodyFixedFrame,
-        const bool useDegreeZeroTerm = true );
+        const bool useDegreeZeroTerm = true,
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCache
+        = std::make_shared< basic_mathematics::SphericalHarmonicsCache >( ) );
 
 //! Function to create mutual spherical harmonic gravity acceleration model.
 /*!
@@ -188,7 +230,11 @@ createMutualSphericalHarmonicsGravityAcceleration(
         const std::string& nameOfBodyExertingAcceleration,
         const std::shared_ptr< AccelerationSettings > accelerationSettings,
         const bool useCentralBodyFixedFrame,
-        const bool acceleratedBodyIsCentralBody );
+        const bool acceleratedBodyIsCentralBody,
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCacheForBodyExertingAcceleration
+        = std::make_shared< basic_mathematics::SphericalHarmonicsCache >( ),
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > existingSphericalHarmonicsCacheForBodyUndergoingAcceleration
+        = std::make_shared< basic_mathematics::SphericalHarmonicsCache >( ) );
 
 //! Function to create a third body central gravity acceleration model.
 /*!
@@ -406,7 +452,9 @@ createAccelerationModel(
         const std::string& nameOfBodyExertingAcceleration,
         const std::shared_ptr< Body > centralBody = std::shared_ptr< Body >( ),
         const std::string& nameOfCentralBody = "",
-        const NamedBodyMap& bodyMap = NamedBodyMap( ) );
+        const NamedBodyMap& bodyMap = NamedBodyMap( ),
+        const basic_astrodynamics::AccelerationMap& accelerationMap = basic_astrodynamics::AccelerationMap( ),
+        const bool scaleExistingAccelerations = true );
 
 //! Function to put SelectedAccelerationMap in correct order, to ensure correct model creation
 /*!
@@ -430,7 +478,8 @@ SelectedAccelerationList orderSelectedAccelerationMap( const SelectedAcceleratio
 basic_astrodynamics::AccelerationMap createAccelerationModelsMap(
         const NamedBodyMap& bodyMap,
         const SelectedAccelerationMap& selectedAccelerationPerBody,
-        const std::map< std::string, std::string >& centralBodies );
+        const std::map< std::string, std::string >& centralBodies,
+        const bool scaleExistingAccelerations = true );
 
 //! Function to create acceleration models from a map of bodies and acceleration model types.
 /*!
@@ -448,7 +497,8 @@ basic_astrodynamics::AccelerationMap createAccelerationModelsMap(
         const NamedBodyMap& bodyMap,
         const SelectedAccelerationMap& selectedAccelerationPerBody,
         const std::vector< std::string >& propagatedBodies,
-        const std::vector< std::string >& centralBodies );
+        const std::vector< std::string >& centralBodies,
+        const bool scaleExistingAccelerations = true );
 
 
 } // namespace simulation_setup

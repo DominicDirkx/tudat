@@ -262,6 +262,60 @@ AvailableAcceleration getAssociatedThirdBodyAcceleration( const AvailableAcceler
     return thirdBodyAccelerationType;
 }
 
+bool isAccelerationScaledOriginal(
+        const std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > accelerationModel )
+{
+    using namespace tudat::gravitation;
+
+    bool isAccelerationScaled = 0;
+    switch( getAccelerationModelType( accelerationModel ) )
+    {
+    case central_gravity:
+        if( std::dynamic_pointer_cast< ScaledGravitationalAccelerationModel< CentralGravitationalAccelerationModel3d > >( accelerationModel ) != NULL )
+        {
+            isAccelerationScaled = 1;
+        }
+        break;
+    case spherical_harmonic_gravity:
+        if( std::dynamic_pointer_cast< ScaledGravitationalAccelerationModel< SphericalHarmonicsGravitationalAccelerationModel > >( accelerationModel ) != NULL )
+        {
+            isAccelerationScaled = 1;
+        }
+        break;
+    case mutual_spherical_harmonic_gravity:
+        if( std::dynamic_pointer_cast< ScaledGravitationalAccelerationModel< MutualSphericalHarmonicsGravitationalAccelerationModel > >( accelerationModel ) != NULL )
+        {
+            isAccelerationScaled = 1;
+        }
+        break;
+    default:
+        break;
+    }
+    return isAccelerationScaled;
+}
+
+AvailableAcceleration getThirdBodyEquivalentAccelerationModelType(
+        const AvailableAcceleration basicAccelerationModelType )
+{
+    AvailableAcceleration thirdBodyAccelerationType;
+    switch( basicAccelerationModelType )
+    {
+    case central_gravity:
+        thirdBodyAccelerationType = third_body_central_gravity;
+        break;
+    case spherical_harmonic_gravity:
+        thirdBodyAccelerationType = third_body_spherical_harmonic_gravity;
+        break;
+    case mutual_spherical_harmonic_gravity:
+        thirdBodyAccelerationType = third_body_mutual_spherical_harmonic_gravity;
+        break;
+    default:
+        std::cerr<<"Error when getting equivalent third body acceleration model, cannot parse type "<<basicAccelerationModelType<<std::endl;
+    }
+    return thirdBodyAccelerationType;
+}
+
+
 } // namespace basic_astrodynamics
 
 } // namespace tudat

@@ -155,6 +155,16 @@ public:
                     useCentralBodyFixedFrame, sphericalHarmonicsCacheOfBodyUndergoingAcceleration );
     }
 
+    MutualSphericalHarmonicsGravitationalAccelerationModel(
+            const std::shared_ptr< MutualSphericalHarmonicsGravitationalAccelerationModel > originalAccelerationModel ):
+        useCentralBodyFixedFrame_( originalAccelerationModel->getUseCentralBodyFixedFrame( ) ),
+        gravitationalParameterFunction_( originalAccelerationModel->getGravitationalParameterFunction( ) ),
+        accelerationModelFromShExpansionOfBodyExertingAcceleration_(
+            originalAccelerationModel->getAccelerationModelFromShExpansionOfBodyExertingAcceleration( ) ),
+        accelerationModelFromShExpansionOfBodyUndergoingAcceleration_(
+            originalAccelerationModel->getAccelerationModelFromShExpansionOfBodyUndergoingAcceleration( ) ){ }
+
+
     //! Update member variables used by the acceleration model.
     /*!
      *  Update member variables used by the two constituent sh acceleration models.

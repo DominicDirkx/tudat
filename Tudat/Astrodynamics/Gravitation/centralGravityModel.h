@@ -212,6 +212,16 @@ public:
         this->updateMembers( );
     }
 
+    CentralGravitationalAccelerationModel(
+            const std::shared_ptr< CentralGravitationalAccelerationModel< StateMatrix > > originalAccelerationModel ):
+        Base( originalAccelerationModel->getStateFunctionOfBodyUndergoingAcceleration( ),
+              originalAccelerationModel->getGravitationalParameterFunction( ),
+              originalAccelerationModel->getStateFunctionOfBodyExertingAcceleration( ),
+              originalAccelerationModel->getIsMutualAttractionUsed( ) )
+    {
+        this->updateMembers( );
+    }
+
     //! Get gravitational acceleration.
     /*!
      * Returns the gravitational acceleration computed using the input parameters provided to the
@@ -221,10 +231,7 @@ public:
      */
     StateMatrix getAcceleration( )
     {
-        return computeGravitationalAcceleration(
-                    this->positionOfBodySubjectToAcceleration,
-                    this->gravitationalParameter,
-                    this->positionOfBodyExertingAcceleration );
+        return currentAcceleration_;
     }
 
     //! Update members.
@@ -239,12 +246,19 @@ public:
         if( !( this->currentTime_ == currentTime ) )
         {
             this->updateBaseMembers( );
+            currentAcceleration_ = computeGravitationalAcceleration(
+                        this->positionOfBodySubjectToAcceleration,
+                        this->gravitationalParameter,
+                        this->positionOfBodyExertingAcceleration );
+            this->currentTime_ = currentTime;
         }
     }
 
 
 protected:
 private:
+
+    Eigen::Vector3d currentAcceleration_;
 };
 
 //! Typedef for CentralGravitationalAccelerationModel3d.

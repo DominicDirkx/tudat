@@ -288,11 +288,33 @@ public:
         maximumDegree_ = static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) );
         maximumOrder_ = static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) );
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
-                    std::max< int >( maximumDegree_,
-                                     sphericalHarmonicsCache_->getMaximumDegree( ) ),
-                    std::max< int >( maximumOrder_,
-                                     sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
+                    std::max< int >( maximumDegree_, sphericalHarmonicsCache_->getMaximumDegree( ) ),
+                    std::max< int >( maximumOrder_, sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
 
+
+        this->updateMembers( );
+    }
+
+    SphericalHarmonicsGravitationalAccelerationModel(
+            const std::shared_ptr< SphericalHarmonicsGravitationalAccelerationModel > originalAccelerationModel ):
+        Base( originalAccelerationModel->getStateFunctionOfBodyUndergoingAcceleration( ),
+              originalAccelerationModel->getGravitationalParameterFunction( ),
+              originalAccelerationModel->getStateFunctionOfBodyExertingAcceleration( ),
+              originalAccelerationModel->getIsMutualAttractionUsed( ) ),
+        equatorialRadius( originalAccelerationModel->getReferenceRadius( ) ),
+        getCosineHarmonicsCoefficients( originalAccelerationModel->getCosineHarmonicCoefficientsFunction( ) ),
+        getSineHarmonicsCoefficients( originalAccelerationModel->getSineHarmonicCoefficientsFunction( ) ),
+        rotationFromBodyFixedToIntegrationFrameFunction_( originalAccelerationModel->getRotationFromBodyFixedToIntegrationFrameFunction( ) ),
+        sphericalHarmonicsCache_( originalAccelerationModel->getSphericalHarmonicsCache( ) ),
+        currentAcceleration_( Eigen::Vector3d::Zero( ) ),
+        saveSphericalHarmonicTermsSeparately_( false )
+
+    {
+        maximumDegree_ = static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) );
+        maximumOrder_ = static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) );
+        sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
+                    std::max< int >( maximumDegree_, sphericalHarmonicsCache_->getMaximumDegree( ) ),
+                    std::max< int >( maximumOrder_, sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
 
         this->updateMembers( );
     }
@@ -410,7 +432,7 @@ public:
             returnVector.segment( i * 3, 3 ) = accelerationPerTerm.at( coefficientIndices.at( i ) );
         }
         return returnVector;
-   }
+    }
 
     //! Function to retrieve the spherical harmonics cache for this acceleration.
     /*!
@@ -549,10 +571,26 @@ public:
         return maximumOrder_;
     }
 
+    std::function< Eigen::Quaterniond( ) > getRotationFromBodyFixedToIntegrationFrameFunction( )
+    {
+        return rotationFromBodyFixedToIntegrationFrameFunction_;
+    }
+
+
+
+    Eigen::MatrixXd getCurrentCosineHarmonicCoefficients( )
+    {
+        return cosineHarmonicCoefficients;
+    }
+
+    Eigen::MatrixXd getCurrentSineHarmonicCoefficients( )
+    {
+        return sineHarmonicCoefficients;
+    }
 
 protected:
 
-private:
+
 
     //! Equatorial radius [m].
     /*!

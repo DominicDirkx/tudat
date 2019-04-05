@@ -172,6 +172,7 @@ public:
             currentRadiationPressureCoefficient_ = radiationPressureCoefficientFunction_( );
             currentArea_ = areaFunction_( );
             currentMass_ = massFunction_( );
+            currentTime_ = currentTime;
         }
     }
 

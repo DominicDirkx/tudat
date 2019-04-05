@@ -117,6 +117,7 @@ public:
         if( !( currentTime_ == currentTime ) )
         {
             currentMassRate_ = massRateFunction_( currentTime );
+            currentTime_ = currentTime;
         }
     }
 

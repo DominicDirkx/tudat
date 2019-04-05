@@ -346,7 +346,7 @@ public:
      * members of this class.
      * \param currentTime Time at which acceleration model is to be updated.
      */
-    void updateMembers( const double currentTime = TUDAT_NAN )
+    virtual void updateMembers( const double currentTime = TUDAT_NAN )
     {
         if( !( this->currentTime_ == currentTime ) )
         {
@@ -374,6 +374,7 @@ public:
                         saveSphericalHarmonicTermsSeparately_,
                         rotationToIntegrationFrame_.toRotationMatrix( ) );
             currentAccelerationInBodyFixedFrame_ = rotationToIntegrationFrame_.inverse( ) * currentAcceleration_;
+            this->currentTime_ = currentTime;
         }
     }
 
@@ -586,6 +587,18 @@ public:
     Eigen::MatrixXd getCurrentSineHarmonicCoefficients( )
     {
         return sineHarmonicCoefficients;
+    }
+
+    void getCurrentCosineHarmonicCoefficientsByReference(
+            Eigen::MatrixXd& cosineHarmonicCoefficientsOutput )
+    {
+        cosineHarmonicCoefficientsOutput = cosineHarmonicCoefficients;
+    }
+
+    void getCurrentSineHarmonicCoefficientsByReference(
+            Eigen::MatrixXd& sineHarmonicCoefficientsOutput )
+    {
+        sineHarmonicCoefficientsOutput = sineHarmonicCoefficients;
     }
 
 protected:

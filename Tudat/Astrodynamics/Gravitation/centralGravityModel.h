@@ -241,7 +241,7 @@ public:
      * \sa SphericalHarmonicsGravitationalAccelerationModelBase.
      * \param currentTime Time at which acceleration model is to be updated.
      */
-    void updateMembers( const double currentTime = TUDAT_NAN )
+    virtual void updateMembers( const double currentTime = TUDAT_NAN )
     {
         if( !( this->currentTime_ == currentTime ) )
         {

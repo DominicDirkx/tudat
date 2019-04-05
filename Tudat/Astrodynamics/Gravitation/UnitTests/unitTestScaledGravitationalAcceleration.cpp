@@ -20,6 +20,8 @@ using namespace tudat::basic_astrodynamics;
 using namespace tudat::simulation_setup;
 using namespace tudat::gravitation;
 using namespace tudat::basic_astrodynamics;
+using namespace tudat::propagators;
+using namespace tudat::numerical_integrators;
 
 
 BOOST_AUTO_TEST_SUITE( test_gravitational_acceleration_setup )
@@ -320,14 +322,14 @@ void verifyAccelerationModelTypesAndScalings(
                     }
                 }
             }
-//            calculatedExertingBodies.push_back( accelerationIterator->first );
+            //            calculatedExertingBodies.push_back( accelerationIterator->first );
         }
         calculatedBodies.push_back( fullAccelerationIterator->first );
         isFirstIterationDone = 1;
     }
 }
 
-BOOST_AUTO_TEST_CASE( testIdenticalGravitySetup )
+BOOST_AUTO_TEST_CASE( testScaledAndUnscaledGravitationalAccelerations )
 {
     // Load Spice kernels
     tudat::spice_interface::loadStandardSpiceKernels( );
@@ -518,6 +520,137 @@ BOOST_AUTO_TEST_CASE( testIdenticalGravitySetup )
 
 }
 
+BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
+{
+    tudat::spice_interface::loadStandardSpiceKernels( );
+    tudat::spice_interface::loadSpiceKernelInTudat( input_output::getSpiceKernelPath( ) + "jup310_small.bsp" );
+
+    // Create relevant bodies
+    std::vector< std::string > bodyNames;
+    bodyNames.push_back( "Io" );
+    bodyNames.push_back( "Europa" );
+    bodyNames.push_back( "Ganymede" );
+    bodyNames.push_back( "Callisto" );
+    bodyNames.push_back( "Sun" );
+    bodyNames.push_back( "Jupiter" );
+
+    int numberOfBodies = bodyNames.size( );
+    int numberOfNumericalBodies = 4;
+
+    double simulationStartEpoch = 30.0 * 86400.0;
+    double simulationEndEpoch = 60.0 * 86400.0;
+    double propagationStep = 600.0;
+
+    std::map< std::string, std::shared_ptr< BodySettings > > bodySettings =
+            getDefaultBodySettings( bodyNames, simulationStartEpoch - 86400.0, simulationEndEpoch + 86400.0 );
+    for( int i = 0; i < numberOfNumericalBodies; i++ )
+    {
+        bodySettings[ bodyNames.at( i ) ]->rotationModelSettings = std::make_shared< TidallyLockedRotationModelSettings >(
+                    "Jupiter", "ECLIPJ2000", "IAU_" + bodyNames.at( i ) );
+        bodySettings[ bodyNames.at( i ) ]->ephemerisSettings->resetFrameOrigin( "Jupiter" );
+    }
+    bodySettings[ "Jupiter" ]->rotationModelSettings = std::make_shared< SimpleRotationModelSettings >(
+                "ECLIPJ2000", "IAU_Jupiter",
+                spice_interface::computeRotationQuaternionBetweenFrames(
+                    "ECLIPJ2000", "IAU_Jupiter", 0.0 ),
+                0.0, 2.0 * mathematical_constants::PI / ( 10.0 * 3600.0 ) );
+
+    NamedBodyMap bodyMap = createBodies( bodySettings );
+    setGlobalFrameBodyEphemerides( bodyMap, "Jupiter", "ECLIPJ2000" );
+
+    SelectedAccelerationMap accelerationMap;
+    // Set accelerations between bodies that are to be taken into account (mutual point mass gravity between all bodies).
+    for( unsigned int i = 0; i < numberOfNumericalBodies; i++ )
+    {
+        std::map< std::string, std::vector< std::shared_ptr< AccelerationSettings > > > currentAccelerations;
+        for( unsigned int j = 0; j < numberOfBodies; j++ )
+        {
+            if( i != j )
+            {
+                if( bodyNames.at( j ) == "Jupiter" )
+                {
+                    currentAccelerations[ bodyNames.at( j ) ].push_back(
+                                std::make_shared< MutualSphericalHarmonicAccelerationSettings >(
+                                    4, 4, 2, 2 ) );
+                }
+                else if( bodyNames.at( j ) == "Sun" )
+                {
+                    currentAccelerations[ bodyNames.at( j ) ].push_back(
+                                std::make_shared< AccelerationSettings >( central_gravity ) );
+                }
+                else
+                {
+                    currentAccelerations[ bodyNames.at( j ) ].push_back(
+                                std::make_shared< MutualSphericalHarmonicAccelerationSettings >(
+                                    2, 2, 2, 2, 4, 4 ) );
+                }
+            }
+        }
+        accelerationMap[ bodyNames.at( i ) ] = currentAccelerations;
+    }
+
+    std::vector< std::string > bodiesToPropagate;
+    std::vector< std::string > centralBodies;
+
+    for( int i = 0; i < numberOfNumericalBodies; i++ )
+    {
+        bodiesToPropagate.push_back( bodyNames.at( i ) );
+        centralBodies.push_back( "Jupiter" );
+    }
+
+    std::vector< std::map< double, Eigen::VectorXd > > stateHistories;
+    std::vector< double > runTimes;
+
+    for( int useScaledAccelerations = 0; useScaledAccelerations < 2; useScaledAccelerations++ )
+    {
+        AccelerationMap accelerationModelMap = createAccelerationModelsMap(
+                    bodyMap, accelerationMap, bodiesToPropagate, centralBodies, useScaledAccelerations );
+
+        Eigen::VectorXd systemInitialState = getInitialStatesOfBodies(
+                    bodiesToPropagate, centralBodies, bodyMap, simulationStartEpoch );
+        std::shared_ptr< SingleArcPropagatorSettings< double > > propagatorSettings =
+                std::make_shared< TranslationalStatePropagatorSettings< double > >
+                ( centralBodies, accelerationModelMap, bodiesToPropagate, systemInitialState, simulationEndEpoch );
+
+        std::shared_ptr< IntegratorSettings< > > integratorSettings =
+                std::make_shared< RungeKuttaVariableStepSizeSettings < double > >
+                ( simulationStartEpoch, propagationStep,
+                  RungeKuttaCoefficients::CoefficientSets::rungeKuttaFehlberg78,
+                  propagationStep, propagationStep, 1.0, 1.0);
+
+        std::chrono::steady_clock::time_point initialClockTime = std::chrono::steady_clock::now( );
+
+        SingleArcDynamicsSimulator< > dynamicsSimulator(
+                    bodyMap, integratorSettings, propagatorSettings );
+
+        double totalRunTime = std::chrono::duration_cast< std::chrono::nanoseconds >(
+                    std::chrono::steady_clock::now( ) - initialClockTime ).count( ) * 1.0e-9;
+
+        runTimes.push_back( totalRunTime );
+        stateHistories.push_back( dynamicsSimulator.getEquationsOfMotionNumericalSolution( ) );
+    }
+
+    std::map< double, Eigen::VectorXd >  unscaledStateHistory = stateHistories.at( 0 );
+    std::map< double, Eigen::VectorXd >  scaledStateHistory = stateHistories.at( 1 );
+
+    BOOST_CHECK_EQUAL( runTimes.at( 0 ) / runTimes.at( 1 ) > 2.0, true );
+
+    for( auto stateIterator : unscaledStateHistory )
+    {
+        Eigen::VectorXd stateDifference =
+                unscaledStateHistory[ stateIterator.first ] -
+                scaledStateHistory[ stateIterator.first ];
+        for( int i = 0; i < 4; i++ )
+        {
+            for( int j = 0; j < 3; j++ )
+            {
+                BOOST_CHECK_SMALL( std::fabs( stateDifference( j + 6 * i ) ), 1.0E-2 );
+                BOOST_CHECK_SMALL( std::fabs( stateDifference( j + 6 * i + 3 ) ), 1.0E-7 );
+
+            }
+        }
+    }
+}
 BOOST_AUTO_TEST_SUITE_END( )
 
 

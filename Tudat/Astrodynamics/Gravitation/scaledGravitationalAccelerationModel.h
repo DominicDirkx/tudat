@@ -183,8 +183,8 @@ public:
 
             this->updateBaseMembers( );
 
-            cosineHarmonicCoefficients = originalAccelerationModel_->getCurrentCosineHarmonicCoefficients( );
-            sineHarmonicCoefficients = originalAccelerationModel_->getCurrentSineHarmonicCoefficients( );
+            originalAccelerationModel_->getCurrentSineHarmonicCoefficientsByReference( cosineHarmonicCoefficients );
+            originalAccelerationModel_->getCurrentSineHarmonicCoefficientsByReference( sineHarmonicCoefficients );
 
             if( invertPositionVectors_ )
             {

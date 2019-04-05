@@ -357,10 +357,10 @@ protected:
     std::function< double( ) > bodyReferenceRadius_;
 
     //! Function to return the current cosine coefficients of the spherical harmonic gravity field.
-    std::function< Eigen::MatrixXd( ) > cosineCoefficients_;
+    std::function< void( Eigen::MatrixXd& ) > cosineCoefficients_;
 
     //! Function to return the current sine coefficients of the spherical harmonic gravity field.
-    std::function< Eigen::MatrixXd( ) > sineCoefficients_;
+    std::function< void( Eigen::MatrixXd& ) > sineCoefficients_;
 
     //! Cache object used for storing calculated values at current time and state for spherical harmonic gravity
     //! calculations.

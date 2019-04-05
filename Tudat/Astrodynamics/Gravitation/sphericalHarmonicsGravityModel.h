@@ -162,7 +162,7 @@ private:
     typedef SphericalHarmonicsGravitationalAccelerationModelBase< Eigen::Vector3d > Base;
 
     //! Typedef for coefficient-matrix-returning function.
-    typedef std::function< Eigen::MatrixXd( ) > CoefficientMatrixReturningFunction;
+    typedef std::function< void( Eigen::MatrixXd& ) > CoefficientMatrixReturningFunction;
 
 public:
 
@@ -214,16 +214,20 @@ public:
                 positionOfBodyExertingAccelerationFunction,
                 isMutualAttractionUsed ),
           equatorialRadius( anEquatorialRadius ),
-          getCosineHarmonicsCoefficients( [ = ]( ){ return aCosineHarmonicCoefficientMatrix; } ),
-          getSineHarmonicsCoefficients( [ = ]( ){ return aSineHarmonicCoefficientMatrix; } ),
+          getCosineHarmonicsCoefficients( [ = ]( Eigen::MatrixXd& cosineCoefficients ){ cosineCoefficients = aCosineHarmonicCoefficientMatrix; } ),
+          getSineHarmonicsCoefficients( [ = ]( Eigen::MatrixXd& sineCoefficients ){ sineCoefficients = aSineHarmonicCoefficientMatrix; } ),
           rotationFromBodyFixedToIntegrationFrameFunction_(
               rotationFromBodyFixedToIntegrationFrameFunction ),
           sphericalHarmonicsCache_( sphericalHarmonicsCache ),
           currentAcceleration_( Eigen::Vector3d::Zero( ) ),
           saveSphericalHarmonicTermsSeparately_( false )
     {
-        maximumDegree_ = static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) );
-        maximumOrder_ = static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) );
+        getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
+        getSineHarmonicsCoefficients( sineHarmonicCoefficients );
+
+        maximumDegree_ = static_cast< int >( cosineHarmonicCoefficients.rows( ) );
+        maximumOrder_ = static_cast< int >( cosineHarmonicCoefficients.cols( ) );
+
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
                     std::max< int >( maximumDegree_,
                                      sphericalHarmonicsCache_->getMaximumDegree( ) ),
@@ -285,8 +289,12 @@ public:
           currentAcceleration_( Eigen::Vector3d::Zero( ) ),
           saveSphericalHarmonicTermsSeparately_( false )
     {
-        maximumDegree_ = static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) );
-        maximumOrder_ = static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) );
+        getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
+        getSineHarmonicsCoefficients( sineHarmonicCoefficients );
+
+        maximumDegree_ = static_cast< int >( cosineHarmonicCoefficients.rows( ) );
+        maximumOrder_ = static_cast< int >( cosineHarmonicCoefficients.cols( ) );
+
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
                     std::max< int >( maximumDegree_, sphericalHarmonicsCache_->getMaximumDegree( ) ),
                     std::max< int >( maximumOrder_, sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
@@ -310,8 +318,12 @@ public:
         saveSphericalHarmonicTermsSeparately_( false )
 
     {
-        maximumDegree_ = static_cast< int >( getCosineHarmonicsCoefficients( ).rows( ) );
-        maximumOrder_ = static_cast< int >( getCosineHarmonicsCoefficients( ).cols( ) );
+        getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
+        getSineHarmonicsCoefficients( sineHarmonicCoefficients );
+
+        maximumDegree_ = static_cast< int >( cosineHarmonicCoefficients.rows( ) );
+        maximumOrder_ = static_cast< int >( cosineHarmonicCoefficients.cols( ) );
+
         sphericalHarmonicsCache_->resetMaximumDegreeAndOrder(
                     std::max< int >( maximumDegree_, sphericalHarmonicsCache_->getMaximumDegree( ) ),
                     std::max< int >( maximumOrder_, sphericalHarmonicsCache_->getMaximumOrder( ) ) + 1 );
@@ -340,6 +352,23 @@ public:
         return currentAccelerationInBodyFixedFrame_;
     }
 
+    void updateEnvironmentMembers( const double currentTime = TUDAT_NAN )
+        {
+
+        getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
+        getSineHarmonicsCoefficients( sineHarmonicCoefficients );
+
+        rotationToIntegrationFrame_ = rotationFromBodyFixedToIntegrationFrameFunction_( );
+        this->updateBaseMembers( );
+
+        currentInertialRelativePosition_ =
+                this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
+
+        currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
+                    currentInertialRelativePosition_ );
+
+    }
+
     //! Update class members.
     /*!
      * Updates all the base class members to their current values and also updates the class
@@ -350,18 +379,7 @@ public:
     {
         if( !( this->currentTime_ == currentTime ) )
         {
-
-            cosineHarmonicCoefficients = getCosineHarmonicsCoefficients( );
-            sineHarmonicCoefficients = getSineHarmonicsCoefficients( );
-
-            rotationToIntegrationFrame_ = rotationFromBodyFixedToIntegrationFrameFunction_( );
-            this->updateBaseMembers( );
-
-            currentInertialRelativePosition_ =
-                    this->positionOfBodySubjectToAcceleration - this->positionOfBodyExertingAcceleration ;
-
-            currentRelativePosition_ = rotationToIntegrationFrame_.inverse( ) * (
-                        currentInertialRelativePosition_ );
+            this->updateEnvironmentMembers( );
 
             currentAcceleration_ =
                     computeGeodesyNormalizedGravitationalAccelerationSum(

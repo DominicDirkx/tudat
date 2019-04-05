@@ -180,16 +180,13 @@ public:
             this->currentAcceleration_ = originalAccelerationModel_->getAcceleration( ) *
                     ( this->getGravitationalParameterFunction( )( ) /
                       originalAccelerationModel_->getGravitationalParameterFunction( )( ) );
-
-            this->updateBaseMembers( );
-
-            originalAccelerationModel_->getCurrentSineHarmonicCoefficientsByReference( cosineHarmonicCoefficients );
-            originalAccelerationModel_->getCurrentSineHarmonicCoefficientsByReference( sineHarmonicCoefficients );
-
             if( invertPositionVectors_ )
             {
                 this->currentAcceleration_ *= -1.0;
             }
+
+            this->updateEnvironmentMembers( );
+
             this->currentTime_ = currentTime;
         }
     }

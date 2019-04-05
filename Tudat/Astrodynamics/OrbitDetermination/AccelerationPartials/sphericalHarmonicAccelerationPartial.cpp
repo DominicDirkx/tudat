@@ -54,8 +54,11 @@ SphericalHarmonicsGravityPartial::SphericalHarmonicsGravityPartial(
 
     // Update number of degrees and orders in legendre cache for calculation of position partials
 
-    maximumDegree_ = cosineCoefficients_( ).rows( ) - 1;
-    maximumOrder_ = sineCoefficients_( ).cols( ) - 1;
+    cosineCoefficients_( currentCosineCoefficients_ );
+    sineCoefficients_( currentSineCoefficients_ );
+
+    maximumDegree_ = currentCosineCoefficients_.rows( ) - 1;
+    maximumOrder_ = currentCosineCoefficients_.cols( ) - 1;
 
     if( sphericalHarmonicCache_->getMaximumDegree( ) < maximumDegree_ ||
             sphericalHarmonicCache_->getMaximumOrder( ) < maximumOrder_ + 2 )
@@ -330,8 +333,8 @@ void SphericalHarmonicsGravityPartial::update( const double currentTime )
         bodyFixedSphericalPosition_( 1 ) = mathematical_constants::PI / 2.0 - bodyFixedSphericalPosition_( 1 );
 
         // Get spherical harmonic coefficients
-        currentCosineCoefficients_ = cosineCoefficients_( );
-        currentSineCoefficients_ = sineCoefficients_( );
+         cosineCoefficients_( currentCosineCoefficients_ );
+         sineCoefficients_( currentSineCoefficients_ );
 
         // Update trogonometric functions of multiples of longitude.
         sphericalHarmonicCache_->update(

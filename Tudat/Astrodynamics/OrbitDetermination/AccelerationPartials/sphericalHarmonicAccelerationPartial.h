@@ -64,6 +64,9 @@ public:
             tidalLoveNumberPartialInterfaces =
             std::vector< std::shared_ptr< orbit_determination::TidalLoveNumberPartialInterface > >( ) );
 
+    SphericalHarmonicsGravityPartial(
+            const std::shared_ptr< SphericalHarmonicsGravityPartial > originalAccelerationPartial );
+
     //! Destructor
     ~SphericalHarmonicsGravityPartial( ){ }
 
@@ -252,6 +255,11 @@ public:
         return currentPartialWrtPosition_;
     }
 
+    Eigen::Matrix3d getCurrentPartialWrtVelocity( )
+    {
+        return currentPartialWrtVelocity_;
+    }
+
     //! Function to retrieve partial of acceleration wrt the position of body undergoing acceleration, in body-fixed coordinates.
     /*!
      * Function to retrieve the current partial of the acceleration wrt the position of the body undergoing the acceleration,
@@ -261,6 +269,81 @@ public:
     Eigen::Matrix3d getCurrentBodyFixedPartialWrtPosition( )
     {
         return currentBodyFixedPartialWrtPosition_;
+    }
+
+    std::function< double( ) > getGravitationalParameterFunction( )
+    {
+        return gravitationalParameterFunction_;
+    }
+
+    std::function< double( ) > getBodyReferenceRadius( )
+    {
+        return bodyReferenceRadius_;
+    }
+
+    std::function< void( Eigen::MatrixXd& ) > getCosineCoefficients( )
+    {
+        return cosineCoefficients_;
+    }
+
+    std::function< void( Eigen::MatrixXd& ) > getSineCoefficients( )
+    {
+        return sineCoefficients_;
+    }
+
+    std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > getSphericalHarmonicCache( )
+    {
+        return sphericalHarmonicCache_;
+    }
+
+    std::function< Eigen::Vector3d( ) > getPositionFunctionOfAcceleratedBody( )
+    {
+        return positionFunctionOfAcceleratedBody_;
+    }
+
+    std::function< Eigen::Vector3d( ) > getPositionFunctionOfAcceleratingBody( )
+    {
+        return positionFunctionOfAcceleratingBody_;
+    }
+
+    std::function< Eigen::Matrix3d( ) > getFromBodyFixedToIntegrationFrameRotation( )
+    {
+        return fromBodyFixedToIntegrationFrameRotation_;
+    }
+
+    std::function< Eigen::Matrix< double, 3, 1 >( ) > getAccelerationFunction( )
+    {
+        return accelerationFunction_;
+    }
+
+    std::function< void( const double ) > getUpdateFunction( )
+    {
+        return updateFunction_;
+    }
+
+    observation_partials::RotationMatrixPartialNamedList getRotationMatrixPartials( )
+    {
+        return rotationMatrixPartials_;
+    }
+
+    std::vector< std::shared_ptr< orbit_determination::TidalLoveNumberPartialInterface > > getTidalLoveNumberPartialInterfaces( )
+    {
+        return tidalLoveNumberPartialInterfaces_;
+    }
+
+    bool getAccelerationUsesMutualAttraction( )
+    {
+        return accelerationUsesMutualAttraction_;
+    }
+
+    Eigen::Vector3d getBodyFixedPosition( )
+    {
+        return bodyFixedPosition_;
+    }
+
+    Eigen::Vector3d getBodyFixedSphericalPosition( )
+    {
+        return bodyFixedSphericalPosition_;
     }
 
 protected:

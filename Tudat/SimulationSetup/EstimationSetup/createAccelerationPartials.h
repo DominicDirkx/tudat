@@ -26,6 +26,7 @@
 #include "Tudat/Astrodynamics/OrbitDetermination/AccelerationPartials/mutualSphericalHarmonicGravityPartial.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/AccelerationPartials/empiricalAccelerationPartial.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/AccelerationPartials/directTidalDissipationAccelerationPartial.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/AccelerationPartials/scaledGravitationalAccelerationPartial.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/ObservationPartials/rotationMatrixPartial.h"
 #include "Tudat/SimulationSetup/EstimationSetup/createCartesianStatePartials.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModelTypes.h"
@@ -36,6 +37,16 @@ namespace tudat
 
 namespace simulation_setup
 {
+
+bool isAccelerationPartialScaledOriginal(
+        const std::shared_ptr< acceleration_partials::AccelerationPartial > accelerationPartial );
+
+std::shared_ptr< acceleration_partials::AccelerationPartial > findExistingAccelerationPartial(
+        const std::map< std::string, std::map< std::string, std::vector< std::shared_ptr<
+        acceleration_partials::AccelerationPartial > > > >& accelerationPartialsMap,
+        const std::string& originalAcceleratedBodyName,
+        const std::string& originalAcceleratingBodyName,
+        const basic_astrodynamics::AvailableAcceleration accelerationType );
 
 //! Function to create a list of objects that can be used to compute partials of tidal gravity field variations
 /*!
@@ -67,7 +78,9 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
         const simulation_setup::NamedBodyMap& bodyMap,
         const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< InitialStateParameterType > >
         parametersToEstimate =
-        std::shared_ptr< estimatable_parameters::EstimatableParameterSet< InitialStateParameterType > >( ) )
+        std::shared_ptr< estimatable_parameters::EstimatableParameterSet< InitialStateParameterType > >( ),
+        const std::map< std::string, std::map< std::string, std::vector< std::shared_ptr< acceleration_partials::AccelerationPartial > > > >& accelerationPartialsMap =
+        std::map< std::string, std::map< std::string, std::vector< std::shared_ptr< acceleration_partials::AccelerationPartial > > > >( ) )
 {
     using namespace gravitation;
     using namespace basic_astrodynamics;
@@ -91,10 +104,35 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
         }
         else
         {
-            // Create partial-calculating object.
-            accelerationPartial = std::make_shared< CentralGravitationPartial >
-                    ( std::dynamic_pointer_cast< CentralGravitationalAccelerationModel3d >( accelerationModel ),
-                      acceleratedBody.first, acceleratingBody.first );
+            std::shared_ptr< gravitation::ScaledGravitationalAccelerationModel< CentralGravitationalAccelerationModel3d > > scaledAccelerationModel =
+                    std::dynamic_pointer_cast< gravitation::ScaledGravitationalAccelerationModel< CentralGravitationalAccelerationModel3d > >( accelerationModel );
+            if( scaledAccelerationModel != nullptr )
+            {
+                std::string originalAcceleratedBodyName = acceleratedBody.first;
+                std::string originalAcceleratingBodyName = acceleratingBody.first;
+                if( scaledAccelerationModel->getInvertPositionVectors( ) )
+                {
+                    std::string tempBodyName = originalAcceleratedBodyName;
+                    originalAcceleratedBodyName = originalAcceleratingBodyName;
+                    originalAcceleratingBodyName = tempBodyName;
+                }
+
+                std::shared_ptr< CentralGravitationPartial > existingPartial =
+                        std::dynamic_pointer_cast< CentralGravitationPartial >(
+                            findExistingAccelerationPartial( accelerationPartialsMap, originalAcceleratedBodyName, originalAcceleratingBodyName, central_gravity ) );
+
+                accelerationPartial = std::make_shared<  acceleration_partials::ScaledGravitationalAccelerationPartial< CentralGravitationPartial > >(
+                            existingPartial, scaledAccelerationModel->getGravitationalParameterFunction( ),
+                            scaledAccelerationModel->getIsMutualAttractionUsed( ),
+                            scaledAccelerationModel->getInvertPositionVectors( ) );
+            }
+            else
+            {
+                // Create partial-calculating object.
+                accelerationPartial = std::make_shared< CentralGravitationPartial >
+                        ( std::dynamic_pointer_cast< CentralGravitationalAccelerationModel3d >( accelerationModel ),
+                          acceleratedBody.first, acceleratingBody.first );
+            }
         }
         break;
     case relativistic_correction_acceleration:
@@ -164,14 +202,14 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
                     std::dynamic_pointer_cast< CentralGravitationPartial >(
                         createAnalyticalAccelerationPartial(
                             thirdBodyAccelerationModel->getAccelerationModelForBodyUndergoingAcceleration( ),
-                            acceleratedBody, acceleratingBody, bodyMap, parametersToEstimate ) );
+                            acceleratedBody, acceleratingBody, bodyMap, parametersToEstimate, accelerationPartialsMap ) );
             std::shared_ptr< CentralGravitationPartial > accelerationPartialForCentralBody =
                     std::dynamic_pointer_cast< CentralGravitationPartial >(
                         createAnalyticalAccelerationPartial(
                             thirdBodyAccelerationModel->getAccelerationModelForCentralBody( ),
                             std::make_pair( thirdBodyAccelerationModel->getCentralBodyName( ),
                                             bodyMap.at( thirdBodyAccelerationModel->getCentralBodyName( ) ) ),
-                            acceleratingBody, bodyMap, parametersToEstimate ) );
+                            acceleratingBody, bodyMap, parametersToEstimate, accelerationPartialsMap ) );
 
             // Create partial-calculating object.
             accelerationPartial = std::make_shared< ThirdBodyGravityPartial< CentralGravitationPartial > >(
@@ -194,24 +232,51 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
         }
         else
         {
-            std::map< std::pair< estimatable_parameters::EstimatebleParametersEnum, std::string >,
-                    std::shared_ptr< observation_partials::RotationMatrixPartial > >
-                    rotationMatrixPartials = observation_partials::createRotationMatrixPartials(
-                        parametersToEstimate, acceleratingBody.first, bodyMap );
+            std::shared_ptr< gravitation::ScaledGravitationalAccelerationModel< SphericalHarmonicsGravitationalAccelerationModel > > scaledAccelerationModel =
+                    std::dynamic_pointer_cast< gravitation::ScaledGravitationalAccelerationModel< SphericalHarmonicsGravitationalAccelerationModel > >( accelerationModel );
 
-            // If body has gravity field variations, create partial objects
-            std::vector< std::shared_ptr< orbit_determination::TidalLoveNumberPartialInterface > >
-                    currentBodyLoveNumberPartialInterfaces;
-            if( acceleratingBody.second->getGravityFieldVariationSet( ) != nullptr )
+            if( scaledAccelerationModel != nullptr )
             {
-                currentBodyLoveNumberPartialInterfaces = createTidalLoveNumberInterfaces(
-                            bodyMap, acceleratingBody.first );
-            }
+                std::string originalAcceleratedBodyName = acceleratedBody.first;
+                std::string originalAcceleratingBodyName = acceleratingBody.first;
+                if( scaledAccelerationModel->getInvertPositionVectors( ) )
+                {
+                    std::string tempBodyName = originalAcceleratedBodyName;
+                    originalAcceleratedBodyName = originalAcceleratingBodyName;
+                    originalAcceleratingBodyName = tempBodyName;
+                }
 
-            // Create partial-calculating object.
-            accelerationPartial = std::make_shared< SphericalHarmonicsGravityPartial >
-                    ( acceleratedBody.first, acceleratingBody.first,
-                      sphericalHarmonicAcceleration, rotationMatrixPartials, currentBodyLoveNumberPartialInterfaces );
+                std::shared_ptr< SphericalHarmonicsGravityPartial > existingPartial =
+                        std::dynamic_pointer_cast< SphericalHarmonicsGravityPartial >(
+                            findExistingAccelerationPartial( accelerationPartialsMap, originalAcceleratedBodyName, originalAcceleratingBodyName, spherical_harmonic_gravity ) );
+
+                accelerationPartial = std::make_shared<  acceleration_partials::ScaledGravitationalAccelerationPartial< SphericalHarmonicsGravityPartial > >(
+                            existingPartial,
+                            scaledAccelerationModel->getGravitationalParameterFunction( ),
+                            scaledAccelerationModel->getIsMutualAttractionUsed( ),
+                            scaledAccelerationModel->getInvertPositionVectors( ) );
+            }
+            else
+            {
+                std::map< std::pair< estimatable_parameters::EstimatebleParametersEnum, std::string >,
+                        std::shared_ptr< observation_partials::RotationMatrixPartial > >
+                        rotationMatrixPartials = observation_partials::createRotationMatrixPartials(
+                            parametersToEstimate, acceleratingBody.first, bodyMap );
+
+                // If body has gravity field variations, create partial objects
+                std::vector< std::shared_ptr< orbit_determination::TidalLoveNumberPartialInterface > >
+                        currentBodyLoveNumberPartialInterfaces;
+                if( acceleratingBody.second->getGravityFieldVariationSet( ) != nullptr )
+                {
+                    currentBodyLoveNumberPartialInterfaces = createTidalLoveNumberInterfaces(
+                                bodyMap, acceleratingBody.first );
+                }
+
+                // Create partial-calculating object.
+                accelerationPartial = std::make_shared< SphericalHarmonicsGravityPartial >
+                        ( acceleratedBody.first, acceleratingBody.first,
+                          sphericalHarmonicAcceleration, rotationMatrixPartials, currentBodyLoveNumberPartialInterfaces );
+            }
         }
         break;
     }
@@ -233,14 +298,14 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
                     std::dynamic_pointer_cast< SphericalHarmonicsGravityPartial >(
                         createAnalyticalAccelerationPartial(
                             thirdBodyAccelerationModel->getAccelerationModelForBodyUndergoingAcceleration( ),
-                            acceleratedBody, acceleratingBody, bodyMap, parametersToEstimate ) );
+                            acceleratedBody, acceleratingBody, bodyMap, parametersToEstimate, accelerationPartialsMap ) );
             std::shared_ptr< SphericalHarmonicsGravityPartial > accelerationPartialForCentralBody =
                     std::dynamic_pointer_cast< SphericalHarmonicsGravityPartial >(
                         createAnalyticalAccelerationPartial(
                             thirdBodyAccelerationModel->getAccelerationModelForCentralBody( ),
                             std::make_pair( thirdBodyAccelerationModel->getCentralBodyName( ),
                                             bodyMap.at( thirdBodyAccelerationModel->getCentralBodyName( ) ) ),
-                            acceleratingBody, bodyMap, parametersToEstimate  ) );
+                            acceleratingBody, bodyMap, parametersToEstimate, accelerationPartialsMap  ) );
 
             // Create partial-calculating object.
             accelerationPartial = std::make_shared< ThirdBodyGravityPartial< SphericalHarmonicsGravityPartial > >(
@@ -262,20 +327,47 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
         }
         else
         {
-            std::shared_ptr< SphericalHarmonicsGravityPartial > accelerationPartialOfShExpansionOfBodyExertingAcceleration =
-                    std::dynamic_pointer_cast< SphericalHarmonicsGravityPartial >(
-                        createAnalyticalAccelerationPartial(
-                            mutualSphericalHarmonicAcceleration->getAccelerationModelFromShExpansionOfBodyExertingAcceleration( ),
-                            acceleratedBody, acceleratingBody,bodyMap, parametersToEstimate ) );
-            std::shared_ptr< SphericalHarmonicsGravityPartial > accelerationPartialOfShExpansionOfBodyUndergoingAcceleration =
-                    std::dynamic_pointer_cast< SphericalHarmonicsGravityPartial >(
-                        createAnalyticalAccelerationPartial(
-                            mutualSphericalHarmonicAcceleration->getAccelerationModelFromShExpansionOfBodyUndergoingAcceleration( ),
-                            acceleratingBody, acceleratedBody, bodyMap, parametersToEstimate ) );
-            accelerationPartial = std::make_shared< MutualSphericalHarmonicsGravityPartial >(
-                        accelerationPartialOfShExpansionOfBodyExertingAcceleration,
-                        accelerationPartialOfShExpansionOfBodyUndergoingAcceleration, acceleratedBody.first, acceleratingBody.first,
-                        mutualSphericalHarmonicAcceleration->getUseCentralBodyFixedFrame( ) );
+            std::shared_ptr< gravitation::ScaledGravitationalAccelerationModel< MutualSphericalHarmonicsGravitationalAccelerationModel > > scaledAccelerationModel =
+                    std::dynamic_pointer_cast< gravitation::ScaledGravitationalAccelerationModel< MutualSphericalHarmonicsGravitationalAccelerationModel > >(
+                        accelerationModel );
+            if( scaledAccelerationModel != nullptr )
+            {
+                std::string originalAcceleratedBodyName = acceleratedBody.first;
+                std::string originalAcceleratingBodyName = acceleratingBody.first;
+
+                if( scaledAccelerationModel->getInvertPositionVectors( ) )
+                {
+                    std::string tempBodyName = originalAcceleratedBodyName;
+                    originalAcceleratedBodyName = originalAcceleratingBodyName;
+                    originalAcceleratingBodyName = tempBodyName;
+                }
+
+                std::shared_ptr< MutualSphericalHarmonicsGravityPartial > existingPartial =
+                        std::dynamic_pointer_cast< MutualSphericalHarmonicsGravityPartial >(
+                            findExistingAccelerationPartial(
+                                accelerationPartialsMap, originalAcceleratedBodyName, originalAcceleratingBodyName, mutual_spherical_harmonic_gravity ) );
+
+                accelerationPartial = std::make_shared<  acceleration_partials::ScaledGravitationalAccelerationPartial< MutualSphericalHarmonicsGravityPartial > >(
+                            existingPartial, scaledAccelerationModel->getGravitationalParameterFunction( ),
+                            scaledAccelerationModel->getIsMutualAttractionUsed( ), scaledAccelerationModel->getInvertPositionVectors( ) );
+            }
+            else
+            {
+                std::shared_ptr< SphericalHarmonicsGravityPartial > accelerationPartialOfShExpansionOfBodyExertingAcceleration =
+                        std::dynamic_pointer_cast< SphericalHarmonicsGravityPartial >(
+                            createAnalyticalAccelerationPartial(
+                                mutualSphericalHarmonicAcceleration->getAccelerationModelFromShExpansionOfBodyExertingAcceleration( ),
+                                acceleratedBody, acceleratingBody,bodyMap, parametersToEstimate, accelerationPartialsMap ) );
+                std::shared_ptr< SphericalHarmonicsGravityPartial > accelerationPartialOfShExpansionOfBodyUndergoingAcceleration =
+                        std::dynamic_pointer_cast< SphericalHarmonicsGravityPartial >(
+                            createAnalyticalAccelerationPartial(
+                                mutualSphericalHarmonicAcceleration->getAccelerationModelFromShExpansionOfBodyUndergoingAcceleration( ),
+                                acceleratingBody, acceleratedBody, bodyMap, parametersToEstimate, accelerationPartialsMap ) );
+                accelerationPartial = std::make_shared< MutualSphericalHarmonicsGravityPartial >(
+                            accelerationPartialOfShExpansionOfBodyExertingAcceleration,
+                            accelerationPartialOfShExpansionOfBodyUndergoingAcceleration, acceleratedBody.first, acceleratingBody.first,
+                            mutualSphericalHarmonicAcceleration->getUseCentralBodyFixedFrame( ) );
+            }
         }
         break;
     }
@@ -296,14 +388,14 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
                     std::dynamic_pointer_cast< MutualSphericalHarmonicsGravityPartial >(
                         createAnalyticalAccelerationPartial(
                             thirdBodyAccelerationModel->getAccelerationModelForBodyUndergoingAcceleration( ),
-                            acceleratedBody, acceleratingBody, bodyMap, parametersToEstimate  ) );
+                            acceleratedBody, acceleratingBody, bodyMap, parametersToEstimate, accelerationPartialsMap  ) );
             std::shared_ptr< MutualSphericalHarmonicsGravityPartial > accelerationPartialForCentralBody =
                     std::dynamic_pointer_cast< MutualSphericalHarmonicsGravityPartial >(
                         createAnalyticalAccelerationPartial(
                             thirdBodyAccelerationModel->getAccelerationModelForCentralBody( ),
                             std::make_pair( thirdBodyAccelerationModel->getCentralBodyName( ),
                                             bodyMap.at( thirdBodyAccelerationModel->getCentralBodyName( ) ) ),
-                            acceleratingBody, bodyMap, parametersToEstimate ) );
+                            acceleratingBody, bodyMap, parametersToEstimate, accelerationPartialsMap ) );
             accelerationPartial = std::make_shared< ThirdBodyGravityPartial< MutualSphericalHarmonicsGravityPartial > >(
                         accelerationPartialForBodyUndergoingAcceleration,
                         accelerationPartialForCentralBody, acceleratedBody.first, acceleratingBody.first,
@@ -410,7 +502,9 @@ extern template std::shared_ptr< acceleration_partials::AccelerationPartial > cr
         const std::pair< std::string, std::shared_ptr< simulation_setup::Body > > acceleratingBody,
         const simulation_setup::NamedBodyMap& bodyMap,
         const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< double > >
-        parametersToEstimate );
+        parametersToEstimate,
+        const std::map< std::string, std::map< std::string,
+        std::vector< std::shared_ptr< acceleration_partials::AccelerationPartial > > > >& accelerationPartialsMap );
 #if( BUILD_EXTENDED_PRECISION_PROPAGATION_TOOLS )
 extern template std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAccelerationPartial< long double >(
         std::shared_ptr< basic_astrodynamics::AccelerationModel< Eigen::Vector3d > > accelerationModel,
@@ -418,7 +512,9 @@ extern template std::shared_ptr< acceleration_partials::AccelerationPartial > cr
         const std::pair< std::string, std::shared_ptr< simulation_setup::Body > > acceleratingBody,
         const simulation_setup::NamedBodyMap& bodyMap,
         const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< long double > >
-        parametersToEstimate );
+        parametersToEstimate,
+        const std::map< std::string, std::map< std::string,
+        std::vector< std::shared_ptr< acceleration_partials::AccelerationPartial > > > >& accelerationPartialsMap  );
 #endif
 
 //! This function creates acceleration partial objects for translational dynamics
@@ -494,7 +590,7 @@ orbit_determination::StateDerivativePartialsMap createAccelerationPartialsMap(
                                         innerAccelerationIterator->second[ j ],
                                         std::make_pair( acceleratedBody, acceleratedBodyObject ),
                                         std::make_pair( acceleratingBody, acceleratingBodyObject ),
-                                        bodyMap, parametersToEstimate );
+                                        bodyMap, parametersToEstimate, accelerationPartialsMap );
 
                             accelerationPartialVector.push_back( currentAccelerationPartial );
                             accelerationPartialsMap[ acceleratedBody ][ acceleratingBody ].push_back(

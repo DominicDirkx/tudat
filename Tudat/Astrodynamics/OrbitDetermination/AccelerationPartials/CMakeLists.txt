@@ -37,6 +37,7 @@ set(ACCELERATION_PARTIALS_HEADERS
   "${SRCROOT}${ACCELERATIONPARTIALSDIR}/empiricalAccelerationPartial.h"
   "${SRCROOT}${ACCELERATIONPARTIALSDIR}/tidalLoveNumberPartialInterface.h"
   "${SRCROOT}${ACCELERATIONPARTIALSDIR}/directTidalDissipationAccelerationPartial.h"
+  "${SRCROOT}${ACCELERATIONPARTIALSDIR}/scaledGravitationalAccelerationPartial.h"
 )
 
 # Add static libraries.

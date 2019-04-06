@@ -37,7 +37,7 @@ namespace simulation_setup
  */
 template< typename StateScalarType, typename TimeType >
 std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials(
-        const std::unordered_map< propagators::IntegratedStateType,
+        const std::map< propagators::IntegratedStateType,
         std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< StateScalarType, TimeType > > > >
         stateDerivativeModels,
         const simulation_setup::NamedBodyMap& bodyMap,
@@ -47,7 +47,7 @@ std::map< propagators::IntegratedStateType, orbit_determination::StateDerivative
     std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > stateDerivativePartials;
 
     // Iterate over all state types
-    for( typename std::unordered_map< propagators::IntegratedStateType,
+    for( typename std::map< propagators::IntegratedStateType,
          std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< StateScalarType, TimeType > > > >::
          const_iterator stateDerivativeIterator = stateDerivativeModels.begin( );
          stateDerivativeIterator != stateDerivativeModels.end( );
@@ -106,7 +106,7 @@ std::map< propagators::IntegratedStateType, orbit_determination::StateDerivative
 }
 
 extern template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< double, double >(
-        const std::unordered_map< propagators::IntegratedStateType,
+        const std::map< propagators::IntegratedStateType,
         std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< double, double > > > >
         stateDerivativeModels,
         const simulation_setup::NamedBodyMap& bodyMap,
@@ -115,21 +115,21 @@ extern template std::map< propagators::IntegratedStateType, orbit_determination:
 
 #if( BUILD_EXTENDED_PRECISION_PROPAGATION_TOOLS )
 extern template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< long double, double >(
-        const std::unordered_map< propagators::IntegratedStateType,
+        const std::map< propagators::IntegratedStateType,
         std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< long double, double > > > >
         stateDerivativeModels,
         const simulation_setup::NamedBodyMap& bodyMap,
         const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< long double > >
         parametersToEstimate );
 extern template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< double, Time >(
-        const std::unordered_map< propagators::IntegratedStateType,
+        const std::map< propagators::IntegratedStateType,
         std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< double, Time > > > >
         stateDerivativeModels,
         const simulation_setup::NamedBodyMap& bodyMap,
         const std::shared_ptr< estimatable_parameters::EstimatableParameterSet< double > >
         parametersToEstimate );
 extern template std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap > createStateDerivativePartials< long double, Time >(
-        const std::unordered_map< propagators::IntegratedStateType,
+        const std::map< propagators::IntegratedStateType,
         std::vector< std::shared_ptr< propagators::SingleStateTypeDerivative< long double, Time > > > >
         stateDerivativeModels,
         const simulation_setup::NamedBodyMap& bodyMap,

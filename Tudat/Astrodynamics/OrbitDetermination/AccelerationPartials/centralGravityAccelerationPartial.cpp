@@ -54,6 +54,7 @@ Eigen::Vector3d computePartialOfCentralGravityWrtGravitationalParameter( const E
 Eigen::Vector3d computePartialOfCentralGravityWrtGravitationalParameter( const Eigen::Vector3d& gravitationalAcceleration,
                                                                          const double gravitationalParameter )
 {
+    std::cout<<"Part "<<gravitationalAcceleration.transpose( )<<" "<<gravitationalParameter<<std::endl;
     return gravitationalAcceleration / gravitationalParameter;
 }
 
@@ -71,6 +72,18 @@ CentralGravitationPartial::CentralGravitationPartial(
     centralBodyState_ = gravitationalAcceleration->getStateFunctionOfBodyExertingAcceleration( );
     acceleratedBodyState_ = gravitationalAcceleration->getStateFunctionOfBodyUndergoingAcceleration( );
     accelerationUsesMutualAttraction_ = gravitationalAcceleration->getIsMutualAttractionUsed( );
+}
+
+CentralGravitationPartial::CentralGravitationPartial(
+        const std::shared_ptr< CentralGravitationPartial > originalAccelerationPartial ):
+    AccelerationPartial( originalAccelerationPartial->getAcceleratedBody( ),
+                         originalAccelerationPartial->getAcceleratingBody( ), basic_astrodynamics::central_gravity )
+{
+    accelerationUpdateFunction_ = originalAccelerationPartial->getAccelerationUpdateFunction( );
+    gravitationalParameterFunction_ = originalAccelerationPartial->getGravitationalParameterFunction( );
+    centralBodyState_ = originalAccelerationPartial->getPositionFunctionOfBodyExertingAcceleration( );
+    acceleratedBodyState_ = originalAccelerationPartial->getPositionFunctionOfBodyUndergoingAcceleration( );
+    accelerationUsesMutualAttraction_ = originalAccelerationPartial->getAccelerationUsesMutualAttraction( );
 }
 
 //! Function for setting up and retrieving a function returning a partial w.r.t. a double parameter.

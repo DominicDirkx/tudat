@@ -60,6 +60,16 @@ public:
             accelerationPartialOfShExpansionOfBodyUndergoingAcceleration ),
         accelerationUsesMutualAttraction_( accelerationUsesMutualAttraction ){ }
 
+    MutualSphericalHarmonicsGravityPartial(
+            const std::shared_ptr< MutualSphericalHarmonicsGravityPartial > originalAccelerationPartial ):
+        AccelerationPartial( originalAccelerationPartial->getAcceleratedBody( ), originalAccelerationPartial->getAcceleratingBody( ),
+                             basic_astrodynamics::mutual_spherical_harmonic_gravity ),
+        accelerationPartialOfShExpansionOfBodyExertingAcceleration_(
+            originalAccelerationPartial->getAccelerationPartialOfShExpansionOfBodyExertingAcceleration( ) ),
+        accelerationPartialOfShExpansionOfBodyUndergoingAcceleration_(
+            originalAccelerationPartial->getAccelerationPartialOfShExpansionOfBodyUndergoingAcceleration( ) ),
+        accelerationUsesMutualAttraction_( originalAccelerationPartial->getAccelerationUsesMutualAttraction( ) ){ }
+
     //! Destructor
     ~MutualSphericalHarmonicsGravityPartial( ) { }
 
@@ -225,6 +235,22 @@ public:
      */
     int setParameterPartialUpdateFunction(
             std::shared_ptr< estimatable_parameters::EstimatableParameter< Eigen::VectorXd > > parameter );
+
+
+    std::shared_ptr< SphericalHarmonicsGravityPartial > getAccelerationPartialOfShExpansionOfBodyExertingAcceleration( )
+    {
+        return accelerationPartialOfShExpansionOfBodyExertingAcceleration_;
+    }
+
+    std::shared_ptr< SphericalHarmonicsGravityPartial > getAccelerationPartialOfShExpansionOfBodyUndergoingAcceleration( )
+    {
+        return accelerationPartialOfShExpansionOfBodyUndergoingAcceleration_;
+    }
+
+    bool getAccelerationUsesMutualAttraction( )
+    {
+        return accelerationUsesMutualAttraction_;
+    }
 
 protected:
 

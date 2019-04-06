@@ -67,6 +67,33 @@ SphericalHarmonicsGravityPartial::SphericalHarmonicsGravityPartial(
     }
 }
 
+SphericalHarmonicsGravityPartial::SphericalHarmonicsGravityPartial(
+        const std::shared_ptr< SphericalHarmonicsGravityPartial > originalAccelerationPartial ):
+    AccelerationPartial( originalAccelerationPartial->getAcceleratedBody( ),
+                         originalAccelerationPartial->getAcceleratingBody( ),
+                         basic_astrodynamics::spherical_harmonic_gravity ),
+    gravitationalParameterFunction_( originalAccelerationPartial->getGravitationalParameterFunction( ) ),
+    bodyReferenceRadius_( originalAccelerationPartial->getBodyReferenceRadius( ) ),
+    cosineCoefficients_( originalAccelerationPartial->getCosineCoefficients( ) ),
+    sineCoefficients_( originalAccelerationPartial->getSineCoefficients( ) ),
+    sphericalHarmonicCache_( originalAccelerationPartial->getSphericalHarmonicCache( ) ),
+    positionFunctionOfAcceleratedBody_( originalAccelerationPartial->getPositionFunctionOfAcceleratedBody( ) ),
+    positionFunctionOfAcceleratingBody_( originalAccelerationPartial->getPositionFunctionOfAcceleratingBody( ) ),
+    fromBodyFixedToIntegrationFrameRotation_( originalAccelerationPartial->getFromBodyFixedToIntegrationFrameRotation( ) ),
+    accelerationFunction_( originalAccelerationPartial->getAccelerationFunction( ) ),
+    updateFunction_( originalAccelerationPartial->getUpdateFunction( ) ),
+    rotationMatrixPartials_( originalAccelerationPartial->getRotationMatrixPartials( ) ),
+    tidalLoveNumberPartialInterfaces_( originalAccelerationPartial->getTidalLoveNumberPartialInterfaces( ) ),
+    accelerationUsesMutualAttraction_( originalAccelerationPartial->getAccelerationUsesMutualAttraction( ) )
+{
+    cosineCoefficients_( currentCosineCoefficients_ );
+    sineCoefficients_( currentSineCoefficients_ );
+
+    maximumDegree_ = currentCosineCoefficients_.rows( ) - 1;
+    maximumOrder_ = currentCosineCoefficients_.cols( ) - 1;
+}
+
+
 //! Function to create a function returning a partial w.r.t. a double parameter.
 std::pair< std::function< void( Eigen::MatrixXd& ) >, int > SphericalHarmonicsGravityPartial::getParameterPartialFunction(
         std::shared_ptr< estimatable_parameters::EstimatableParameter< double > > parameter )
@@ -371,6 +398,7 @@ void SphericalHarmonicsGravityPartial::wrtCosineCoefficientBlock(
                 sphericalHarmonicCache_,
                 blockIndices, coordinate_conversions::getSphericalToCartesianGradientMatrix(
                     bodyFixedPosition_ ), fromBodyFixedToIntegrationFrameRotation_( ), partialDerivatives );
+
 }
 
 //! Function to calculate the partial of the acceleration wrt a set of sine coefficients.

@@ -631,11 +631,11 @@ extern template std::shared_ptr< SingleStateTypeDerivative< long double, Time > 
  *  \return Map of state derivative models
  */
 template< typename StateScalarType = double, typename TimeType = double >
-std::unordered_map< IntegratedStateType, std::vector< std::shared_ptr<
+std::map< IntegratedStateType, std::vector< std::shared_ptr<
 SingleStateTypeDerivative< StateScalarType, TimeType > > > > getStateDerivativeModelMapFromVector(
         const std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > >& stateDerivativeModelList )
 {
-    std::unordered_map< IntegratedStateType, std::vector< std::shared_ptr<
+    std::map< IntegratedStateType, std::vector< std::shared_ptr<
             SingleStateTypeDerivative< StateScalarType, TimeType > > > > stateDerivativeModelsMap;
     for( unsigned int i = 0; i < stateDerivativeModelList.size( ); i++ )
     {
@@ -656,7 +656,7 @@ SingleStateTypeDerivative< StateScalarType, TimeType > > > > getStateDerivativeM
  *  derived class of SingleStateTypeDerivative)
  */
 template< typename StateScalarType = double, typename TimeType = double >
-std::unordered_map< IntegratedStateType, std::vector< std::shared_ptr<
+std::map< IntegratedStateType, std::vector< std::shared_ptr<
 SingleStateTypeDerivative< StateScalarType, TimeType > > > >
 createStateDerivativeModelMap(
         const std::shared_ptr< SingleArcPropagatorSettings< StateScalarType > > propagatorSettings,

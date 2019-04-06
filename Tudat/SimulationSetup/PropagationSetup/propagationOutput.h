@@ -224,7 +224,7 @@ template< typename StateScalarType, typename TimeType >
 std::shared_ptr< gravitation::SphericalHarmonicsGravitationalAccelerationModel >
 getSphericalHarmonicAccelerationForDependentVariables(
         const std::shared_ptr< SingleDependentVariableSaveSettings > dependentVariableSettings,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels )
 {
     std::shared_ptr< gravitation::SphericalHarmonicsGravitationalAccelerationModel > sphericalHarmonicAcceleration;
@@ -290,9 +290,9 @@ template< typename TimeType = double, typename StateScalarType = double >
 std::pair< std::function< Eigen::VectorXd( ) >, int > getVectorDependentVariableFunction(
         const std::shared_ptr< SingleDependentVariableSaveSettings > dependentVariableSettings,
         const simulation_setup::NamedBodyMap& bodyMap,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels =
-        std::unordered_map< IntegratedStateType,
+        std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >( ),
         const std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap >& stateDerivativePartials =
         std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap >( ) )
@@ -1026,9 +1026,9 @@ template< typename TimeType = double, typename StateScalarType = double >
 std::function< double( ) > getDoubleDependentVariableFunction(
         const std::shared_ptr< SingleDependentVariableSaveSettings > dependentVariableSettings,
         const simulation_setup::NamedBodyMap& bodyMap,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels =
-        std::unordered_map< IntegratedStateType,
+        std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >( ),
         const std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap >& stateDerivativePartials =
         std::map< propagators::IntegratedStateType, orbit_determination::StateDerivativePartialsMap >( ) )
@@ -1680,9 +1680,9 @@ template< typename TimeType = double, typename StateScalarType = double >
 std::pair< std::function< Eigen::VectorXd( ) >, std::map< int, std::string > > createDependentVariableListFunction(
         const std::shared_ptr< DependentVariableSaveSettings > saveSettings,
         const simulation_setup::NamedBodyMap& bodyMap,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels =
-        std::unordered_map< IntegratedStateType,
+        std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >( ) )
 {
     // Retrieve list of save settings
@@ -1741,19 +1741,19 @@ std::pair< std::function< Eigen::VectorXd( ) >, std::map< int, std::string > > c
 extern template std::pair< std::function< Eigen::VectorXd( ) >, std::map< int, std::string > > createDependentVariableListFunction< double, double >(
         const std::shared_ptr< DependentVariableSaveSettings > saveSettings,
         const simulation_setup::NamedBodyMap& bodyMap,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< double, double > > > >& stateDerivativeModels );
 
 //extern template std::pair< std::function< Eigen::VectorXd( ) >, int > getVectorDependentVariableFunction< double, double >(
 //        const std::shared_ptr< SingleDependentVariableSaveSettings > dependentVariableSettings,
 //        const simulation_setup::NamedBodyMap& bodyMap,
-//        const std::unordered_map< IntegratedStateType,
+//        const std::map< IntegratedStateType,
 //        std::vector< std::shared_ptr< SingleStateTypeDerivative< double, double > > > >& stateDerivativeModels );
 
 //extern template std::function< double( ) > getDoubleDependentVariableFunction< double, double >(
 //        const std::shared_ptr< SingleDependentVariableSaveSettings > dependentVariableSettings,
 //        const simulation_setup::NamedBodyMap& bodyMap,
-//        const std::unordered_map< IntegratedStateType,
+//        const std::map< IntegratedStateType,
 //        std::vector< std::shared_ptr< SingleStateTypeDerivative< double, double > > > >& stateDerivativeModels );
 
 

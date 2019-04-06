@@ -73,6 +73,9 @@ public:
             const std::string acceleratedBody,
             const std::string acceleratingBody );
 
+    CentralGravitationPartial(
+            const std::shared_ptr< CentralGravitationPartial > originalAccelerationPartial );
+
     //! Function for calculating the partial of the acceleration w.r.t. the position of body undergoing acceleration..
     /*!
      *  Function for calculating the partial of the acceleration w.r.t. the position of body undergoing acceleration
@@ -193,6 +196,38 @@ public:
         }
     }
 
+    bool getAccelerationUsesMutualAttraction( )
+    {
+        return accelerationUsesMutualAttraction_;
+    }
+
+    std::function< Eigen::Vector3d( ) > getPositionFunctionOfBodyExertingAcceleration( )
+    {
+        return centralBodyState_;
+    }
+
+    std::function< Eigen::Vector3d( ) > getPositionFunctionOfBodyUndergoingAcceleration( )
+    {
+        return acceleratedBodyState_;
+    }
+
+
+    std::function< void( const double ) > getAccelerationUpdateFunction( )
+    {
+        return accelerationUpdateFunction_;
+    }
+
+    std::function< double( ) > getGravitationalParameterFunction( )
+    {
+        return gravitationalParameterFunction_;
+    }
+
+    Eigen::Matrix3d getCurrentPartialWrtPosition( )
+    {
+        return currentPartialWrtPosition_;
+    }
+
+
 protected:
 
     //! Function to create a function returning the current partial w.r.t. a gravitational parameter.
@@ -236,7 +271,7 @@ protected:
      * ( = -partial of central gravity acceleration w.r.t. position of body exerting acceleration),
      *  calculated and set by update( ) function.
      */
-    Eigen::Matrix3d currentPartialWrtPosition_;
+    Eigen::MatrixXd currentPartialWrtPosition_;
 
     //! Function to update the gravitational acceleration model.
     std::function< void( const double ) > accelerationUpdateFunction_;

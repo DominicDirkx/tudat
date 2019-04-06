@@ -515,7 +515,7 @@ public:
      * Function to get complete list of state derivative models, sorted per state type.
      * \return Complete list of state derivative models, sorted per state type.
      */
-    std::unordered_map< IntegratedStateType, std::vector< std::shared_ptr
+    std::map< IntegratedStateType, std::vector< std::shared_ptr
     < SingleStateTypeDerivative< StateScalarType, TimeType > > > > getStateDerivativeModels( )
     {
         return stateDerivativeModels_;
@@ -656,11 +656,11 @@ private:
     std::map< IntegratedStateType, int > propagatedStateTypeStartIndex_;
 
     //! Complete list of state derivative models, sorted per state type.
-    std::unordered_map< IntegratedStateType,
+    std::map< IntegratedStateType,
     std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > > stateDerivativeModels_;
 
     //! Predefined iterator for computational efficiency.
-    typename std::unordered_map< IntegratedStateType, std::vector< std::shared_ptr
+    typename std::map< IntegratedStateType, std::vector< std::shared_ptr
     < SingleStateTypeDerivative< StateScalarType, TimeType > > > >::iterator stateDerivativeModelsIterator_;
 
     //! Total length of conventional state vector.
@@ -726,7 +726,7 @@ template< typename TimeType = double, typename StateScalarType = double >
 std::vector< std::shared_ptr< basic_astrodynamics::AccelerationModel3d > > getAccelerationBetweenBodies(
         const std::string bodyUndergoingAcceleration,
         const std::string bodyExertingAcceleration,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels,
         const basic_astrodynamics::AvailableAcceleration accelerationModelType )
 {
@@ -786,7 +786,7 @@ template< typename TimeType = double, typename StateScalarType = double >
 std::vector< std::shared_ptr< basic_astrodynamics::TorqueModel > > getTorqueBetweenBodies(
         const std::string bodyUndergoingTorque,
         const std::string bodyExertingTorque,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels,
         const basic_astrodynamics::AvailableTorque torqueModelType )
 {
@@ -841,7 +841,7 @@ std::vector< std::shared_ptr< basic_astrodynamics::TorqueModel > > getTorqueBetw
 template< typename TimeType = double, typename StateScalarType = double >
 std::shared_ptr< NBodyStateDerivative< StateScalarType, TimeType > > getTranslationalStateDerivativeModelForBody(
         const std::string bodyUndergoingAcceleration,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels )
 
 {
@@ -888,7 +888,7 @@ std::shared_ptr< NBodyStateDerivative< StateScalarType, TimeType > > getTranslat
 template< typename TimeType = double, typename StateScalarType = double >
 std::shared_ptr< RotationalMotionStateDerivative< StateScalarType, TimeType > > getRotationalStateDerivativeModelForBody(
         const std::string bodyUndergoingTorque,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels )
 
 {
@@ -943,7 +943,7 @@ std::shared_ptr< RotationalMotionStateDerivative< StateScalarType, TimeType > > 
 template< typename TimeType = double, typename StateScalarType = double >
 std::shared_ptr< BodyMassStateDerivative< StateScalarType, TimeType > > getBodyMassStateDerivativeModelForBody(
         const std::string bodyWithMassDerivative,
-        const std::unordered_map< IntegratedStateType,
+        const std::map< IntegratedStateType,
         std::vector< std::shared_ptr< SingleStateTypeDerivative< StateScalarType, TimeType > > > >& stateDerivativeModels )
 
 {

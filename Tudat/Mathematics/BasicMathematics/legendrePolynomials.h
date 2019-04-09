@@ -233,6 +233,7 @@ private:
     //! update function.
     bool computeSecondDerivatives_;
 
+    double currentIncrementedLegendrePolynomialMultiplier;
 
 };
 
@@ -485,7 +486,8 @@ double computeGeodesyLegendrePolynomialSecondDerivative( const int degree,
                                                          const double incrementedLegendrePolynomial,
                                                          const double currentLegendrePolynomialDerivative,
                                                          const double incrementedLegendrePolynomialDerivative,
-                                                         const double normalizationCorrection );
+                                                         const double normalizationCorrection,
+                                                         double incrementedLegendrePolynomialMultiplier = TUDAT_NAN );
 
 //! Compute low degree/order unnormalized Legendre polynomial explicitly.
 /*!

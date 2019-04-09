@@ -127,6 +127,7 @@ public:
             // Update two constituent acceleration models.
             accelerationModelForBodyUndergoingAcceleration_->updateMembers( currentTime );
             accelerationModelForCentralBody_->updateMembers( currentTime );
+            this->currentTime_ = currentTime;
         }
     }
 
@@ -139,6 +140,7 @@ public:
     {
         accelerationModelForBodyUndergoingAcceleration_->resetTime( currentTime );
         accelerationModelForCentralBody_->resetTime( currentTime );
+        this->currentTime_ = currentTime;
     }
 
     //! Function to return the direct acceleration model on body undergoing acceleration.

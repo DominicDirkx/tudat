@@ -219,19 +219,19 @@ public:
      */
     void wrtGravitationalParameterOfCentralBody( Eigen::MatrixXd& partialMatrix, const int addPartial = 0 )
     {
-        if( gravitationalParameterFunction_( ) != 0.0 )
+        if( currentGravitationalParameter_ != 0.0 )
         {
             if( addPartial == 0 )
             {
-                partialMatrix = accelerationFunction_( ) / gravitationalParameterFunction_( );
+                partialMatrix = currentAcceleration_ / currentGravitationalParameter_;
             }
             else if( addPartial == 1 )
             {
-                partialMatrix += accelerationFunction_( ) / gravitationalParameterFunction_( );
+                partialMatrix += currentAcceleration_ / currentGravitationalParameter_;
             }
             else if( addPartial == -1 )
             {
-                partialMatrix -= accelerationFunction_( ) / gravitationalParameterFunction_( );
+                partialMatrix -= currentAcceleration_ / currentGravitationalParameter_;
             }
             else
             {
@@ -271,6 +271,11 @@ public:
         return currentBodyFixedPartialWrtPosition_;
     }
 
+    double getCurrentGravitationalParameter( )
+    {
+        return currentGravitationalParameter_;
+    }
+
     std::function< double( ) > getGravitationalParameterFunction( )
     {
         return gravitationalParameterFunction_;
@@ -278,7 +283,7 @@ public:
 
     std::function< double( ) > getBodyReferenceRadius( )
     {
-        return bodyReferenceRadius_;
+        return bodyReferenceRadiusFunction_;
     }
 
     std::function< void( Eigen::MatrixXd& ) > getCosineCoefficients( )
@@ -437,7 +442,7 @@ protected:
     std::function< double( ) > gravitationalParameterFunction_;
 
     //! Function to return the reference radius used for calculating the acceleration.
-    std::function< double( ) > bodyReferenceRadius_;
+    std::function< double( ) > bodyReferenceRadiusFunction_;
 
     //! Function to return the current cosine coefficients of the spherical harmonic gravity field.
     std::function< void( Eigen::MatrixXd& ) > cosineCoefficients_;
@@ -560,7 +565,13 @@ protected:
      */
     bool accelerationUsesMutualAttraction_;
 
+    Eigen::Vector3d currentAcceleration_;
+
     Eigen::Vector3d accelerationWithoutPointMass_;
+
+    double bodyReferenceRadius_;
+
+    double currentGravitationalParameter_;
 
 };
 

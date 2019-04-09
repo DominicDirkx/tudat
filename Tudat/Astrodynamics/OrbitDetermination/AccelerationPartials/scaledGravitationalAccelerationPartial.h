@@ -319,13 +319,16 @@ public:
     {
         originalAccelerationPartial_->update( currentTime );
 
-        //        if( this->currentTime_ != currentTime )
+        if( this->currentTime_ != currentTime )
         {
+            currentGravitationalParameter_ = gravitationalParameterFunction_( );
+
             currentGravitationalParameterRatio_ =
-                    gravitationalParameterFunction_( ) /  originalAccelerationPartial_->getGravitationalParameterFunction( )( );
+                    currentGravitationalParameter_ /  originalAccelerationPartial_->getCurrentGravitationalParameter( );
 
             bodyFixedSphericalPosition_ = originalAccelerationPartial_->getBodyFixedSphericalPosition( );
             bodyFixedPosition_ = originalAccelerationPartial_->getBodyFixedPosition( );
+            this->currentAcceleration_ = accelerationFunction_( );
 
             this->currentPartialWrtPosition_ = originalAccelerationPartial_->getCurrentPartialWrtPosition( );
             scalePartial( this->currentPartialWrtPosition_ );
@@ -333,6 +336,8 @@ public:
             scalePartial( this->currentPartialWrtVelocity_ );
 
             this->currentTime_ = currentTime;
+
+
         }
     }
 
@@ -451,7 +456,7 @@ public:
 
     virtual Eigen::Vector3d wrtGravitationalParameterOfCentralBody( )
     {
-        return this->accelerationFunction_( ) / originalAccelerationPartial_->getGravitationalParameterFunction( )( );
+        return currentAcceleration_ / originalAccelerationPartial_->getCurrentGravitationalParameter( );
     }
 
 
@@ -461,8 +466,8 @@ protected:
     Eigen::Vector3d getScaledAcceleration( )
     {
         return originalAccelerationPartial_->getAccelerationFunction( )( ) *
-                ( this->getGravitationalParameterFunction( )( ) /
-                  originalAccelerationPartial_->getGravitationalParameterFunction( )( ) ) *
+                ( this->getCurrentGravitationalParameter( ) /
+                  originalAccelerationPartial_->getCurrentGravitationalParameter( ) ) *
                 ( invertPositionVectors_ ? -1.0 : 1.0 );
     }
 

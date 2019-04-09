@@ -369,31 +369,31 @@ void SphericalHarmonicsGravityPartial::update( const double currentTime )
                     bodyFixedSphericalPosition_( 2 ), bodyReferenceRadius_( ) );
 
         // Calculate partial of acceleration wrt position of body undergoing acceleration.
-        currentBodyFixedPartialWrtPosition_ =
+        currentBodyFixedPartialWrtPositionWithoutPointMass_ =
                 computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
                     bodyFixedPosition_, bodyReferenceRadius_( ), gravitationalParameterFunction_( ),
-                    currentCosineCoefficients_, currentSineCoefficients_, sphericalHarmonicCache_, true );
+                    currentCosineCoefficients_, currentSineCoefficients_, sphericalHarmonicCache_, false );
 
-//        accelerationWithoutPointMass_ = accelerationFunction_( );
-//        if( currentCosineCoefficients_( 0, 0 ) == 1.0 )
-//        {
-//            currentBodyFixedPartialWrtPosition_ =
-//                    currentBodyFixedPartialWrtPositionWithoutPointMass_ +
-//                    computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
-//                        bodyFixedPosition_, bodyReferenceRadius_( ), gravitationalParameterFunction_( ),
-//                        Eigen::MatrixXd::Identity( 1, 1 ), Eigen::MatrixXd::Zero( 1, 1 ), sphericalHarmonicCache_, true );
-//            accelerationWithoutPointMass_ = accelerationWithoutPointMass_ -
-//                    tudat::gravitation::computeGravitationalAcceleration(
-//                        positionFunctionOfAcceleratedBody_( ), gravitationalParameterFunction_( ), positionFunctionOfAcceleratingBody_( ) );
-//        }
-//        else if( currentCosineCoefficients_( 0, 0 ) == 0.0 )
-//        {
-//            currentBodyFixedPartialWrtPosition_ = currentBodyFixedPartialWrtPositionWithoutPointMass_;
-//        }
-//        else
-//        {
-//            throw std::runtime_error( "Error, found incompatible C00 when calculating spherical harmonic gravity partial" );
-//        }
+        accelerationWithoutPointMass_ = accelerationFunction_( );
+        if( currentCosineCoefficients_( 0, 0 ) == 1.0 )
+        {
+            currentBodyFixedPartialWrtPosition_ =
+                    currentBodyFixedPartialWrtPositionWithoutPointMass_ +
+                    computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
+                        bodyFixedPosition_, bodyReferenceRadius_( ), gravitationalParameterFunction_( ),
+                        Eigen::MatrixXd::Identity( 1, 1 ), Eigen::MatrixXd::Zero( 1, 1 ), sphericalHarmonicCache_, true );
+            accelerationWithoutPointMass_ = accelerationWithoutPointMass_ -
+                    tudat::gravitation::computeGravitationalAcceleration(
+                        positionFunctionOfAcceleratedBody_( ), gravitationalParameterFunction_( ), positionFunctionOfAcceleratingBody_( ) );
+        }
+        else if( currentCosineCoefficients_( 0, 0 ) == 0.0 )
+        {
+            currentBodyFixedPartialWrtPosition_ = currentBodyFixedPartialWrtPositionWithoutPointMass_;
+        }
+        else
+        {
+            throw std::runtime_error( "Error, found incompatible C00 when calculating spherical harmonic gravity partial" );
+        }
 
         currentPartialWrtVelocity_.setZero( );
         currentPartialWrtPosition_ =
@@ -454,10 +454,18 @@ void SphericalHarmonicsGravityPartial::wrtRotationModelParameter(
     {
         // Calculate acceleration partial for current parameter entry.
         accelerationPartial.block( 0, i, 3, 1 ) = rotationMatrixPartials[ i ] *
-                ( fromBodyFixedToIntegrationFrameRotation_( ).inverse( ) ) * accelerationFunction_( ) +
-                fromBodyFixedToIntegrationFrameRotation_( ) * currentBodyFixedPartialWrtPosition_ *
+                ( fromBodyFixedToIntegrationFrameRotation_( ).inverse( ) ) * accelerationWithoutPointMass_ +
+                fromBodyFixedToIntegrationFrameRotation_( ) * currentBodyFixedPartialWrtPositionWithoutPointMass_ *
                 rotationMatrixPartials[ i ].transpose( ) * distanceVector;
     }
+
+//    std::cout<<"Acceleration with point mass "<<accelerationFunction_( ).transpose( )<<std::endl;
+//    std::cout<<std::endl<<std::setprecision( 16 )<<"Acceleration without point mass "<<accelerationWithoutPointMass_.transpose( )<<std::endl<<std::endl;
+
+//    std::cout<<"Position partial with point mass "<<std::endl<<currentBodyFixedPartialWrtPosition_<<std::endl;
+//    std::cout<<"Acceleration without point mass "<<std::endl<<currentBodyFixedPartialWrtPositionWithoutPointMass_<<std::endl<<std::endl<<std::endl;
+
+//    std::cout<<"Acceleration partial "<<std::endl<<accelerationPartial<<std::endl<<std::endl<<std::endl;
 
 //    std::cout<<"Undergoing: "<<this->acceleratedBody_<<std::endl;
 //    std::cout<<"Exerting: "<<this->acceleratingBody_<<std::endl;

@@ -532,24 +532,22 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
     std::vector< std::string > bodyNames;
     bodyNames.push_back( "Io" );
     bodyNames.push_back( "Europa" );
-//    bodyNames.push_back( "Ganymede" );
-//    bodyNames.push_back( "Callisto" );
+    bodyNames.push_back( "Ganymede" );
+    bodyNames.push_back( "Callisto" );
     bodyNames.push_back( "Sun" );
     bodyNames.push_back( "Jupiter" );
 
     int numberOfBodies = bodyNames.size( );
-    int numberOfNumericalBodies = 2;
+    int numberOfNumericalBodies = 4;
 
     double propagationStep = 600.0;
-    double simulationStartEpoch = 30.0 * 86400.0;
-    double simulationEndEpoch = simulationStartEpoch + 10.0 * propagationStep;//31.0 * 86400.0;
+    double simulationStartEpoch = 1.0 * 86400.0;
+    double simulationEndEpoch = 6.0 * 86400.0;
 
     std::map< std::string, std::shared_ptr< BodySettings > > bodySettings =
             getDefaultBodySettings( bodyNames, simulationStartEpoch - 86400.0, simulationEndEpoch + 86400.0 );
     for( int i = 0; i < numberOfNumericalBodies; i++ )
     {
-        //        bodySettings[ bodyNames.at( i ) ]->rotationModelSettings = std::make_shared< TidallyLockedRotationModelSettings >(
-        //                    "Jupiter", "ECLIPJ2000", "IAU_" + bodyNames.at( i ) );
         bodySettings[ bodyNames.at( i ) ]->rotationModelSettings = std::make_shared< SimpleRotationModelSettings >(
                     "ECLIPJ2000", "IAU_" + bodyNames.at( i ),
                     spice_interface::computeRotationQuaternionBetweenFrames(
@@ -577,15 +575,9 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
             {
                 if( bodyNames.at( j ) == "Jupiter" )
                 {
-                                        currentAccelerations[ bodyNames.at( j ) ].push_back(
-                                                    std::make_shared< MutualSphericalHarmonicAccelerationSettings >(
-//                                                        0, 0, 0, 0 ) );
-                                                        4, 4, 2, 2 ) );
-//                    currentAccelerations[ bodyNames.at( j ) ].push_back(
-//                                std::make_shared< SphericalHarmonicAccelerationSettings >(
-//                                    4, 4 ) );
-                    //                    currentAccelerations[ bodyNames.at( j ) ].push_back(
-                    //                                std::make_shared< AccelerationSettings >( central_gravity ) );
+                    currentAccelerations[ bodyNames.at( j ) ].push_back(
+                                std::make_shared< MutualSphericalHarmonicAccelerationSettings >(
+                                    4, 4, 2, 2 ) );
                 }
                 else if( bodyNames.at( j ) == "Sun" )
                 {
@@ -594,15 +586,9 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
                 }
                 else
                 {
-                                        currentAccelerations[ bodyNames.at( j ) ].push_back(
-                                                    std::make_shared< MutualSphericalHarmonicAccelerationSettings >(
-//                                                        0, 0, 0, 0, 0, 0 ) );
-                                                        2, 2, 2, 2, 4, 4 ) );
-//                    currentAccelerations[ bodyNames.at( j ) ].push_back(
-//                                std::make_shared< SphericalHarmonicAccelerationSettings >(
-//                                    2, 2 ) );
-                    //                    currentAccelerations[ bodyNames.at( j ) ].push_back(
-                    //                                std::make_shared< AccelerationSettings >( central_gravity ) );
+                    currentAccelerations[ bodyNames.at( j ) ].push_back(
+                                std::make_shared< MutualSphericalHarmonicAccelerationSettings >(
+                                    2, 2, 2, 2, 4, 4 ) );
                 }
             }
         }
@@ -628,7 +614,6 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
 
     for( int useScaledAccelerations = 0; useScaledAccelerations < 2; useScaledAccelerations++ )
     {
-        std::cout<<"NEW PROPAGATION ************************************************"<<std::endl<<std::endl<<std::endl;
         AccelerationMap accelerationModelMap = createAccelerationModelsMap(
                     bodyMap, accelerationMap, bodiesToPropagate, centralBodies, useScaledAccelerations );
 
@@ -639,12 +624,10 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
                 ( centralBodies, accelerationModelMap, bodiesToPropagate, systemInitialState, simulationEndEpoch );
 
         std::shared_ptr< IntegratorSettings< > > integratorSettings =
-                 std::make_shared< IntegratorSettings< > >(
-                    euler, simulationStartEpoch, propagationStep );
-//                std::make_shared< RungeKuttaVariableStepSizeSettings < double > >
-//                ( simulationStartEpoch, propagationStep,
-//                  RungeKuttaCoefficients::CoefficientSets::rungeKuttaFehlberg78,
-//                  propagationStep, propagationStep, 1.0, 1.0);
+                std::make_shared< RungeKuttaVariableStepSizeSettings < double > >
+                ( simulationStartEpoch, propagationStep,
+                  RungeKuttaCoefficients::CoefficientSets::rungeKuttaFehlberg78,
+                  propagationStep, propagationStep, 1.0, 1.0);
 
         std::vector< std::shared_ptr< EstimatableParameterSettings > > parameterNames;
 
@@ -656,28 +639,30 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
                                 bodyNames.at( i ), "Jupiter", bodyMap, simulationStartEpoch ), "Jupiter" ) );
         }
 
-        //        parameterNames.push_back(
-        //                    std::make_shared< tudat::estimatable_parameters::EstimatableParameterSettings >(
-        //                        "Europa", gravitational_parameter ) );
-        //        parameterNames.push_back(
-        //                    std::make_shared< tudat::estimatable_parameters::EstimatableParameterSettings >(
-        //                        "Jupiter", gravitational_parameter ) );
+        parameterNames.push_back(
+                    std::make_shared< tudat::estimatable_parameters::EstimatableParameterSettings >(
+                        "Europa", gravitational_parameter ) );
+        parameterNames.push_back(
+                    std::make_shared< tudat::estimatable_parameters::EstimatableParameterSettings >(
+                        "Jupiter", gravitational_parameter ) );
 
-        //        parameterNames.push_back( std::make_shared< EstimatableParameterSettings >( "Europa", constant_rotation_rate ) );
-        parameterNames.push_back( std::make_shared< EstimatableParameterSettings >( "Jupiter", constant_rotation_rate ) );
+        parameterNames.push_back( std::make_shared< EstimatableParameterSettings >( "Europa", constant_rotation_rate ) );
 
-        //        parameterNames.push_back( std::make_shared< EstimatableParameterSettings >( "Europa", rotation_pole_position ) );
-        //        parameterNames.push_back( std::make_shared< EstimatableParameterSettings >( "Jupiter", rotation_pole_position ) );
+        parameterNames.push_back( std::make_shared< EstimatableParameterSettings >( "Europa", rotation_pole_position ) );
+        parameterNames.push_back( std::make_shared< EstimatableParameterSettings >( "Jupiter", rotation_pole_position ) );
 
-        //        parameterNames.push_back(
-        //                    std::make_shared< SphericalHarmonicEstimatableParameterSettings >(
-        //                        2, 0, 2, 2, "Europa", spherical_harmonics_cosine_coefficient_block ) );
-        //        parameterNames.push_back( std::make_shared< SphericalHarmonicEstimatableParameterSettings >(
-        //                                      2, 0, 2, 2, "Jupiter", spherical_harmonics_cosine_coefficient_block ) );
+        parameterNames.push_back(
+                    std::make_shared< SphericalHarmonicEstimatableParameterSettings >(
+                        2, 0, 2, 2, "Europa", spherical_harmonics_cosine_coefficient_block ) );
+        parameterNames.push_back( std::make_shared< SphericalHarmonicEstimatableParameterSettings >(
+                                      2, 0, 2, 2, "Jupiter", spherical_harmonics_cosine_coefficient_block ) );
 
         std::shared_ptr< tudat::estimatable_parameters::EstimatableParameterSet< double > > parametersToEstimate =
                 createParametersToEstimate< double >( parameterNames, bodyMap, accelerationModelMap );
         numberOfParameters = parametersToEstimate->getParameterSetSize( );
+
+        tudat::estimatable_parameters::printEstimatableParameterEntries(
+                    parametersToEstimate );
 
         std::chrono::steady_clock::time_point initialClockTime = std::chrono::steady_clock::now( );
 
@@ -708,16 +693,6 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
                 unscaledStateHistory[ stateIterator.first ] -
                 scaledStateHistory[ stateIterator.first ];
 
-        //        std::cout<<std::setprecision( 3 )<<stateTransitionHistories.at( 0 )[ stateIterator.first ].block( 0, 0, 3, 9 )<<std::endl<<std::endl<<
-        //                   ( stateTransitionHistories.at( 1 )[ stateIterator.first ].block( 0, 0, 3, 9 )
-        //                   - stateTransitionHistories.at( 0 )[ stateIterator.first ].block( 0, 0, 3, 9 ) ).cwiseQuotient(
-        //                    stateTransitionHistories.at( 0 )[ stateIterator.first ].block( 0, 0, 3, 9 ) )<<std::endl<<std::endl<<std::endl;;
-
-        //        std::cout<<std::setprecision( 3 )<<sensitvityTransitionHistories.at( 0 )[ stateIterator.first ].block( 0, 0, 3, 9 )<<std::endl<<std::endl<<
-        //                   ( sensitvityTransitionHistories.at( 1 )[ stateIterator.first ].block( 0, 0, 3, 9 )
-        //                   - sensitvityTransitionHistories.at( 0 )[ stateIterator.first ].block( 0, 0, 3, 9 ) ).cwiseQuotient(
-        //                    sensitvityTransitionHistories.at( 0 )[ stateIterator.first ].block( 0, 0, 3, 9 ) )<<std::endl<<std::endl<<std::endl;;
-
         for( int i = 0; i < numberOfNumericalBodies; i++ )
         {
             for( int j = 0; j < 3; j++ )
@@ -742,23 +717,17 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
                 {
                     for( int l = 0; l < 3; l++ )
                     {
-                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k, l ) ), 1.0E-14 * positionPositionNorm );
-                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k, l + 3 ) ), 1.0E-14 * positionVelocityNorm );
+                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k, l ) ), 1.0E-10 * positionPositionNorm );
+                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k, l + 3 ) ), 1.0E-10 * positionVelocityNorm );
 
-                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k + 3, l ) ), 1.0E-14 * velocityPositionNorm );
-                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k + 3, l + 3 ) ), 1.0E-14 * velocityVelocityNorm );
+                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k + 3, l ) ), 1.0E-10 * velocityPositionNorm );
+                        BOOST_CHECK_SMALL( std::fabs( blockDifference( k + 3, l + 3 ) ), 1.0E-10 * velocityVelocityNorm );
 
                     }
                 }
 
             }
 
-            //            std::cout<<sensitvityTransitionHistories.at( 0 )[ stateIterator.first ]<<std::endl<<std::endl;
-            //            std::cout<<( sensitvityTransitionHistories.at( 0 )[ stateIterator.first ] -
-            //                       sensitvityTransitionHistories.at( 1 )[ stateIterator.first ] ).cwiseQuotient(
-            //                        sensitvityTransitionHistories.at( 1 )[ stateIterator.first ] )<<std::endl<<std::endl<<std::endl<<std::endl;
-
-            std::cout<<"Body: "<<i<<std::endl<<std::endl;
             for( int j = 0; j < numberOfParameters - 6 * numberOfNumericalBodies; j++ )
             {
                 Eigen::Vector6d firstBlock =
@@ -768,19 +737,17 @@ BOOST_AUTO_TEST_CASE( testScaledStatePropagation )
                 Eigen::Vector6d blockDifference =
                         firstBlock - secondBlock;
 
-                std::cout<<"Parameter: "<<j<<std::endl<<firstBlock.transpose( )<<std::endl<<
-                           secondBlock.transpose( )<<std::endl<<
-                           ( firstBlock.cwiseQuotient(
-                               secondBlock ) ).transpose( )<<std::endl<<std::endl;
-
 
                 double positionNorm = firstBlock.segment( 0, 3 ).norm( );
                 double velocityNorm = firstBlock.segment( 3, 3 ).norm( );
 
+
+                double toleranceMutliplier = ( j > 1 && j < 7 ) ? 2.0E5 : 1.0;
+
                 for( int k = 0; k < 3; k++ )
                 {
-                    //                    BOOST_CHECK_SMALL( std::fabs( blockDifference( k ) ), std::max( 1.0E-12 * positionNorm, 1.0E-300 ) );
-                    //                    BOOST_CHECK_SMALL( std::fabs( blockDifference( k + 3 ) ), std::max( 1.0E-12 * velocityNorm, 1.0E-300 ) );
+                    BOOST_CHECK_SMALL( std::fabs( blockDifference( k ) ), std::max( 1.0E-10 * toleranceMutliplier * positionNorm, 1.0E-300 ) );
+                    BOOST_CHECK_SMALL( std::fabs( blockDifference( k + 3 ) ), std::max( 1.0E-10 * toleranceMutliplier * velocityNorm, 1.0E-300 ) );
 
                 }
             }

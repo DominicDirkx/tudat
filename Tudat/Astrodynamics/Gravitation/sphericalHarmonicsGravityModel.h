@@ -354,7 +354,7 @@ public:
     }
 
     void updateEnvironmentMembers( const double currentTime = TUDAT_NAN )
-        {
+    {
 
         getCosineHarmonicsCoefficients( cosineHarmonicCoefficients );
         getSineHarmonicsCoefficients( sineHarmonicCoefficients );

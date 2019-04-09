@@ -96,7 +96,11 @@ public:
         return sphericalHarmonicAcceleration_;
     }
 
-
+    void resetTime( const double currentTime = TUDAT_NAN )
+    {
+        sphericalHarmonicAcceleration_->resetTime( currentTime );
+        currentTime_ = currentTime;
+    }
 protected:
 
 private:

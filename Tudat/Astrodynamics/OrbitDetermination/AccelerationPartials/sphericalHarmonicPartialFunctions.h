@@ -143,7 +143,8 @@ Eigen::Matrix3d computeCumulativeSphericalHessian(
         const double gravitionalParameter,
         const Eigen::MatrixXd cosineHarmonicCoefficients,
         const Eigen::MatrixXd sineHarmonicCoefficients,
-        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        const bool useDegreeZeroTerm = true );
 
 //! Calculate partial of spherical harmonic acceleration w.r.t. position of body undergoing acceleration
 //! (in the body-fixed frame)
@@ -197,7 +198,8 @@ Eigen::Matrix3d computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration
         const double gravitionalParameter,
         const Eigen::MatrixXd cosineHarmonicCoefficients,
         const Eigen::MatrixXd sineHarmonicCoefficients,
-        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache );
+        const std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
+        const bool useDegreeZeroTerm = true );
 
 //! Calculate partial of spherical harmonic acceleration w.r.t. a set of cosine coefficients
 /*!

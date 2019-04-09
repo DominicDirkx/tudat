@@ -32,20 +32,20 @@ SphericalHarmonicsGravityPartial::SphericalHarmonicsGravityPartial(
     AccelerationPartial( acceleratedBody, acceleratingBody, basic_astrodynamics::spherical_harmonic_gravity ),
     gravitationalParameterFunction_( accelerationModel->getGravitationalParameterFunction( ) ),
     bodyReferenceRadius_( std::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::getReferenceRadius,
-                                       accelerationModel ) ),
+                                     accelerationModel ) ),
     cosineCoefficients_( accelerationModel->getCosineHarmonicCoefficientsFunction( ) ),
     sineCoefficients_( accelerationModel->getSineHarmonicCoefficientsFunction( ) ),
     sphericalHarmonicCache_( accelerationModel->getSphericalHarmonicsCache( ) ),
     positionFunctionOfAcceleratedBody_( std::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::
-                                                     getCurrentPositionOfBodySubjectToAcceleration, accelerationModel ) ),
+                                                   getCurrentPositionOfBodySubjectToAcceleration, accelerationModel ) ),
     positionFunctionOfAcceleratingBody_( std::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::
-                                                      getCurrentPositionOfBodyExertingAcceleration, accelerationModel ) ),
+                                                    getCurrentPositionOfBodyExertingAcceleration, accelerationModel ) ),
     fromBodyFixedToIntegrationFrameRotation_( std::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::
-                                                           getCurrentRotationToIntegrationFrameMatrix, accelerationModel ) ),
+                                                         getCurrentRotationToIntegrationFrameMatrix, accelerationModel ) ),
     accelerationFunction_( std::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::getAcceleration,
-                                        accelerationModel ) ),
+                                      accelerationModel ) ),
     updateFunction_( std::bind( &gravitation::SphericalHarmonicsGravitationalAccelerationModel::updateMembers,
-                                  accelerationModel, std::placeholders::_1 ) ),
+                                accelerationModel, std::placeholders::_1 ) ),
     rotationMatrixPartials_( rotationMatrixPartials ),
     tidalLoveNumberPartialInterfaces_( tidalLoveNumberPartialInterfaces ),
     accelerationUsesMutualAttraction_( accelerationModel->getIsMutualAttractionUsed( ) )
@@ -172,8 +172,8 @@ std::pair< std::function< void( Eigen::MatrixXd& ) >, int > SphericalHarmonicsGr
                     {
                         std::function< std::vector< Eigen::Matrix< double, 2, Eigen::Dynamic > >( ) > coefficientPartialFunction =
                                 std::bind( &orbit_determination::TidalLoveNumberPartialInterface::getCurrentDoubleParameterPartial,
-                                             tidalLoveNumberPartialInterfaces_.at( i ),
-                                             parameter, currentTidalPartialOutput.second );
+                                           tidalLoveNumberPartialInterfaces_.at( i ),
+                                           parameter, currentTidalPartialOutput.second );
                         partialFunction = std::bind(
                                     &SphericalHarmonicsGravityPartial::wrtTidalModelParameter, this, coefficientPartialFunction,
                                     degree, orders, sumOrders, parameter->getParameterSize( ), std::placeholders::_1 );
@@ -257,7 +257,7 @@ std::pair< std::function< void( Eigen::MatrixXd& ) >, int > SphericalHarmonicsGr
                     {
                         std::function< std::vector< Eigen::Matrix< double, 2, Eigen::Dynamic > >( ) > coefficientPartialFunction =
                                 std::bind( &orbit_determination::TidalLoveNumberPartialInterface::getCurrentVectorParameterPartial,
-                                             tidalLoveNumberPartialInterfaces_.at( i ), parameter, currentTidalPartialOutput.second );
+                                           tidalLoveNumberPartialInterfaces_.at( i ), parameter, currentTidalPartialOutput.second );
                         partialFunction = std::bind(
                                     &SphericalHarmonicsGravityPartial::wrtTidalModelParameter, this, coefficientPartialFunction,
                                     degree, orders, sumOrders, parameter->getParameterSize( ), std::placeholders::_1 );
@@ -280,7 +280,7 @@ std::pair< std::function< void( Eigen::MatrixXd& ) >, int > SphericalHarmonicsGr
                         std::dynamic_pointer_cast< SphericalHarmonicsCosineCoefficients >( parameter );
 
                 partialFunction = std::bind( &SphericalHarmonicsGravityPartial::wrtCosineCoefficientBlock, this,
-                                               coefficientsParameter->getBlockIndices( ), std::placeholders::_1 );
+                                             coefficientsParameter->getBlockIndices( ), std::placeholders::_1 );
                 numberOfRows = coefficientsParameter->getParameterSize( );
 
                 break;
@@ -293,7 +293,7 @@ std::pair< std::function< void( Eigen::MatrixXd& ) >, int > SphericalHarmonicsGr
                         std::dynamic_pointer_cast< SphericalHarmonicsSineCoefficients >( parameter );
 
                 partialFunction = std::bind( &SphericalHarmonicsGravityPartial::wrtSineCoefficientBlock, this,
-                                               coefficientsParameter->getBlockIndices( ), std::placeholders::_1 );
+                                             coefficientsParameter->getBlockIndices( ), std::placeholders::_1 );
                 numberOfRows = coefficientsParameter->getParameterSize( );
 
                 break;
@@ -322,7 +322,7 @@ SphericalHarmonicsGravityPartial::getGravitationalParameterPartialFunction(
         if( parameterId.second.first == acceleratingBody_ )
         {
             partialFunction = std::bind( &SphericalHarmonicsGravityPartial::wrtGravitationalParameterOfCentralBody,
-                                           this, std::placeholders::_1, 0 );
+                                         this, std::placeholders::_1, 0 );
             numberOfColumns = 1;
 
         }
@@ -332,7 +332,7 @@ SphericalHarmonicsGravityPartial::getGravitationalParameterPartialFunction(
             if( accelerationUsesMutualAttraction_ )
             {
                 partialFunction = std::bind( &SphericalHarmonicsGravityPartial::wrtGravitationalParameterOfCentralBody,
-                                               this, std::placeholders::_1, 0 );
+                                             this, std::placeholders::_1, 0 );
                 numberOfColumns = 1;
             }
         }
@@ -360,8 +360,8 @@ void SphericalHarmonicsGravityPartial::update( const double currentTime )
         bodyFixedSphericalPosition_( 1 ) = mathematical_constants::PI / 2.0 - bodyFixedSphericalPosition_( 1 );
 
         // Get spherical harmonic coefficients
-         cosineCoefficients_( currentCosineCoefficients_ );
-         sineCoefficients_( currentSineCoefficients_ );
+        cosineCoefficients_( currentCosineCoefficients_ );
+        sineCoefficients_( currentSineCoefficients_ );
 
         // Update trogonometric functions of multiples of longitude.
         sphericalHarmonicCache_->update(
@@ -369,9 +369,31 @@ void SphericalHarmonicsGravityPartial::update( const double currentTime )
                     bodyFixedSphericalPosition_( 2 ), bodyReferenceRadius_( ) );
 
         // Calculate partial of acceleration wrt position of body undergoing acceleration.
-        currentBodyFixedPartialWrtPosition_ = computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
+        currentBodyFixedPartialWrtPosition_ =
+                computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
                     bodyFixedPosition_, bodyReferenceRadius_( ), gravitationalParameterFunction_( ),
-                    currentCosineCoefficients_, currentSineCoefficients_, sphericalHarmonicCache_ );
+                    currentCosineCoefficients_, currentSineCoefficients_, sphericalHarmonicCache_, true );
+
+//        accelerationWithoutPointMass_ = accelerationFunction_( );
+//        if( currentCosineCoefficients_( 0, 0 ) == 1.0 )
+//        {
+//            currentBodyFixedPartialWrtPosition_ =
+//                    currentBodyFixedPartialWrtPositionWithoutPointMass_ +
+//                    computePartialDerivativeOfBodyFixedSphericalHarmonicAcceleration(
+//                        bodyFixedPosition_, bodyReferenceRadius_( ), gravitationalParameterFunction_( ),
+//                        Eigen::MatrixXd::Identity( 1, 1 ), Eigen::MatrixXd::Zero( 1, 1 ), sphericalHarmonicCache_, true );
+//            accelerationWithoutPointMass_ = accelerationWithoutPointMass_ -
+//                    tudat::gravitation::computeGravitationalAcceleration(
+//                        positionFunctionOfAcceleratedBody_( ), gravitationalParameterFunction_( ), positionFunctionOfAcceleratingBody_( ) );
+//        }
+//        else if( currentCosineCoefficients_( 0, 0 ) == 0.0 )
+//        {
+//            currentBodyFixedPartialWrtPosition_ = currentBodyFixedPartialWrtPositionWithoutPointMass_;
+//        }
+//        else
+//        {
+//            throw std::runtime_error( "Error, found incompatible C00 when calculating spherical harmonic gravity partial" );
+//        }
 
         currentPartialWrtVelocity_.setZero( );
         currentPartialWrtPosition_ =
@@ -433,9 +455,27 @@ void SphericalHarmonicsGravityPartial::wrtRotationModelParameter(
         // Calculate acceleration partial for current parameter entry.
         accelerationPartial.block( 0, i, 3, 1 ) = rotationMatrixPartials[ i ] *
                 ( fromBodyFixedToIntegrationFrameRotation_( ).inverse( ) ) * accelerationFunction_( ) +
-                fromBodyFixedToIntegrationFrameRotation_( ) * currentBodyFixedPartialWrtPosition_*
+                fromBodyFixedToIntegrationFrameRotation_( ) * currentBodyFixedPartialWrtPosition_ *
                 rotationMatrixPartials[ i ].transpose( ) * distanceVector;
     }
+
+//    std::cout<<"Undergoing: "<<this->acceleratedBody_<<std::endl;
+//    std::cout<<"Exerting: "<<this->acceleratingBody_<<std::endl;
+//    std::cout<<"Cosine coefficient: "<<currentCosineCoefficients_( 0, 0 )<<std::endl;
+//    std::cout<<"Gravitational parameter: "<<gravitationalParameterFunction_( )<<std::endl;
+//    std::cout<<"Acceleration: "<<accelerationFunction_( ).transpose( )<<std::endl;
+//    std::cout<<"Relative position: "<<bodyFixedPosition_.transpose( )<<std::endl;
+//    std::cout<<"Rotation: "<<fromBodyFixedToIntegrationFrameRotation_( )<<std::endl;
+//    std::cout<<"Body-fixed partial: "<<currentBodyFixedPartialWrtPosition_<<std::endl;
+//    std::cout<<"Rotation matrix partial: "<<rotationMatrixPartials[ 0 ]<<std::endl;
+
+//    std::cout<<"Partial "<<std::endl<<accelerationPartial.transpose( )<<std::endl<<std::endl;
+//    std::cout<<"Partial 1st component "<<std::endl<<( rotationMatrixPartials[ 0 ] *
+//               ( fromBodyFixedToIntegrationFrameRotation_( ).inverse( ) ) * accelerationWithoutPointMass_ ).transpose( )<<std::endl<<std::endl;
+//    std::cout<<"Partial 2nd component"<<std::endl<<
+//               ( fromBodyFixedToIntegrationFrameRotation_( ) * currentBodyFixedPartialWrtPositionWithoutPointMass_*
+//                                                     rotationMatrixPartials[ 0 ].transpose( ) * distanceVector ).transpose( )<<std::endl<<std::endl;
+
 }
 
 //! Function to calculate an acceleration partial wrt a tidal parameter.
@@ -505,7 +545,7 @@ void SphericalHarmonicsGravityPartial::wrtTidalModelParameter(
                             bodyFixedPosition_ ), fromBodyFixedToIntegrationFrameRotation_( ), currentPartialContribution );
 
             partialMatrix.block( 0, i * singleOrderPartialSize, 3, singleOrderPartialSize ) +=
-                        currentPartialContribution * coefficientPartialsPerOrder_.at( i ).block( 1, 0, 1, singleOrderPartialSize );
+                    currentPartialContribution * coefficientPartialsPerOrder_.at( i ).block( 1, 0, 1, singleOrderPartialSize );
 
         }
     }

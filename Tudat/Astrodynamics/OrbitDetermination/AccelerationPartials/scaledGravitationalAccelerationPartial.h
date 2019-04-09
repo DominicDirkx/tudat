@@ -107,7 +107,7 @@ public:
             currentPartialWrtPosition_ = originalAccelerationPartial_->getCurrentPartialWrtPosition( );
             scalePartial( currentPartialWrtPosition_ );
 
-                    currentTime_ = currentTime;
+            currentTime_ = currentTime;
         }
     }
 
@@ -299,13 +299,17 @@ public:
                 newGravitationalParameterFunction;
         this->accelerationUsesMutualAttraction_ =
                 newIsMutualAttractionUsed;
+        this->accelerationFunction_ = std::bind(
+                    &ScaledGravitationalAccelerationPartial< SphericalHarmonicsGravityPartial >::getScaledAcceleration,
+                    this );
 
         currentGravitationalParameterRatio_ = gravitationalParameterFunction_( ) /
                 originalAccelerationPartial_->getGravitationalParameterFunction( )( );
 
         if( invertPositionVectors )
         {
-            std::cerr<<"Error when making scaled spherical harmonic gravity partial, cannot invert position vectors"<<std::endl;
+            throw std::runtime_error(
+                        "Error when making scaled spherical harmonic gravity partial, cannot invert position vectors" );
         }
     }
 
@@ -315,7 +319,7 @@ public:
     {
         originalAccelerationPartial_->update( currentTime );
 
-//        if( this->currentTime_ != currentTime )
+        //        if( this->currentTime_ != currentTime )
         {
             currentGravitationalParameterRatio_ =
                     gravitationalParameterFunction_( ) /  originalAccelerationPartial_->getGravitationalParameterFunction( )( );
@@ -454,6 +458,14 @@ public:
 
 protected:
 
+    Eigen::Vector3d getScaledAcceleration( )
+    {
+        return originalAccelerationPartial_->getAccelerationFunction( )( ) *
+                ( this->getGravitationalParameterFunction( )( ) /
+                  originalAccelerationPartial_->getGravitationalParameterFunction( )( ) ) *
+                ( invertPositionVectors_ ? -1.0 : 1.0 );
+    }
+
     void updateParameterPartialsOfMemberObjects( )
     {
         //std::cout<<"Updating parameter partials (scaled)"<<std::endl;
@@ -490,7 +502,11 @@ private:
         partialsMatrix.setZero( 3, 1 );
         originalAccelerationPartial_->getCurrentParameterPartial(
                     parameter, partialsMatrix.block( 0, 0, 3, 1 ) );
+//        std::cout<<"Undergoing: "<<this->acceleratedBody_<<std::endl;
+//        std::cout<<"Exerting: "<<this->acceleratingBody_<<std::endl;
+//        std::cout<<"Unscaled partial "<<std::endl<<partialsMatrix<<std::endl;
         scalePartial( partialsMatrix );
+//        std::cout<<"Scaled partial "<<std::endl<<partialsMatrix<<std::endl<<std::endl;
     }
 
     void getScaledParameterPartial(
@@ -500,7 +516,13 @@ private:
         partialsMatrix.setZero( 3, parameter->getParameterSize( ) );
         originalAccelerationPartial_->getCurrentParameterPartial(
                     parameter, partialsMatrix.block( 0, 0, 3, parameter->getParameterSize( ) ) );
+
+//        std::cout<<"Undergoing: "<<this->acceleratedBody_<<std::endl;
+//        std::cout<<"Exerting: "<<this->acceleratingBody_<<std::endl;
+//        std::cout<<"Unscaled partial "<<std::endl<<partialsMatrix<<std::endl;
         scalePartial( partialsMatrix );
+//        std::cout<<"Scaled partial "<<std::endl<<partialsMatrix<<std::endl<<std::endl;
+
     }
 
 

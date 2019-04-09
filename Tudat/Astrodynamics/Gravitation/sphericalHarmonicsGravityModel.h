@@ -91,7 +91,8 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
         std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         std::map< std::pair< int, int >, Eigen::Vector3d >& accelerationPerTerm,
         const bool saveSeparateTerms = 0,
-        const Eigen::Matrix3d& accelerationRotation = Eigen::Matrix3d::Identity( ) );
+        const Eigen::Matrix3d& accelerationRotation = Eigen::Matrix3d::Identity( ),
+        const bool useDegreeZeroTerm = true );
 
 //! Compute gravitational acceleration due to single spherical harmonics term.
 /*!

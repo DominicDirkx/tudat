@@ -122,7 +122,8 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
                             findExistingAccelerationPartial( accelerationPartialsMap, originalAcceleratedBodyName, originalAcceleratingBodyName, central_gravity ) );
 
                 accelerationPartial = std::make_shared<  acceleration_partials::ScaledGravitationalAccelerationPartial< CentralGravitationPartial > >(
-                            existingPartial, scaledAccelerationModel->getGravitationalParameterFunction( ),
+                            existingPartial,
+                            scaledAccelerationModel->getGravitationalParameterFunction( ),
                             scaledAccelerationModel->getIsMutualAttractionUsed( ),
                             scaledAccelerationModel->getInvertPositionVectors( ) );
             }
@@ -348,8 +349,10 @@ std::shared_ptr< acceleration_partials::AccelerationPartial > createAnalyticalAc
                                 accelerationPartialsMap, originalAcceleratedBodyName, originalAcceleratingBodyName, mutual_spherical_harmonic_gravity ) );
 
                 accelerationPartial = std::make_shared<  acceleration_partials::ScaledGravitationalAccelerationPartial< MutualSphericalHarmonicsGravityPartial > >(
-                            existingPartial, scaledAccelerationModel->getGravitationalParameterFunction( ),
-                            scaledAccelerationModel->getIsMutualAttractionUsed( ), scaledAccelerationModel->getInvertPositionVectors( ) );
+                            existingPartial,
+                            scaledAccelerationModel->getGravitationalParameterFunction( ),
+                            scaledAccelerationModel->getIsMutualAttractionUsed( ),
+                            scaledAccelerationModel->getInvertPositionVectors( ) );
             }
             else
             {

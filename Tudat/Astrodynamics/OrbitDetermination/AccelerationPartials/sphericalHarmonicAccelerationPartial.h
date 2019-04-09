@@ -512,6 +512,8 @@ protected:
      */
     Eigen::Matrix3d currentBodyFixedPartialWrtPosition_;
 
+    Eigen::Matrix3d currentBodyFixedPartialWrtPositionWithoutPointMass_;
+
     //! The current partial of the acceleration wrt the velocity of the body undergoing the acceleration.
     /*!
      *  The current partial of the acceleration wrt the velocity of the body undergoing the acceleration.
@@ -557,6 +559,8 @@ protected:
      *  into account as an inertial effect.
      */
     bool accelerationUsesMutualAttraction_;
+
+    Eigen::Vector3d accelerationWithoutPointMass_;
 
 };
 

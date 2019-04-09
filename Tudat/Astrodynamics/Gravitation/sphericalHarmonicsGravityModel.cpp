@@ -44,7 +44,8 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
         std::shared_ptr< basic_mathematics::SphericalHarmonicsCache > sphericalHarmonicsCache,
         std::map< std::pair< int, int >, Eigen::Vector3d >& accelerationPerTerm,
         const bool saveSeparateTerms,
-        const Eigen::Matrix3d& accelerationRotation )
+        const Eigen::Matrix3d& accelerationRotation,
+        const bool useDegreeZeroTerm )
 {
     // Set highest degree and order.
     const int highestDegree = cosineHarmonicCoefficients.rows( );
@@ -75,7 +76,9 @@ Eigen::Vector3d computeGeodesyNormalizedGravitationalAccelerationSum(
                 positionOfBodySubjectToAcceleration );
 
     // Loop through all degrees.
-    for ( int degree = 0; degree < highestDegree; degree++ )
+    int startDegree = useDegreeZeroTerm ? 0 : 1;
+
+    for ( int degree = startDegree; degree < highestDegree; degree++ )
     {
         // Loop through all orders.
         for ( int order = 0; ( order <= degree ) && ( order < highestOrder ); order++ )

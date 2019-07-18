@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE( testIntegralSineFunction )
         }
 
         // Error should be close to zero, as integration (and its errors) are symmetrical
-        integrator.resetData( independentVariables, dependentVariables );
+        integrator.resetDataVectors( independentVariables, dependentVariables );
         expectedIntegral = 0.0;
         computedIntegralTrapezoid = integrator.getQuadrature( );
         BOOST_CHECK_SMALL( computedIntegralTrapezoid - expectedIntegral, std::max( 5.0E-6, numberOfSamples * 5.0E-20 ) );

@@ -12,6 +12,7 @@
 #define TUDAT_LIGHT_TIME_SOLUTIONS_H
 
 #include <memory>
+
 #include <boost/make_shared.hpp>
 #include <functional>
 #include <iostream>
@@ -333,6 +334,8 @@ public:
                 transmissionTime = time;
                 receiverState = ( stateFunctionOfReceivingBody_( receptionTime ) );
             }
+
+
             newLightTimeCalculation = calculateNewLightTimeEstime( receiverState, transmitterState );
 
             // Check for convergence.
@@ -358,11 +361,11 @@ public:
                     isToleranceReached = true;
                     std::string errorMessage  =
                             "Warning, light time unconverged at level " +
-                            std::to_string(
-                                std::fabs( newLightTimeCalculation - previousLightTimeCalculation ) ) +
+                            boost::lexical_cast< std::string >(
+                                fabs( newLightTimeCalculation - previousLightTimeCalculation ) ) +
                             "; current light-time corrections are: "  +
-                            std::to_string( currentCorrection_ ) + " and input time was " +
-                            std::to_string( static_cast< double >( time ) );
+                            boost::lexical_cast< std::string >( currentCorrection_ ) + " and input time was " +
+                            boost::lexical_cast< std::string >( static_cast< double >( time ) );
                    std::cerr << errorMessage << std::endl;
                 }
 

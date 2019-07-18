@@ -83,6 +83,13 @@ void createGroundStation(
         const coordinate_conversions::PositionElementTypes positionElementType =
         coordinate_conversions::cartesian_position );
 
+void addSpiceDsnGroundStations(
+        const boost::shared_ptr< Body >& body,
+        const std::vector< int > groundStationIndices );
+
+void addAllSpiceDsnGroundStations(
+        const boost::shared_ptr< Body >& body );
+
 //! Function to create a set of ground stations and add them to the corresponding Body objects
 /*!
  * Function to create a set of ground stations and add them to the corresponding Body objects

@@ -51,7 +51,7 @@ public:
      *  \param time Time (in seconds since J2000) at which state is to be retrieved
      *  \return State at requested time.
      */
-    template< typename StateScalarType, typename TimeType >
+    template< typename StateScalarType = double, typename TimeType = double >
     Eigen::Matrix< StateScalarType, 6, 1 > getStateInPlanetFixedFrame( const TimeType& time )
     {
         return ( nominalStationState_->getCartesianStateInTime(

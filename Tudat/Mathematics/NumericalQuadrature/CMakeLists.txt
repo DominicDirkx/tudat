@@ -13,6 +13,7 @@ set(NUMERICAL_QUADRATURE_HEADERS
   "${SRCROOT}${MATHEMATICSDIR}/NumericalQuadrature/numericalQuadrature.h"
   "${SRCROOT}${MATHEMATICSDIR}/NumericalQuadrature/trapezoidQuadrature.h"
   "${SRCROOT}${MATHEMATICSDIR}/NumericalQuadrature/gaussianQuadrature.h"
+  "${SRCROOT}${MATHEMATICSDIR}/NumericalQuadrature/simpsonsQuadrature.h"
 )
 
 set(NUMERICAL_QUADRATURE_SOURCES

@@ -12,6 +12,7 @@
 #define TUDAT_ONEWAYDIFFERENCEDRANGERATEOBSERVATIONMODEL_H
 
 #include <map>
+#include <iomanip>
 
 #include <functional>
 #include <boost/make_shared.hpp>
@@ -105,12 +106,12 @@ public:
         else if ( linkEndAssociatedWithTime == transmitter )
         {
 
-            // Calculate light times at the start of the reception interval
-            lightTimeAtEndInterval = arcEndLightTimeCalculator_->calculateLightTime(
-                        static_cast< double >( time ) - currentIntegrationTime, 0 );
-
             // Calculate light times at the end of the reception interval
             lightTimeAtStartInterval = arcStartLightTimeCalculator_->calculateLightTime(
+                        static_cast< double >( time ) - currentIntegrationTime, 0 );
+
+            // Calculate light times at the start of the reception interval
+            lightTimeAtEndInterval = arcEndLightTimeCalculator_->calculateLightTime(
                         static_cast< double >( time ), 0 );
 
         }
@@ -160,14 +161,19 @@ public:
 
             // Calculate light times at the start of the reception interval
             lightTimeAtStartInterval = arcStartLightTimeCalculator_->calculateLightTimeWithLinkEndsStates(
-                         receiverStateAtArcStart, transmitterStateAtArcStart, linkEndTimes[ 1 ] , 1 );
+                         receiverStateAtArcStart, transmitterStateAtArcStart, linkEndTimes[ 1 ], 1 );
 
             // Calculate light times at the end of the reception interval
             lightTimeAtEndInterval = arcEndLightTimeCalculator_->calculateLightTimeWithLinkEndsStates(
-                        receiverStateAtArcEnd, transmitterStateAtArcEnd, linkEndTimes[ 3 ] , 1 );
+                        receiverStateAtArcEnd, transmitterStateAtArcEnd, linkEndTimes[ 3 ], 1 );
 
             linkEndTimes[ 0 ] = linkEndTimes[ 1 ] - static_cast< double >( lightTimeAtStartInterval );
             linkEndTimes[ 2 ] = linkEndTimes[ 3 ] - static_cast< double >( lightTimeAtEndInterval );
+
+//            std::cout<<"Closed-loop, receiver reference "<<std::setprecision( 16 )<<
+//                       linkEndTimes[ 2 ] - linkEndTimes[ 0 ]<<" "<<linkEndTimes[ 3 ] - linkEndTimes[ 1 ]<<" "<<
+//                       linkEndTimes[ 0 ]<<" "<<linkEndTimes[ 1 ]<<" "<<linkEndTimes[ 2 ]<<" "<<linkEndTimes[ 3 ]<<" "<<
+//                       lightTimeAtStartInterval<<" "<<lightTimeAtEndInterval<<std::endl;
 
         }
         else if ( linkEndAssociatedWithTime == transmitter )
@@ -187,6 +193,12 @@ public:
                         receiverStateAtArcStart, transmitterStateAtArcStart, linkEndTimes[ 0 ], 0 );
 
             linkEndTimes[ 1 ] = linkEndTimes[ 0 ] + static_cast< double >( lightTimeAtStartInterval );
+
+//            std::cout<<"Closed-loop, transmitter reference "<<std::setprecision( 16 )<<
+//                       linkEndTimes[ 2 ] - linkEndTimes[ 0 ]<<" "<<linkEndTimes[ 3 ] - linkEndTimes[ 1 ]<<" "<<
+//                       linkEndTimes[ 0 ]<<" "<<linkEndTimes[ 1 ]<<" "<<linkEndTimes[ 2 ]<<" "<<linkEndTimes[ 3 ]<<" "<<
+//                       lightTimeAtStartInterval<<" "<<lightTimeAtEndInterval<<std::endl;
+
         }
         else
         {

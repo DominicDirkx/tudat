@@ -43,6 +43,9 @@ std::string getObservableName( const ObservableType observableType, const int nu
     case one_way_differenced_range:
         observableName = "OneWayDifferencedRange";
         break;
+    case n_way_differenced_range:
+        observableName = "TwoWayDifferencedRange";
+        break;
     case two_way_doppler:
         observableName = "TwoWayDoppler";
         break;
@@ -126,6 +129,10 @@ ObservableType getObservableType( const std::string& observableName )
     {
         observableType = euler_angle_313_observable;
     }
+    else if( observableName == "TwoWayDifferencedRange" )
+    {
+        observableType = n_way_differenced_range;
+    }
     else
     {
         std::string errorMessage =
@@ -162,6 +169,9 @@ int getObservableSize( const ObservableType observableType )
         observableSize = 1;
         break;
     case one_way_differenced_range:
+        observableSize = 1;
+        break;
+    case n_way_differenced_range:
         observableSize = 1;
         break;
     case n_way_range:
@@ -319,6 +329,26 @@ std::vector< int > getLinkEndIndicesForLinkEndTypeAtObservable(
         }
         break;
     case n_way_range:
+        if( numberOfLinkEnds < 2 )
+        {
+            throw std::runtime_error( "Error when getting n way range link end indices, not enough link ends" );
+        }
+        if( linkEndType == transmitter )
+        {
+            linkEndIndices.push_back( 0 );
+        }
+        else if( linkEndType == receiver )
+        {
+            linkEndIndices.push_back( 2 * ( numberOfLinkEnds - 1 ) - 1 );
+        }
+        else
+        {
+            int linkEndIndex = getNWayLinkIndexFromLinkEndType( linkEndType, numberOfLinkEnds );
+            linkEndIndices.push_back( 2 * linkEndIndex - 1 );
+            linkEndIndices.push_back( 2 * linkEndIndex );
+        }
+        break;
+    case n_way_differenced_range:
         if( numberOfLinkEnds < 2 )
         {
             throw std::runtime_error( "Error when getting n way range link end indices, not enough link ends" );

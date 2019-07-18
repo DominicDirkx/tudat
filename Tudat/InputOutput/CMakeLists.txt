@@ -30,6 +30,7 @@ set(INPUTOUTPUT_SOURCES
   "${SRCROOT}${INPUTOUTPUTDIR}/multiDimensionalArrayReader.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/aerodynamicCoefficientReader.cpp"
   "${SRCROOT}${INPUTOUTPUTDIR}/tabulatedAtmosphereReader.cpp"
+  "${SRCROOT}${INPUTOUTPUTDIR}/readOdfFile.cpp"
 )
 
 # Add header files.
@@ -64,6 +65,7 @@ set(INPUTOUTPUT_HEADERS
   "${SRCROOT}${INPUTOUTPUTDIR}/aerodynamicCoefficientReader.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/readHistoryFromFile.h"
   "${SRCROOT}${INPUTOUTPUTDIR}/tabulatedAtmosphereReader.h"
+  "${SRCROOT}${INPUTOUTPUTDIR}/readOdfFile.h"
 )
 
 # Add unit test files.
@@ -153,3 +155,7 @@ target_link_libraries(test_MultiArrayWriter tudat_input_output tudat_basic_astro
 add_executable(test_AerodynamicCoefficientReader "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestAerodynamicCoefficientReader.cpp" )
 setup_custom_test_program(test_AerodynamicCoefficientReader "${SRCROOT}${INPUTOUTPUTDIR}")
 target_link_libraries(test_AerodynamicCoefficientReader tudat_input_output tudat_basic_astrodynamics tudat_basics ${Boost_LIBRARIES})
+
+add_executable(test_OdfFile "${SRCROOT}${INPUTOUTPUTDIR}/UnitTests/unitTestOdfFile.cpp" )
+setup_custom_test_program(test_OdfFile "${SRCROOT}${INPUTOUTPUTDIR}")
+target_link_libraries(test_OdfFile tudat_orbit_determination tudat_input_output tudat_basic_astrodynamics tudat_basics ${Boost_LIBRARIES})

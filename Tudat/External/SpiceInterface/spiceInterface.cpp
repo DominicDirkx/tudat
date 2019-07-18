@@ -285,6 +285,7 @@ void loadStandardSpiceKernels( const std::vector< std::string > alternativeEphem
     std::string kernelPath = input_output::getSpiceKernelPath( );
 
     loadSpiceKernelInTudat( kernelPath + "pck00010.tpc" );
+    loadSpiceKernelInTudat( kernelPath + "Gravity.tpc" );
     loadSpiceKernelInTudat( kernelPath + "gm_de431.tpc" );
 
     if( alternativeEphemerisKernels.size( ) == 0  )

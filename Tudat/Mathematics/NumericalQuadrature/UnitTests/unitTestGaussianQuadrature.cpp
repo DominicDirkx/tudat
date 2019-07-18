@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE( testIntegralSineFunction )
     checkErrorWithinBounds( 2, 4, sinFunction, lowerLimit, upperLimit, dSinFunction, PI / 2, expectedSolution );
 
     // Set to order 2
-    integrator.reset( sinFunction, lowerLimit, upperLimit, 2 );
+    integrator.resetGaussianQuadrature( sinFunction, lowerLimit, upperLimit, 2 );
     computedSolution = integrator.getQuadrature();
 
     // Expected solution from http://keisan.casio.com/exec/system/1330940731
@@ -211,7 +211,7 @@ BOOST_AUTO_TEST_CASE( testIntegralExpFunction )
     checkErrorWithinBounds( 2, 6, expFunction, lowerLimit, upperLimit, dExpFunction, 1.0, expectedSolution );
 
     // Set to order 2
-    integrator.reset( expFunction, lowerLimit, upperLimit, 2 );
+    integrator.resetGaussianQuadrature( expFunction, lowerLimit, upperLimit, 2 );
     computedSolution = integrator.getQuadrature();
 
     // Expected solution from http://keisan.casio.com/exec/system/1330940731
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE( testIntegralPolyFunction )
     BOOST_CHECK_CLOSE_FRACTION( computedSolution, expectedSolution, 1E-12 );
 
     // Check that this isn't the case for 4 nodes
-    integrator.reset( polyFunction, lowerLimit, upperLimit, 4 );
+    integrator.resetGaussianQuadrature( polyFunction, lowerLimit, upperLimit, 4 );
     computedSolution = integrator.getQuadrature();
     BOOST_CHECK( std::fabs( computedSolution - expectedSolution) > 1 );
 
@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE( testIntegralPolyFunction )
     checkErrorWithinBounds( 2, 4, polyFunction, lowerLimit, upperLimit, dPolyFunction, 2.0, expectedSolution );
 
     // Set to order 2
-    integrator.reset( polyFunction, lowerLimit, upperLimit, 2 );
+    integrator.resetGaussianQuadrature( polyFunction, lowerLimit, upperLimit, 2 );
     computedSolution = integrator.getQuadrature();
 
     // Expected solution from http://keisan.casio.com/exec/system/1330940731

@@ -16,6 +16,7 @@
 #ifndef TUDAT_NEAREST_NEIGHBOR_SEARCH_H
 #define TUDAT_NEAREST_NEIGHBOR_SEARCH_H 
 
+#include <iostream>
 #include <map>
 #include <stdexcept>
 #include <vector>

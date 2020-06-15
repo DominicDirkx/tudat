@@ -37,6 +37,7 @@
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/coreFactor.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/freeCoreNutationRate.h"
 #include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/desaturationDeltaV.h"
+#include "Tudat/Astrodynamics/OrbitDetermination/EstimatableParameters/longitudeLibrationAmplitude.h"
 #include "Tudat/Astrodynamics/Relativity/metric.h"
 #include "Tudat/Astrodynamics/BasicAstrodynamics/accelerationModelTypes.h"
 #include "Tudat/SimulationSetup/EstimationSetup/estimatableParameterSettings.h"
@@ -697,6 +698,23 @@ std::shared_ptr< estimatable_parameters::EstimatableParameter< double > > create
             {
                 doubleParameterToEstimate = std::make_shared< FreeCoreNutationRate >
                         ( std::dynamic_pointer_cast< PlanetaryRotationModel > ( currentBody->getRotationalEphemeris( ) ), currentBodyName);
+
+            }
+            break;
+        }
+        case longitude_libration_amplitude:
+        {
+            if( std::dynamic_pointer_cast< SynchronousRotationalEphemeris >( currentBody->getRotationalEphemeris( ) ) == nullptr )
+            {
+                std::string errorMessage = "Warning, no synchronous rotation model present in body " + currentBodyName +
+                        " when making longitude libration parameter";
+                throw std::runtime_error( errorMessage );
+            }
+            else
+            {
+                doubleParameterToEstimate = std::make_shared< LongitudeLibrationAmplitude >
+                        ( std::dynamic_pointer_cast< SynchronousRotationalEphemeris >
+                          ( currentBody->getRotationalEphemeris( ) ), currentBodyName );
 
             }
             break;

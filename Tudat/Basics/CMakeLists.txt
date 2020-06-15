@@ -43,3 +43,7 @@ add_executable(test_TudatTypeTraits "${SRCROOT}${BASICSDIR}/UnitTests/unitTestTu
 setup_custom_test_program(test_TudatTypeTraits "${SRCROOT}${BASICSDIR}")
 target_link_libraries(test_TudatTypeTraits tudat_basics ${Boost_LIBRARIES})
 
+add_executable(test_TudatUtilities "${SRCROOT}${BASICSDIR}/UnitTests/unitTestUtilities.cpp")
+setup_custom_test_program(test_TudatUtilities "${SRCROOT}${BASICSDIR}")
+target_link_libraries(test_TudatUtilities tudat_basics ${Boost_LIBRARIES})
+

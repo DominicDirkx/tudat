@@ -46,16 +46,33 @@ public:
             const std::function< Eigen::Vector6d( const double, bool ) > relativeStateFunction,
             const std::string& centralBodyName,
             const std::string& baseFrameOrientation,
-            const std::string& targetFrameOrientation ):
+            const std::string& targetFrameOrientation,
+            const double longitudeLibrationAmlpitude = TUDAT_NAN,
+            std::function< double( const double, const double ) > librationAngleFunction = nullptr  ):
         RotationalEphemeris( baseFrameOrientation, targetFrameOrientation ),
         relativeStateFunction_( relativeStateFunction ),
         isBodyInPropagation_( 0 ),
         centralBodyName_( centralBodyName ),
-        warningPrinted_( false )
-    { }
+        librationAngleFunction_( librationAngleFunction ),
+        warningPrinted_( false ),
+        isLibrationOn_( false )
+    {
+        if( !std::isnan( longitudeLibrationAmlpitude ) )
+        {
+            isLibrationOn_ = true;
+            if( librationAngleFunction_ == nullptr )
+            {
+                throw std::runtime_error( "Error when making synchronous rotation model: libration defined, but no mean anomaly" );
+            }
+        }
+    }
 
     //! Destructor
     ~SynchronousRotationalEphemeris( ){ }
+
+    Eigen::Matrix3d getFullyLockedRotationToBaseFrame( const double currentTime );
+
+    Eigen::Matrix3d getLibrationRotation( const double currentTime );
 
     //! Calculate rotation quaternion from target frame to base frame.
     /*!
@@ -121,6 +138,42 @@ public:
         return relativeStateFunction_( currentTime, isBodyInPropagation_ );
     }
 
+
+    void setLibrationAmplitude(
+            const double longitudeLibrationAmlpitude )
+    {
+        longitudeLibrationAmlpitude_ = longitudeLibrationAmlpitude;
+    }
+
+    double getLibrationAmplitude( )
+    {
+        return longitudeLibrationAmlpitude_;
+    }
+
+    std::function< double( const double, const double ) > getLibrationAngleFunction( )
+    {
+        return librationAngleFunction_;
+    }
+
+
+    void setLibrationCalculation(
+            const double longitudeLibrationAmlpitude = TUDAT_NAN,
+            std::function< double( const double, const double ) > librationAngleFunction = nullptr )
+    {
+        longitudeLibrationAmlpitude_ = longitudeLibrationAmlpitude;
+        librationAngleFunction_ = librationAngleFunction;
+
+        if( !std::isnan( longitudeLibrationAmlpitude ) )
+        {
+            isLibrationOn_ = true;
+            if( librationAngleFunction_ == nullptr )
+            {
+                throw std::runtime_error( "Error when making synchronous rotation model: libration defined, but no mean anomaly" );
+            }
+        }
+    }
+
+
 private:
 
     //! Function returning the current state of the body relative to the central body, in the base frame
@@ -132,8 +185,14 @@ private:
     //! Name of central body
     std::string centralBodyName_;
 
+    double longitudeLibrationAmlpitude_;
+
+    std::function< double( const double, const double ) > librationAngleFunction_;
+
     //!  Boolean defining whether the warning for the time-derivative of rotation amtrix has been printed.
     bool warningPrinted_;
+
+    bool isLibrationOn_;
 };
 
 }

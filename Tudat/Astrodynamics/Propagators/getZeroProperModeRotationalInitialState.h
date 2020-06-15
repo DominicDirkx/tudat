@@ -30,7 +30,7 @@ namespace propagators
  * \param inertiaTensor Inertia Tensor
  * \return Dissipation Matrix
  */
-Eigen::Matrix3d getDissipationMatrix(
+inline Eigen::Matrix3d getDissipationMatrix(
         const double dampingTime,
         const Eigen::Matrix3d& inertiaTensor )
 {

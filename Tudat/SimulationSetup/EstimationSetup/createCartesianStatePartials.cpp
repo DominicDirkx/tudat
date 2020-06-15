@@ -79,14 +79,14 @@ std::map< observation_models::LinkEndType, std::shared_ptr< CartesianStatePartia
             // Set ground station position function
             std::function< Eigen::Vector3d( const double ) > groundStationPositionFunction =
                     std::bind( &ground_stations::GroundStationState::getCartesianPositionInTime,
-                                 currentBody->getGroundStation( linkEndIterator->second.second )->getNominalStationState( ),
-                                 std::placeholders::_1, basic_astrodynamics::JULIAN_DAY_ON_J2000 );
+                               currentBody->getGroundStation( linkEndIterator->second.second )->getNominalStationState( ),
+                               std::placeholders::_1, basic_astrodynamics::JULIAN_DAY_ON_J2000 );
 
             // Create partial
             partialMap[ linkEndIterator->first ] = std::make_shared< CartesianStatePartialWrtRotationMatrixParameter >(
                         std::make_shared< RotationMatrixPartialWrtRotationalState >(
                             std::bind( &ephemerides::RotationalEphemeris::getRotationToBaseFrame,
-                                         currentBody->getRotationalEphemeris( ), std::placeholders::_1 ) ), groundStationPositionFunction );
+                                       currentBody->getRotationalEphemeris( ), std::placeholders::_1 ) ), groundStationPositionFunction );
         }
     }
 
@@ -127,8 +127,8 @@ std::map< observation_models::LinkEndType, std::shared_ptr< CartesianStatePartia
                 // Set ground station position function
                 std::function< Eigen::Vector3d( const double ) > groundStationPositionFunction =
                         std::bind( &ground_stations::GroundStationState::getCartesianPositionInTime,
-                                     ( currentBody )->getGroundStation( linkEndIterator->second.second )
-                                     ->getNominalStationState( ), std::placeholders::_1, basic_astrodynamics::JULIAN_DAY_ON_J2000 );
+                                   ( currentBody )->getGroundStation( linkEndIterator->second.second )
+                                   ->getNominalStationState( ), std::placeholders::_1, basic_astrodynamics::JULIAN_DAY_ON_J2000 );
 
                 // Create parameter partial object.
                 partialMap[ linkEndIterator->first ] = std::make_shared< CartesianStatePartialWrtRotationMatrixParameter >(
@@ -214,8 +214,8 @@ std::map< observation_models::LinkEndType, std::shared_ptr< CartesianStatePartia
                 // Set ground station position function
                 std::function< Eigen::Vector3d( const double ) > groundStationPositionFunction =
                         std::bind( &ground_stations::GroundStationState::getCartesianPositionInTime,
-                                     currentBody->getGroundStation( linkEndIterator->second.second )
-                                     ->getNominalStationState( ), std::placeholders::_1, basic_astrodynamics::JULIAN_DAY_ON_J2000 );
+                                   currentBody->getGroundStation( linkEndIterator->second.second )
+                                   ->getNominalStationState( ), std::placeholders::_1, basic_astrodynamics::JULIAN_DAY_ON_J2000 );
 
                 // Create parameter partial object.
                 partialMap[ linkEndIterator->first ] = std::make_shared< CartesianStatePartialWrtRotationMatrixParameter >(
@@ -264,8 +264,8 @@ std::map< observation_models::LinkEndType, std::shared_ptr< CartesianStatePartia
                         }
                         if( currentBody->getGroundStationMap( ).count( linkEndIterator->second.second ) == 0 )
                         {
-                                std::runtime_error( "Warning, ground station " + linkEndIterator->second.second +
-                                           "not found when making ground station position position partial" );
+                            std::runtime_error( "Warning, ground station " + linkEndIterator->second.second +
+                                                "not found when making ground station position position partial" );
                         }
 
                         // Create partial object.
@@ -294,12 +294,35 @@ std::shared_ptr< RotationMatrixPartial > createRotationMatrixPartialsWrtTranslat
         const std::shared_ptr< simulation_setup::Body > currentBody )
 {
     std::shared_ptr< RotationMatrixPartial > rotationMatrixPartial;
-    if( std::dynamic_pointer_cast< ephemerides::SynchronousRotationalEphemeris >(
-                currentBody->getRotationalEphemeris( ) ) != nullptr )
+
+    std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > synchronousRotationModel =
+            std::dynamic_pointer_cast< ephemerides::SynchronousRotationalEphemeris >(
+                currentBody->getRotationalEphemeris( ) );
+    if( synchronousRotationModel != nullptr )
     {
         rotationMatrixPartial = std::make_shared< SynchronousRotationMatrixPartialWrtTranslationalState >(
                     std::dynamic_pointer_cast< ephemerides::SynchronousRotationalEphemeris >(
                         currentBody->getRotationalEphemeris( ) ) );
+        if( synchronousRotationModel->getLibrationAngleFunction( ) != nullptr )
+        {
+
+            Eigen::Vector6d statePerturbations = 1.0 * (
+                        Eigen::Vector6d( ) << 10.0, 10.0, 10.0, 0.01, 0.01, 0.01 ).finished( );
+            std::function< void( const Eigen::Vector6d& ) > setStateFunction =
+                    std::bind( &simulation_setup::Body::setState, currentBody, std::placeholders::_1 );
+            std::function< Eigen::Vector6d( ) > getStateFunction =
+                    std::bind( &simulation_setup::Body::getState, currentBody );
+            std::function< Eigen::Matrix3d( const double ) > getLibrationRotation =
+                    std::bind( &ephemerides::SynchronousRotationalEphemeris::getLibrationRotation, synchronousRotationModel,
+                               std::placeholders::_1 );
+            std::shared_ptr< NumericalRotationMatrixPartialWrtTranslationalState > librationMatrixDerivative =
+                    std::make_shared< NumericalRotationMatrixPartialWrtTranslationalState >(
+                        setStateFunction, getStateFunction, statePerturbations, getLibrationRotation );
+
+            std::dynamic_pointer_cast< SynchronousRotationMatrixPartialWrtTranslationalState >(
+                        rotationMatrixPartial )->setLibrationDerivatives( librationMatrixDerivative );
+
+        }
     }
     return rotationMatrixPartial;
 }
@@ -362,6 +385,20 @@ std::shared_ptr< RotationMatrixPartial > createRotationMatrixPartialsWrtParamete
         // Create rotation matrix partial object
         rotationMatrixPartial = std::make_shared< RotationMatrixPartialWrtFreeCoreNutationRate >(
                     std::dynamic_pointer_cast< PlanetaryRotationModel >( currentBody->getRotationalEphemeris() ));
+
+        break;
+    case estimatable_parameters::longitude_libration_amplitude:
+
+        if( std::dynamic_pointer_cast< ephemerides::SynchronousRotationalEphemeris >(
+                    currentBody->getRotationalEphemeris() ) == nullptr ){
+            std::string errorMessage = "Warning, body's rotation model is not a synchronous rotational model when making"
+                                       "position w.r.t. longitude libration amplitude partial";
+            throw std::runtime_error( errorMessage );
+        }
+
+        // Create rotation matrix partial object
+        rotationMatrixPartial = std::make_shared< RotationMatrixPartialWrtLongitudeLibrationAmplitude >(
+                    std::dynamic_pointer_cast< SynchronousRotationalEphemeris >( currentBody->getRotationalEphemeris( ) ) );
 
         break;
     default:

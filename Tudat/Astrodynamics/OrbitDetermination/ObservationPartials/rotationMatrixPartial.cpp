@@ -237,8 +237,8 @@ std::vector< Eigen::Matrix3d > calculatePartialOfRotationMatrixFromLocalFrameWrt
 
 
 
-//    for( std::map< double, std::pair< double, double > >::iterator correctionIterator = rotationrateCorrections.begin( );
-//         correctionIterator != rotationrateCorrections.end( ); correctionIterator++ )
+    //    for( std::map< double, std::pair< double, double > >::iterator correctionIterator = rotationrateCorrections.begin( );
+    //         correctionIterator != rotationrateCorrections.end( ); correctionIterator++ )
 
     if ( xPolarMotionCoefficients.size() != yPolarMotionCoefficients.size() ){
         throw std::runtime_error( "Error, unconsistent sizes when comparing x and y polar motion"
@@ -246,7 +246,7 @@ std::vector< Eigen::Matrix3d > calculatePartialOfRotationMatrixFromLocalFrameWrt
     }
 
     for( std::map< double, std::pair< double, double > >::iterator xPolarMotionCoefficientIterator = xPolarMotionCoefficients.begin( );
-            xPolarMotionCoefficientIterator != xPolarMotionCoefficients.end( ); xPolarMotionCoefficientIterator++ )
+         xPolarMotionCoefficientIterator != xPolarMotionCoefficients.end( ); xPolarMotionCoefficientIterator++ )
     {
         rotationMatrixPartials.push_back(
                     -std::cos( xPolarMotionCoefficientIterator->first * currentMeanAnomaly) *
@@ -402,7 +402,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtCoreFactor(
     Eigen::Matrix3d partialsOfRotationMatrix = Eigen::Matrix3d::Zero( );
 
     for( std::map< double, std::pair< double, double > >::iterator correctionIterator = meanMotionDirectNutationCorrections.begin( );
-        correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
+         correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
     {
         double a_m = correctionIterator->first * meanMotion;
 
@@ -464,8 +464,8 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtCoreFactor(
     {
         currentPhaseAngleCorrection = phaseAngleCorrectionFunctions[ i ]( ephemerisTime );
         for( std::map< double, std::pair< double, double > >::iterator correctionIterator =
-            meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
-            correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
+             meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
+             correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
         {
             double a_m = correctionIterator->first * meanMotion;
 
@@ -565,7 +565,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtCoreF
     Eigen::Matrix3d partialsOfRotationMatrix = Eigen::Matrix3d::Zero( );
 
     for( std::map< double, std::pair< double, double > >::iterator correctionIterator = meanMotionDirectNutationCorrections.begin( );
-        correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
+         correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
     {
         double a_m = correctionIterator->first * meanMotion;
 
@@ -634,15 +634,15 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtCoreF
     {
         currentPhaseAngleCorrection = phaseAngleCorrectionFunctions[ i ]( ephemerisTime );
         for( std::map< double, std::pair< double, double > >::iterator correctionIterator =
-            meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
-            correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
+             meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
+             correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
         {
             double a_m = correctionIterator->first * meanMotion;
 
             double Psi_m = correctionIterator->second.second + coreFactor * a_m /
                     ( a_m * a_m - freeCoreNutationRate * freeCoreNutationRate ) *
                     ( a_m * correctionIterator->second.second + freeCoreNutationRate * correctionIterator->second.first /
-                       std::sin( angleIAtEpoch ) );
+                      std::sin( angleIAtEpoch ) );
 
             partialsOfRotationMatrix +=
                     currentMeanPhiAngleDerivative *
@@ -704,7 +704,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtCoreF
         }
     }
 
-        return partialsOfRotationMatrix;
+    return partialsOfRotationMatrix;
 
 }
 
@@ -740,7 +740,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
     Eigen::Matrix3d partialsOfRotationMatrix = Eigen::Matrix3d::Zero( );
 
     for( std::map< double, std::pair< double, double > >::iterator correctionIterator = meanMotionDirectNutationCorrections.begin( );
-        correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
+         correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
     {
         double a_m = correctionIterator->first * meanMotion;
 
@@ -752,7 +752,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
         partialsOfRotationMatrix +=
                 std::sin(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) ) *
                 (coreFactor * a_m * ( correctionIterator->second.first * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                  std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                      std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                  ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                    ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                 rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
@@ -766,9 +766,9 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
         partialsOfRotationMatrix +=
                 std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) ) *
                 (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                  std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                  correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                  ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
+                                      std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                      correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                              ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                 rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
                 ( Eigen::AngleAxisd( currentAngleCorrections.x( ), Eigen::Vector3d::UnitZ( ) ) ).toRotationMatrix( ) *
                 ( Eigen::Matrix3d( ) << 0.0, 0.0, 0.0,
@@ -782,12 +782,12 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
                   std::sin( currentAngleCorrections.y( ) ) *
                   std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) ) *
                   (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                    std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                    correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                    ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
+                                        std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                        correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                                ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
                   std::sin(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) )*
                   (coreFactor * a_m * ( correctionIterator->second.first * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                    std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                        std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                    ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                      ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                   std::cos( currentAngleCorrections.y( ) ) ) *
@@ -806,8 +806,8 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
     {
         currentPhaseAngleCorrection = phaseAngleCorrectionFunctions[ i ]( ephemerisTime );
         for( std::map< double, std::pair< double, double > >::iterator correctionIterator =
-            meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
-            correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
+             meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
+             correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
         {
             double a_m = correctionIterator->first * meanMotion;
 
@@ -821,7 +821,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
                              currentPhaseAngleCorrection ) *
                     (coreFactor * a_m * ( correctionIterator->second.first *
                                           ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                      std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                          std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                      ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                        ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                     rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
@@ -836,9 +836,9 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
                     std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) +
                              currentPhaseAngleCorrection ) *
                     (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                      std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                      correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                      ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
+                                          std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                          correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                                  ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                     rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
                     ( Eigen::AngleAxisd( currentAngleCorrections.x( ), Eigen::Vector3d::UnitZ( ) ) ).toRotationMatrix( ) *
                     ( Eigen::Matrix3d( ) << 0.0, 0.0, 0.0,
@@ -854,13 +854,13 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameWrtFreeCoreNutatio
                       std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) +
                                currentPhaseAngleCorrection ) *
                       (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                        std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                        correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                        ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
+                                            std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                            correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                                    ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
                       std::sin(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) +
                                currentPhaseAngleCorrection ) *
                       (coreFactor * a_m * ( correctionIterator->second.first * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                        std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                            std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                        ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                          ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                       std::cos( currentAngleCorrections.y( ) ) ) *
@@ -912,7 +912,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
     Eigen::Matrix3d partialsOfRotationMatrix = Eigen::Matrix3d::Zero( );
 
     for( std::map< double, std::pair< double, double > >::iterator correctionIterator = meanMotionDirectNutationCorrections.begin( );
-        correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
+         correctionIterator != meanMotionDirectNutationCorrections.end( ); correctionIterator++ )
     {
         double a_m = correctionIterator->first * meanMotion;
 
@@ -925,7 +925,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
                 currentMeanPhiAngleDerivative *
                 std::sin(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) ) *
                 (coreFactor * a_m * ( correctionIterator->second.first * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                  std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                      std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                  ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                    ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                 rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
@@ -942,9 +942,9 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
                 currentMeanPhiAngleDerivative *
                 std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) ) *
                 (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                  std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                  correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                  ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
+                                      std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                      correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                              ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                 rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
                 ( Eigen::AngleAxisd( currentAngleCorrections.x( ), Eigen::Vector3d::UnitZ( ) ) ).toRotationMatrix( ) *
                 ( Eigen::Matrix3d( ) << 0.0, 0.0, 0.0,
@@ -961,12 +961,12 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
                   std::sin( currentAngleCorrections.y( ) ) *
                   std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) ) *
                   (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                    std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                    correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                    ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
+                                        std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                        correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                                ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
                   std::sin(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) )*
                   (coreFactor * a_m * ( correctionIterator->second.first * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                    std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                        std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                    ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                      ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                   std::cos( currentAngleCorrections.y( ) ) ) *
@@ -987,8 +987,8 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
     {
         currentPhaseAngleCorrection = phaseAngleCorrectionFunctions[ i ]( ephemerisTime );
         for( std::map< double, std::pair< double, double > >::iterator correctionIterator =
-            meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
-            correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
+             meanMotionTimeDependentPhaseNutationCorrections[ i ].begin( );
+             correctionIterator != meanMotionTimeDependentPhaseNutationCorrections[ i ].end( ); correctionIterator++ )
         {
             double a_m = correctionIterator->first * meanMotion;
 
@@ -1002,7 +1002,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
                     std::sin(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) +
                              currentPhaseAngleCorrection ) *
                     (coreFactor * a_m * ( correctionIterator->second.first * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                      std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                          std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                      ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                        ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                     rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
@@ -1020,9 +1020,9 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
                     std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) +
                              currentPhaseAngleCorrection ) *
                     (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                      std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                      correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                      ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
+                                          std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                          correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                                  ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                     rotationFromMeanOrbitToIcrf.toRotationMatrix( ) *
                     ( Eigen::AngleAxisd( currentAngleCorrections.x( ), Eigen::Vector3d::UnitZ( ) ) ).toRotationMatrix( ) *
                     ( Eigen::Matrix3d( ) << 0.0, 0.0, 0.0,
@@ -1041,13 +1041,13 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
                       std::cos(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) +
                                currentPhaseAngleCorrection ) *
                       (coreFactor * a_m * ( 2 * correctionIterator->second.first * freeCoreNutationRate * a_m +
-                        std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
-                        correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
-                        ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
+                                            std::sin( angleIAtEpoch ) * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) *
+                                            correctionIterator->second.second ) / ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
+                                                                                    ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) -
                       std::sin(correctionIterator->first * ( meanMotion * ephemerisTime + bodyMeanAnomalyAtEpoch ) +
                                currentPhaseAngleCorrection )*
                       (coreFactor * a_m * ( correctionIterator->second.first * ( a_m * a_m + freeCoreNutationRate * freeCoreNutationRate ) /
-                        std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
+                                            std::sin( angleIAtEpoch ) + 2 * freeCoreNutationRate * a_m * correctionIterator->second.second  ) /
                        ( ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) *
                          ( freeCoreNutationRate * freeCoreNutationRate - a_m * a_m ) ) ) *
                       std::cos( currentAngleCorrections.y( ) ) ) *
@@ -1062,7 +1062,7 @@ Eigen::Matrix3d calculatePartialOfRotationMatrixFromLocalFrameDerivativeWrtFreeC
         }
     }
 
-        return partialsOfRotationMatrix;
+    return partialsOfRotationMatrix;
 
 }
 
@@ -1113,8 +1113,8 @@ Eigen::Matrix< double, 3, Eigen::Dynamic > RotationMatrixPartial::calculateParti
     {
         rotatedVectorPartial.block( 0, i, 3, 1 ) =
                 -( rotationMatrixPartials.at( i ) * currentRotationToTargetFrameDerivative * currentRotationToBaseFrame +
-                 currentRotationToBaseFrame * rotationMatrixDerivativePartials.at( i ).transpose( ) * currentRotationToBaseFrame +
-                  currentRotationToBaseFrame * currentRotationToTargetFrameDerivative * rotationMatrixPartials.at( i ) ) * vectorInLocalFrame;
+                   currentRotationToBaseFrame * rotationMatrixDerivativePartials.at( i ).transpose( ) * currentRotationToBaseFrame +
+                   currentRotationToBaseFrame * currentRotationToTargetFrameDerivative * rotationMatrixPartials.at( i ) ) * vectorInLocalFrame;
     }
     return rotatedVectorPartial;
 }
@@ -1125,7 +1125,7 @@ calculatePartialOfRotationMatrixToBaseFrameWrParameter( const double time )
 {
     // Get current state/rotation
     Eigen::Matrix3d currentRotationMatrix =
-            synchronousRotationaModel_->getRotationToBaseFrame( time ).toRotationMatrix( );
+            synchronousRotationaModel_->getFullyLockedRotationToBaseFrame( time );
     Eigen::Vector6d currentState =
             synchronousRotationaModel_->getCurrentRelativeState( time );
     Eigen::Vector3d positionVector = currentState.segment( 0, 3 );
@@ -1169,6 +1169,7 @@ calculatePartialOfRotationMatrixToBaseFrameWrParameter( const double time )
     // Build vector of partial derivatives
     std::vector< Eigen::Matrix3d > rotationMatrixPartials;
     rotationMatrixPartials.resize( 6 );
+    Eigen::Matrix3d correctionRotation = synchronousRotationaModel_->getLibrationRotation( time );
     for( int i = 0; i < 3; i++ )
     {
         rotationMatrixPartials[ i ].block( 0, 0, 3, 1 ) =
@@ -1178,16 +1179,85 @@ calculatePartialOfRotationMatrixToBaseFrameWrParameter( const double time )
         rotationMatrixPartials[ i ].block( 0, 2, 3, 1 ) =
                 wVectorDerivativeWrtPosition.block( 0, i, 3, 1 );
 
+        rotationMatrixPartials[ i ] = rotationMatrixPartials[ i ] * correctionRotation;
+
         rotationMatrixPartials[ i + 3 ].block( 0, 0, 3, 1 ).setZero( );
         rotationMatrixPartials[ i + 3 ].block( 0, 1, 3, 1 ) =
                 -sVectorDerivativeWrtVelocity.block( 0, i, 3, 1 );
         rotationMatrixPartials[ i + 3 ].block( 0, 2, 3, 1 ) =
                 wVectorDerivativeWrtVelocity.block( 0, i, 3, 1 );
+
+        rotationMatrixPartials[ i + 3 ] = rotationMatrixPartials[ i + 3 ] * correctionRotation;
+
+        Eigen::Matrix3d nominalMatrix = rotationMatrixPartials[ i ];
+//        if( i == 0 )
+//        {
+//            std::cout<<"Original A: "<<nominalMatrix<<std::endl;
+//        }
+//        if( i == 0 )
+//        {
+//            std::cout<<"Modified A: "<<rotationMatrixPartials[ i ] - nominalMatrix<<std::endl<<std::endl;
+//        }
+
     }
+
+    if( librationMatrixDerivative_ != nullptr )
+    {
+        Eigen::Matrix3d lockedRotation = synchronousRotationaModel_->getFullyLockedRotationToBaseFrame( time );
+
+        std::vector< Eigen::Matrix3d > librationDerivatives =
+                librationMatrixDerivative_->calculatePartialOfRotationMatrixToBaseFrameWrParameter(
+                    time );
+        for( int i = 0; i < 6; i++ )
+        {
+//            if( i == 0 )
+//            {
+//                std::cout<<"Original: "<<rotationMatrixPartials[ i ]<<std::endl;
+//            }
+            rotationMatrixPartials[ i ] += lockedRotation * librationDerivatives.at( i );
+//            if( i == 0 )
+//            {
+//                std::cout<<"Modification: "<<librationDerivatives.at( i )<<std::endl<<std::endl;
+//                std::cout<<"Modification: "<<lockedRotation * librationDerivatives.at( i )<<std::endl<<std::endl;
+//            }
+        }
+    }
+
 
     return rotationMatrixPartials;
 
 }
+
+std::vector< Eigen::Matrix3d > NumericalRotationMatrixPartialWrtTranslationalState::
+calculatePartialOfRotationMatrixToBaseFrameWrParameter( const double time )
+{
+    std::vector< Eigen::Matrix3d > statePartials;
+    Eigen::Matrix3d upperturbedRotationMatrix, downperturbedRotationMatrix;
+
+    Eigen::Vector6d nominalState = getStateFunction_( );
+    Eigen::Vector6d upperturbedState, downperturbedState;
+
+    for( int i = 0; i < 6; i++ )
+    {
+        upperturbedState = nominalState;
+        upperturbedState( i ) += statePerturbations_( i );
+        setStateFunction_( upperturbedState );
+        upperturbedRotationMatrix = rotationMatrixToBaseFrameFunction_( time );
+
+        downperturbedState = nominalState;
+        downperturbedState( i ) -= statePerturbations_( i );
+        setStateFunction_( downperturbedState );
+        downperturbedRotationMatrix = rotationMatrixToBaseFrameFunction_( time );
+
+        statePartials.push_back( -( upperturbedRotationMatrix - downperturbedRotationMatrix ) / (
+                                     2.0 * statePerturbations_( i ) ) );
+
+    }
+    setStateFunction_( nominalState );
+
+    return statePartials;
+}
+
 
 }
 

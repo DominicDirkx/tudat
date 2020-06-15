@@ -371,12 +371,13 @@ BOOST_AUTO_TEST_CASE( testObservationViabilityCalculators )
             getDefaultBodySettings( bodyNames );
 
     // Set simplified rotation models for Earth/Mars (spice rotation retrieval is slow)
+    
     bodySettings[ "Earth" ]->rotationModelSettings = std::make_shared< SimpleRotationModelSettings >(
-                "ECLIPJ2000", "IAU_Earth",
+                "J2000", "IAU_Earth",
                 spice_interface::computeRotationQuaternionBetweenFrames(
-                    "ECLIPJ2000", "IAU_Earth", 0.0 ),
-                0.0, 2.0 * mathematical_constants::PI /
-                ( physical_constants::JULIAN_DAY ) );
+                    "J2000", "IAU_Earth", simulationStartEpoch_ ),
+                simulationStartEpoch_, 2.0 * mathematical_constants::PI / physical_constants::SIDEREAL_DAY );
+    
     bodySettings[ "Mars" ]->rotationModelSettings = std::make_shared< SimpleRotationModelSettings >(
                 "ECLIPJ2000", "IAU_Mars",
                 spice_interface::computeRotationQuaternionBetweenFrames(

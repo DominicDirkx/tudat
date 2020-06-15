@@ -642,6 +642,64 @@ template < typename T > int sgn( const T& val )
     return ( T( 0 ) < val ) - ( val < T( 0 ) );
 }
 
+template< typename KeyType, typename ScalarType, int SizeType >
+std::map< KeyType, ScalarType > getSingleVectorEntryHistory(
+        const std::map< KeyType, Eigen::Matrix< ScalarType, SizeType, 1 > > originalMap, int vectorEntry )
+{
+    std::map< KeyType, ScalarType > extractedMap;
+    for( auto mapIterator : originalMap )
+    {
+        extractedMap[ mapIterator.first ] = mapIterator.second( vectorEntry );
+    }
+    return extractedMap;
+}
+
+//template< typename ScalarType >
+//std::vector< ScalarType > calculateMovingAverage(
+//        const std::vector< ScalarType >& originalVector, const int numberOfNeighboursToUse )
+//{
+//    std::vector< double > newVector;
+//    newVector.resize( originalVector.size( ) );
+
+//    double currentSum = 0.0;
+//    for( int i = 0; i < numberOfNeighboursToUse; i++ )
+//    {
+//        currentSum += originalVector.at( i );
+//    }
+
+//    double currentNumberOfEntries = static_cast< double >( numberOfNeighboursToUse + 1 );
+//    for( int i = 0; i < originalVector.size( ); i++ )
+//    {
+//        bool isAtEnd = !( i < originalVector.size( ) - numberOfNeighboursToUse - 1 );
+//        bool isAtStart = !( i > numberOfNeighboursToUse );
+
+//        if( !isAtEnd )
+//        {
+//            std::cout<<"Added:  "<<originalVector.at( numberOfNeighboursToUse + i )<<" current: "<<currentSum<<std::endl;
+//            currentSum += originalVector.at( numberOfNeighboursToUse + i );
+//        }
+//        if( !isAtStart )
+//        {
+//            std::cout<<"Subtracted:  "<<originalVector.at( i - numberOfNeighboursToUse - 1 )<<" current: "<<currentSum<<std::endl;
+//            currentSum -= originalVector.at( i - numberOfNeighboursToUse - 1 );
+//        }
+
+//        newVector[ i ] = currentSum / currentNumberOfEntries;
+//        std::cout<<i<<" "<< newVector[ i ] <<" "<< currentSum<<" "<<  currentNumberOfEntries<<" "<<
+//                 isAtStart<<" "<<  isAtEnd<<std::endl;
+
+//        if( isAtStart )
+//        {
+//            currentNumberOfEntries++;
+//        }
+//        if( isAtEnd )
+//        {
+//            currentNumberOfEntries--;
+//        }
+
+//    }
+//    return newVector;
+//}
 
 } // namespace utilities
 

@@ -702,7 +702,7 @@ std::shared_ptr< estimatable_parameters::EstimatableParameter< double > > create
             }
             break;
         }
-        case longitude_libration_amplitude:
+        case scaled_longitude_libration_amplitude:
         {
             if( std::dynamic_pointer_cast< SynchronousRotationalEphemeris >( currentBody->getRotationalEphemeris( ) ) == nullptr )
             {
@@ -712,9 +712,23 @@ std::shared_ptr< estimatable_parameters::EstimatableParameter< double > > create
             }
             else
             {
-                doubleParameterToEstimate = std::make_shared< LongitudeLibrationAmplitude >
-                        ( std::dynamic_pointer_cast< SynchronousRotationalEphemeris >
-                          ( currentBody->getRotationalEphemeris( ) ), currentBodyName );
+                std::shared_ptr< LongitudeLibrationCalculator > longitudeLibrationCalculator =
+                        std::dynamic_pointer_cast< SynchronousRotationalEphemeris >( currentBody->getRotationalEphemeris( ) )->
+                        getLongitudeLibrationCalculator( );
+
+                if( std::dynamic_pointer_cast< DirectLongitudeLibrationCalculator >( longitudeLibrationCalculator ) == nullptr )
+                {
+                    std::string errorMessage = "Warning, no direct libration model " + currentBodyName +
+                            " when making scaled longitude libration parameter";
+                    throw std::runtime_error( errorMessage );
+                }
+                else
+                {
+
+                doubleParameterToEstimate = std::make_shared< ScaledLongitudeLibrationAmplitude >
+                        ( std::dynamic_pointer_cast< DirectLongitudeLibrationCalculator >( longitudeLibrationCalculator ),
+                          currentBodyName );
+                }
 
             }
             break;

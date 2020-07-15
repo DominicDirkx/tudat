@@ -696,36 +696,43 @@ private:
 
 };
 
-class RotationMatrixPartialWrtLongitudeLibrationAmplitude: public RotationMatrixPartial
+class RotationMatrixPartialWrtScaledLongitudeLibrationAmplitude: public RotationMatrixPartial
 {
 public:
 
     //! Constructor
-    RotationMatrixPartialWrtLongitudeLibrationAmplitude(
+    RotationMatrixPartialWrtScaledLongitudeLibrationAmplitude(
             const std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > bodyRotationModel ):
         RotationMatrixPartial( bodyRotationModel ),
-        bodyRotationModel_( bodyRotationModel ){ }
+        bodyRotationModel_( bodyRotationModel )
+    {
+        librationModel_ = std::dynamic_pointer_cast< ephemerides::DirectLongitudeLibrationCalculator >(
+                    bodyRotationModel->getLongitudeLibrationCalculator( ) );
+        if( librationModel_ == nullptr )
+        {
+            throw std::runtime_error(
+                        "Error when mkaing rotation matrix partial w.r.t. scaled libration, no compatible libration found" );
+        }
+    }
 
     //! Destructor.
-    ~RotationMatrixPartialWrtLongitudeLibrationAmplitude( ){ }
+    ~RotationMatrixPartialWrtScaledLongitudeLibrationAmplitude( ){ }
 
 
     std::vector< Eigen::Matrix3d > calculatePartialOfRotationMatrixToBaseFrameWrParameter(
             const double time )
     {
-        Eigen::Matrix3d fullyLockedRotation = bodyRotationModel_->getFullyLockedRotationToBaseFrame( time );
-        double nominalLibrationAmplitude = bodyRotationModel_->getLibrationAmplitude( );
-        double amplitudeVariation = mathematical_constants::PI / 180.0;
+        Eigen::Vector6d relativeState = bodyRotationModel_->getRelativeCartesianState( time );
 
-        Eigen::Matrix3d upPerturbedLibrationRotation = Eigen::AngleAxisd(
-                    -bodyRotationModel_->getLibrationAngleFunction( )(
-                        time, nominalLibrationAmplitude + amplitudeVariation ), Eigen::Vector3d::UnitZ( ) ).toRotationMatrix( );
-        Eigen::Matrix3d downPerturbedLibrationRotation = Eigen::AngleAxisd(
-                    -bodyRotationModel_->getLibrationAngleFunction( )(
-                        time, nominalLibrationAmplitude - amplitudeVariation ), Eigen::Vector3d::UnitZ( ) ).toRotationMatrix( );
+        Eigen::Matrix3d fullyLockedRotation = bodyRotationModel_->getFullyLockedRotationToBaseFrame(
+                    relativeState, time );
+        Eigen::Matrix3d librationCorrectionRotation = bodyRotationModel_->getLibrationRotation(
+                    relativeState, time );
+        double librationAngleDerivativeWrtAmplitude = librationModel_->getLibrationAngleWrtFullySynchronousRotationFromScaledLibration(
+                    relativeState, time, 1.0 );
 
-        return  { fullyLockedRotation * ( upPerturbedLibrationRotation - downPerturbedLibrationRotation ) /
-                    ( 2.0 * amplitudeVariation ) };
+        return { fullyLockedRotation * reference_frames::Z_AXIS_ROTATION_MATRIX_DERIVATIVE_PREMULTIPLIER *
+              librationCorrectionRotation *   librationAngleDerivativeWrtAmplitude };
     }
 
 
@@ -738,6 +745,9 @@ public:
 private:
 
     std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > bodyRotationModel_;
+
+    std::shared_ptr< ephemerides::DirectLongitudeLibrationCalculator > librationModel_;
+
 
 };
 
@@ -910,7 +920,9 @@ private:
     std::function< Eigen::Matrix3d( const double ) > rotationMatrixToBaseFrameFunction_;
 };
 
-
+Eigen::Matrix< double, 1, 6 > calculatePartialOfDirectLibrationAngleWrtCartesianStates(
+        const Eigen::Vector6d& currentState,
+        const double scaledLibrationAmplitude );
 
 //! Class to calculate a rotation matrix from a body-fixed to inertial frame w.r.t. the translational state for synchronous rotation
 /*!
@@ -929,10 +941,11 @@ public:
     SynchronousRotationMatrixPartialWrtTranslationalState(
             const std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > synchronousRotationaModel ):
         RotationMatrixPartial( synchronousRotationaModel ),
-        synchronousRotationaModel_( synchronousRotationaModel ),
-        librationMatrixDerivative_( nullptr )
+        synchronousRotationaModel_( synchronousRotationaModel )
     {
-
+        directLongitudeLibrationCalculator_ = std::dynamic_pointer_cast<
+                ephemerides::DirectLongitudeLibrationCalculator >(
+                    synchronousRotationaModel->getLongitudeLibrationCalculator( ) );
     }
 
     //! Destructor
@@ -963,20 +976,12 @@ public:
 
     }
 
-    void setLibrationDerivatives(
-            const std::shared_ptr< NumericalRotationMatrixPartialWrtTranslationalState > librationMatrixDerivative )
-    {
-        librationMatrixDerivative_ = librationMatrixDerivative;
-    }
-
-
 private:
 
     //! Rotation model that defines the synchronous rotation
     std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > synchronousRotationaModel_;
 
-    std::shared_ptr< NumericalRotationMatrixPartialWrtTranslationalState > librationMatrixDerivative_;
-
+    std::shared_ptr< ephemerides::DirectLongitudeLibrationCalculator > directLongitudeLibrationCalculator_;
 };
 
 

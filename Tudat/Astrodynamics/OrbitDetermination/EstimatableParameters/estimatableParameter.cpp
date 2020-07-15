@@ -114,8 +114,8 @@ std::string getParameterTypeString( const EstimatebleParametersEnum parameterTyp
     case desaturation_delta_v_values:
         parameterDescription = " momentum wheel desaturation Delta V ";
         break;
-    case longitude_libration_amplitude:
-        parameterDescription = " longitude libration amplitude ";
+    case scaled_longitude_libration_amplitude:
+        parameterDescription = " scaled longitude libration amplitude ";
         break;
     default:
         std::string errorMessage = "Error when getting parameter string, did not recognize parameter " +
@@ -237,7 +237,7 @@ bool isDoubleParameter( const EstimatebleParametersEnum parameterType )
     case free_core_nutation_rate:
         isDoubleParameter = true;
         break;
-    case longitude_libration_amplitude:
+    case scaled_longitude_libration_amplitude:
         isDoubleParameter = true;
         break;
     default:
@@ -274,7 +274,7 @@ bool isParameterRotationMatrixProperty( const EstimatebleParametersEnum paramete
     case free_core_nutation_rate:
         flag = true;
         break;
-    case longitude_libration_amplitude:
+    case scaled_longitude_libration_amplitude:
         flag = true;
         break;
     default:

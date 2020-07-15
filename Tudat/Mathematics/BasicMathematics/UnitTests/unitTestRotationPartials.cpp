@@ -113,30 +113,28 @@ Eigen::Matrix3d getTestRotationMatrix(
 
 BOOST_AUTO_TEST_CASE( testEulerAngles )
 {
+    // Retrieve test quaternion
     Eigen::Quaterniond quaternion  = Eigen::Quaterniond( getTestRotationMatrix( 0.0 ) );
+
+    // Convert to Euler angles
     Eigen::Vector3d eulerAngles = get313EulerAnglesFromQuaternion( quaternion );
 
+    // Check if angles are correctly retrieved
     BOOST_CHECK_SMALL( std::fabs( eulerAngles( 0 ) + 1.2 ), 1.0E-15 );
     BOOST_CHECK_SMALL( std::fabs( eulerAngles( 1 ) - 0.3 ), 1.0E-15 );
     BOOST_CHECK_SMALL( std::fabs( eulerAngles( 2 ) + 0.4 ), 1.0E-15 );
 
-
+    // Recomputed quaternion from Euler angles
     Eigen::Quaterniond recomputedQuaternion  = getQuaternionFrom313EulerAngles( eulerAngles );
 
+    // Recomputed quaternion manually
     Eigen::Quaterniond manualQuaternion = Eigen::Quaterniond(
                 Eigen::AngleAxisd( -eulerAngles( 0 ), Eigen::Vector3d::UnitZ( ) ) *
                 Eigen::AngleAxisd( -eulerAngles( 1 ), Eigen::Vector3d::UnitX( ) ) *
                 Eigen::AngleAxisd( -eulerAngles( 2 ), Eigen::Vector3d::UnitZ( ) ) );
-//    Eigen::Matrix3d rotationMatrix = manualQuaternion.toRotationMatrix( );
 
+    // Recomputed Euler angles
     Eigen::Vector3d newEulerAngles = get313EulerAnglesFromQuaternion( recomputedQuaternion );
-//    std::cout<<eulerAngles.transpose( )<<std::endl;
-//    std::cout<<newEulerAngles.transpose( )<<std::endl;
-
-//    std::cout<<quaternion.w( )<<" "<<recomputedQuaternion.w( )<<" "<<manualQuaternion.w( )<<std::endl;
-//    std::cout<<quaternion.x( )<<" "<<recomputedQuaternion.x( )<<" "<<manualQuaternion.x( )<<std::endl;
-//    std::cout<<quaternion.y( )<<" "<<recomputedQuaternion.y( )<<" "<<manualQuaternion.y( )<<std::endl;
-//    std::cout<<quaternion.z( )<<" "<<recomputedQuaternion.z( )<<" "<<manualQuaternion.z( )<<std::endl;
 
     BOOST_CHECK_SMALL( std::fabs( newEulerAngles.x( ) - eulerAngles.x( ) ), 1.0E-15 );
     BOOST_CHECK_SMALL( std::fabs( newEulerAngles.y( ) - eulerAngles.y( ) ), 1.0E-15 );
@@ -179,10 +177,13 @@ BOOST_AUTO_TEST_CASE( testEulerAngleRetrieval )
         const double angleX = 0.3;
         const double angleZ1 = 1.45;
 
+        // Computed rotation matrix by concatenation of Eigen functions
         Eigen::Matrix3d rotationMatrix =
                 ( Eigen::AngleAxisd( -angleZ2, Eigen::Vector3d::UnitZ( ) ) *
                   Eigen::AngleAxisd( -angleX, Eigen::Vector3d::UnitX( ) ) *
                   Eigen::AngleAxisd( -angleZ1, Eigen::Vector3d::UnitZ( ) ) ).toRotationMatrix( );
+
+        // Computed rotation matrix by manually
         Eigen::Matrix3d manualMatrix =
                 ( Eigen::Matrix3d( ) <<
                   std::cos( angleZ2 ), std::sin( angleZ2 ), 0.0,
@@ -196,16 +197,23 @@ BOOST_AUTO_TEST_CASE( testEulerAngleRetrieval )
                   std::cos( angleZ1 ), std::sin( angleZ1 ), 0.0,
                   -std::sin( angleZ1 ), std::cos( angleZ1 ), 0.0,
                   0.0, 0.0, 1.0 ).finished( );
+
+        // Check if matrices are euqal
         TUDAT_CHECK_MATRIX_CLOSE_FRACTION( rotationMatrix, manualMatrix, 1.0E-15 );
 
+        // Convert manual rotation matrix to quaternion
         Eigen::Quaterniond rotationQuaternion =
                 Eigen::Quaterniond( manualMatrix );
+
+        // Compute quaternion manually from rotation matrix
         double quaternionEntryW = 0.5 * std::sqrt( 1.0 + manualMatrix( 0, 0 ) + manualMatrix( 1, 1 ) + manualMatrix( 2, 2 ) );
         Eigen::Quaterniond manualQuaternion = Eigen::Quaterniond(
                     quaternionEntryW,
                     0.5 * ( manualMatrix( 1, 2 ) - manualMatrix( 2, 1 ) ) / ( 2.0 * quaternionEntryW ),
                     0.5 * ( manualMatrix( 2, 0 ) - manualMatrix( 0, 2 ) ) / ( 2.0 *quaternionEntryW ),
                     0.5 * ( manualMatrix( 0, 1 ) - manualMatrix( 1, 0 ) ) / ( 2.0 *quaternionEntryW ) );
+
+        // Check if quaternions are equal
         BOOST_CHECK_CLOSE_FRACTION( manualQuaternion.w( ), rotationQuaternion.w( ), 1.0E-15 );
         BOOST_CHECK_CLOSE_FRACTION( manualQuaternion.x( ), -rotationQuaternion.x( ), 1.0E-15 );
         BOOST_CHECK_CLOSE_FRACTION( manualQuaternion.y( ), -rotationQuaternion.y( ), 1.0E-15 );
@@ -271,6 +279,41 @@ BOOST_AUTO_TEST_CASE( testEulerAnglePartials )
     }
 }
 
+BOOST_AUTO_TEST_CASE( testQuaternionPartials )
+{
+    Eigen::Quaterniond quaternion  = Eigen::Quaterniond( getTestRotationMatrix( 0.3 ) );
+    Eigen::Vector3d eulerAngles = get313EulerAnglesFromQuaternion( quaternion );
+
+    Eigen::Matrix< double, 4, 3 > quaternionPartials = calculateQuaternionWrtEulerAngle313Partial(
+                quaternion );
+    Eigen::Matrix< double, 4, 3 > numericalQuaternionPartials;
+    numericalQuaternionPartials.setZero( );
+
+    for( int j = -5; j < -4; j++ )
+    {
+        double anglePerturbation = std::pow( 10.0, j );
+        Eigen::Vector3d perturbedEulerAngles;
+        Eigen::Quaterniond upperturbedQuaternions, downperturbedQuaternions;
+        for( int i = 0; i < 3; i++ )
+        {
+            perturbedEulerAngles = eulerAngles;
+            perturbedEulerAngles( i ) += anglePerturbation;
+            upperturbedQuaternions = getQuaternionFrom313EulerAngles( perturbedEulerAngles );
+
+            perturbedEulerAngles = eulerAngles;
+            perturbedEulerAngles( i ) -= anglePerturbation;
+            downperturbedQuaternions = getQuaternionFrom313EulerAngles( perturbedEulerAngles );
+
+            numericalQuaternionPartials.block( 0, i, 4, 1 ) =
+                    ( linear_algebra::convertQuaternionToVectorFormat( upperturbedQuaternions ) -
+                      linear_algebra::convertQuaternionToVectorFormat( downperturbedQuaternions ) ) /
+                    ( 2.0 * anglePerturbation );
+
+        }
+        TUDAT_CHECK_MATRIX_CLOSE_FRACTION( quaternionPartials, numericalQuaternionPartials, 1.0E-10 );
+    }
+
+}
 BOOST_AUTO_TEST_SUITE_END( )
 
 } // namespace unit_tests

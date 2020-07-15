@@ -193,7 +193,7 @@ void getDegreeTwoSphericalHarmonicCoefficients(
                     cosineCoefficients, sineCoefficients );
     }
 
-    scaledMeanMomentOfInertia = ( inertiaTensor( 0, 0 ) + inertiaTensor( 1, 1 ) + inertiaTensor( 2, 2 ) ) / 3.0;
+    scaledMeanMomentOfInertia = ( inertiaTensor( 0, 0 ) + inertiaTensor( 1, 1 ) + inertiaTensor( 2, 2 ) ) / ( 3.0 * scalingTerm );
 }
 
 } // namespace gravitation

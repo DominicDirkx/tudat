@@ -23,6 +23,60 @@ namespace tudat
 namespace ephemerides
 {
 
+class LongitudeLibrationCalculator
+{
+public:
+    LongitudeLibrationCalculator( ){ }
+
+    virtual ~LongitudeLibrationCalculator( ){ }
+
+    virtual double getLibrationAngleWrtFullySynchronousRotation(
+            const Eigen::Vector6d& relativeState,
+            const double time ) = 0;
+protected:
+
+private:
+};
+
+class DirectLongitudeLibrationCalculator: public LongitudeLibrationCalculator
+{
+public:
+    DirectLongitudeLibrationCalculator(
+            const double scaledLibrationAmplitude ):
+        LongitudeLibrationCalculator( ),
+        scaledLibrationAmplitude_( scaledLibrationAmplitude )
+    { }
+
+    ~DirectLongitudeLibrationCalculator( ){ }
+
+    double getLibrationAngleWrtFullySynchronousRotationFromScaledLibration(
+            const Eigen::Vector6d& relativeState,
+            const double time,
+            const double scaledLibrationAmplitude );
+
+    double getLibrationAngleWrtFullySynchronousRotation(
+            const Eigen::Vector6d& relativeState,
+            const double time )
+    {
+        return getLibrationAngleWrtFullySynchronousRotationFromScaledLibration( relativeState, time, scaledLibrationAmplitude_ );
+    }
+
+    double getScaledLibrationAmplitude( )
+    {
+        return scaledLibrationAmplitude_;
+    }
+
+    void setScaledLibrationAmplitude( const double scaledLibrationAmplitude )
+    {
+        scaledLibrationAmplitude_ = scaledLibrationAmplitude;
+    }
+
+private:
+
+    double scaledLibrationAmplitude_;
+
+};
+
 //! Class to define a fully synchronous rotation model for a body
 /*!
  *  Class to define a fully synchronous rotation model for a body. The body-fixed x-axis always points directly to the
@@ -47,30 +101,33 @@ public:
             const std::string& centralBodyName,
             const std::string& baseFrameOrientation,
             const std::string& targetFrameOrientation,
-            const double longitudeLibrationAmlpitude = TUDAT_NAN,
-            std::function< double( const double, const double ) > librationAngleFunction = nullptr  ):
+            const std::shared_ptr< LongitudeLibrationCalculator > longitudeLibrationCalculator = nullptr ):
         RotationalEphemeris( baseFrameOrientation, targetFrameOrientation ),
         relativeStateFunction_( relativeStateFunction ),
         isBodyInPropagation_( 0 ),
         centralBodyName_( centralBodyName ),
-        librationAngleFunction_( librationAngleFunction ),
+        longitudeLibrationCalculator_( longitudeLibrationCalculator ),
         warningPrinted_( false ),
         isLibrationOn_( false )
     {
-        if( !std::isnan( longitudeLibrationAmlpitude ) )
+        if( longitudeLibrationCalculator != nullptr )
         {
             isLibrationOn_ = true;
-            if( librationAngleFunction_ == nullptr )
-            {
-                throw std::runtime_error( "Error when making synchronous rotation model: libration defined, but no mean anomaly" );
-            }
         }
     }
 
     //! Destructor
     ~SynchronousRotationalEphemeris( ){ }
 
+    Eigen::Matrix3d getFullyLockedRotationToBaseFrame(
+            const Eigen::Vector6d& relativeState,
+            const double currentTime );
+
     Eigen::Matrix3d getFullyLockedRotationToBaseFrame( const double currentTime );
+
+    Eigen::Matrix3d getLibrationRotation(
+            const Eigen::Vector6d& relativeState,
+            const double currentTime );
 
     Eigen::Matrix3d getLibrationRotation( const double currentTime );
 
@@ -139,40 +196,30 @@ public:
     }
 
 
-    void setLibrationAmplitude(
-            const double longitudeLibrationAmlpitude )
-    {
-        longitudeLibrationAmlpitude_ = longitudeLibrationAmlpitude;
-    }
-
-    double getLibrationAmplitude( )
-    {
-        return longitudeLibrationAmlpitude_;
-    }
-
-    std::function< double( const double, const double ) > getLibrationAngleFunction( )
-    {
-        return librationAngleFunction_;
-    }
-
-
     void setLibrationCalculation(
-            const double longitudeLibrationAmlpitude = TUDAT_NAN,
-            std::function< double( const double, const double ) > librationAngleFunction = nullptr )
+            const std::shared_ptr< LongitudeLibrationCalculator > longitudeLibrationCalculator )
     {
-        longitudeLibrationAmlpitude_ = longitudeLibrationAmlpitude;
-        librationAngleFunction_ = librationAngleFunction;
+        longitudeLibrationCalculator_ = longitudeLibrationCalculator;
 
-        if( !std::isnan( longitudeLibrationAmlpitude ) )
+        if( longitudeLibrationCalculator_ != nullptr )
         {
             isLibrationOn_ = true;
-            if( librationAngleFunction_ == nullptr )
-            {
-                throw std::runtime_error( "Error when making synchronous rotation model: libration defined, but no mean anomaly" );
-            }
+        }
+        else
+        {
+            isLibrationOn_ = false;
         }
     }
 
+    std::shared_ptr< LongitudeLibrationCalculator > getLongitudeLibrationCalculator( )
+    {
+        return longitudeLibrationCalculator_;
+    }
+
+    Eigen::Vector6d getRelativeCartesianState( const double time )
+    {
+        return relativeStateFunction_( time, isBodyInPropagation_ );
+    }
 
 private:
 
@@ -185,9 +232,7 @@ private:
     //! Name of central body
     std::string centralBodyName_;
 
-    double longitudeLibrationAmlpitude_;
-
-    std::function< double( const double, const double ) > librationAngleFunction_;
+    std::shared_ptr< LongitudeLibrationCalculator > longitudeLibrationCalculator_;
 
     //!  Boolean defining whether the warning for the time-derivative of rotation amtrix has been printed.
     bool warningPrinted_;

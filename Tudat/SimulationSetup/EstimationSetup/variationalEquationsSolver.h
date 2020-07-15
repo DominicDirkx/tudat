@@ -864,6 +864,12 @@ public:
         }
     }
 
+    std::shared_ptr< VariationalEquations > getVariationalEquationsObject( )
+    {
+        return variationalEquationsObject_;
+    }
+
+
 protected:
 
 private:

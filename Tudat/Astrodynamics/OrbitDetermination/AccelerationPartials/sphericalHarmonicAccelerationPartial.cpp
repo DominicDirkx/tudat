@@ -379,7 +379,6 @@ void SphericalHarmonicsGravityPartial::update( const double currentTime )
             {
                 currentPartialWrtPosition_.block( 0, i, 3, 1 ) -=
                         rotationPositionPartials.at( i ) * ( currentRotationToBodyFixedFrame_ * nonCentralAcceleration );
-
                 currentPartialWrtPosition_.block( 0, i, 3, 1 ) -=
                         currentRotationToBodyFixedFrame_.inverse( ) * nonCentralBodyFixedPartial *
                         ( rotationPositionPartials.at( i ).transpose( ) *

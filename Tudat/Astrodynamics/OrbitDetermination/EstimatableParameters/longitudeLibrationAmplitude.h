@@ -22,29 +22,30 @@ namespace estimatable_parameters
 {
 
 
-class LongitudeLibrationAmplitude: public EstimatableParameter< double >
+class ScaledLongitudeLibrationAmplitude: public EstimatableParameter< double >
 {
 
 public:
 
 
-    LongitudeLibrationAmplitude(
-            const std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > rotationModel,
+    ScaledLongitudeLibrationAmplitude(
+            const std::shared_ptr< ephemerides::DirectLongitudeLibrationCalculator > librationCalculator,
             const std::string& associatedBody ):
-        EstimatableParameter< double  >( longitude_libration_amplitude, associatedBody ),
-        rotationModel_( rotationModel ) { }
+        EstimatableParameter< double  >( scaled_longitude_libration_amplitude, associatedBody ),
+        librationCalculator_( librationCalculator ) { }
 
-    ~LongitudeLibrationAmplitude( ) { }
+    ~ScaledLongitudeLibrationAmplitude( ) { }
 
 
     double getParameterValue( )
     {
-        return rotationModel_->getLibrationAmplitude( );
+        return librationCalculator_->getScaledLibrationAmplitude( );
     }
 
     void setParameterValue( const double parameterValue )
     {
-        rotationModel_->setLibrationAmplitude( parameterValue );
+        std::cout<<"SETTING value: "<<parameterValue<<std::endl;
+        librationCalculator_->setScaledLibrationAmplitude( parameterValue );
     }
 
     int getParameterSize( )
@@ -56,7 +57,7 @@ protected:
 
 private:
 
-    std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > rotationModel_;
+    std::shared_ptr< ephemerides::DirectLongitudeLibrationCalculator > librationCalculator_;
 };
 
 } // namespace estimatable_parameters

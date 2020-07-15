@@ -288,7 +288,8 @@ std::shared_ptr< ephemerides::RotationalEphemeris > createRotationModel(
                                               synchronousRotationSettings->getOriginalFrame( ) + " frame." );
                 }
             }
-            std::shared_ptr< SynchronousRotationalEphemeris > synchronousRotationalEphemeris = std::make_shared< SynchronousRotationalEphemeris >(
+            std::shared_ptr< SynchronousRotationalEphemeris > synchronousRotationalEphemeris =
+                    std::make_shared< SynchronousRotationalEphemeris >(
                         createRelativeStateFunction( bodyMap, body, synchronousRotationSettings->getCentralBodyName( ) ),
                         synchronousRotationSettings->getCentralBodyName( ),
                         synchronousRotationSettings->getOriginalFrame( ),

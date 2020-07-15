@@ -64,7 +64,7 @@ enum EstimatebleParametersEnum
     core_factor,
     free_core_nutation_rate,
     desaturation_delta_v_values,
-    longitude_libration_amplitude
+    scaled_longitude_libration_amplitude
 };
 
 std::string getParameterTypeString( const EstimatebleParametersEnum parameterType );

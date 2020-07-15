@@ -842,6 +842,7 @@ double getLibrationAngleFromInstantaneousState( double currentTime, const double
 //! Unit test to check working onf spherical harmonic state partial for synchronously rotating body (and rotation depending on state)
 BOOST_AUTO_TEST_CASE( testSphericalHarmonicAccelerationPartialWithSynchronousRotation )
 {
+
     // Define bodies in simulation
     std::vector< std::string > bodyNames;
     bodyNames.push_back( "Earth" );
@@ -860,13 +861,10 @@ BOOST_AUTO_TEST_CASE( testSphericalHarmonicAccelerationPartialWithSynchronousRot
     std::dynamic_pointer_cast< tudat::ephemerides::SynchronousRotationalEphemeris >(
                 earth->getRotationalEphemeris( ) )->setIsBodyInPropagation( 1 );
 
-    std::function< double( const double, const double ) > librationAngleFunction  =
-            std::bind( &getLibrationAngleFromInstantaneousState,
-                       std::placeholders::_1, std::placeholders::_2,
-                       bodyMap, "Earth", "Moon" );
 
     std::dynamic_pointer_cast< tudat::ephemerides::SynchronousRotationalEphemeris >(
-                earth->getRotationalEphemeris( ) )->setLibrationCalculation( 0.01, librationAngleFunction );
+                earth->getRotationalEphemeris( ) )->setLibrationCalculation(
+                std::make_shared< ephemerides::DirectLongitudeLibrationCalculator >( -3.0 ) );
 
     setGlobalFrameBodyEphemerides( bodyMap, "Earth", "ECLIPJ2000" );
 
@@ -895,9 +893,10 @@ BOOST_AUTO_TEST_CASE( testSphericalHarmonicAccelerationPartialWithSynchronousRot
 
     // Declare perturbations in position for numerical partial/
     Eigen::Vector3d positionPerturbation;
-    positionPerturbation << 1000.0, 1000.0, 1000.0;
+    positionPerturbation << 10.0, 10.0, 10.0;
     Eigen::Vector3d velocityPerturbation;
-    velocityPerturbation << 1.0, 1.0, 1.0;
+    velocityPerturbation << 0.01, 0.01, 0.01;
+
 
     // Create state access/modification functions for bodies.
     std::function< void( Eigen::Vector6d ) > earthStateSetFunction =
@@ -961,17 +960,19 @@ BOOST_AUTO_TEST_CASE( testSphericalHarmonicAccelerationPartialWithSynchronousRot
 
 //    TUDAT_CHECK_MATRIX_CLOSE_FRACTION( testPartialWrtMoonPosition, partialWrtMoonPosition, 1.0E-6 );
 
-    std::cout<<"Nom pos.: "<<std::endl<<
-               testPartialWrtMoonPosition<<std::endl<<std::endl<<std::endl<<
+    std::cout<</*"Nom pos.: "<<std::endl<<
+               testPartialWrtMoonPosition<<std::endl<<std::endl<<std::endl<<*/
                "Diff pos.: "<<std::endl<<
                ( testPartialWrtMoonPosition - partialWrtMoonPosition ).cwiseQuotient(
                    testPartialWrtMoonPosition )<<std::endl<<std::endl;
 
-    std::cout<<"Nom vel.: "<<std::endl<<
-               testPartialWrtMoonVelocity<<std::endl<<std::endl<<std::endl<<
+    std::cout<</*"Nom vel.: "<<std::endl<<
+               testPartialWrtMoonVelocity<<std::endl<<std::endl<<std::endl<<*/
                "Diff vel.: "<<std::endl<<
                ( testPartialWrtMoonVelocity - partialWrtMoonVelocity ).cwiseQuotient(
                    testPartialWrtMoonVelocity )<<std::endl<<std::endl;
+
+
 
 //    TUDAT_CHECK_MATRIX_CLOSE_FRACTION( testPartialWrtMoonVelocity, partialWrtMoonVelocity, 1.0E-4 );
 

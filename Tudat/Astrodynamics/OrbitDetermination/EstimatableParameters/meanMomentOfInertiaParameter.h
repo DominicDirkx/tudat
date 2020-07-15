@@ -38,7 +38,10 @@ public:
             const std::function< void( const double ) > setMeanMomentOfInertia,
             const std::string& associatedBody ):
         EstimatableParameter< double >( mean_moment_of_inertia, associatedBody ),
-        getMeanMomentOfInertia_( getMeanMomentOfInertia ), setMeanMomentOfInertia_( setMeanMomentOfInertia ){ }
+        getMeanMomentOfInertia_( getMeanMomentOfInertia ), setMeanMomentOfInertia_( setMeanMomentOfInertia )
+    {
+        std::cout<<"Current mean moment of inertia "<<getMeanMomentOfInertia( )<<std::endl;
+    }
 
     //! Destructor
     ~MeanMomentOfInertiaParameter( ) { }

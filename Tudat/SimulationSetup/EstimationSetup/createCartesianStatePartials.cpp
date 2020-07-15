@@ -298,31 +298,12 @@ std::shared_ptr< RotationMatrixPartial > createRotationMatrixPartialsWrtTranslat
     std::shared_ptr< ephemerides::SynchronousRotationalEphemeris > synchronousRotationModel =
             std::dynamic_pointer_cast< ephemerides::SynchronousRotationalEphemeris >(
                 currentBody->getRotationalEphemeris( ) );
+
     if( synchronousRotationModel != nullptr )
     {
         rotationMatrixPartial = std::make_shared< SynchronousRotationMatrixPartialWrtTranslationalState >(
                     std::dynamic_pointer_cast< ephemerides::SynchronousRotationalEphemeris >(
                         currentBody->getRotationalEphemeris( ) ) );
-        if( synchronousRotationModel->getLibrationAngleFunction( ) != nullptr )
-        {
-
-            Eigen::Vector6d statePerturbations = 1.0 * (
-                        Eigen::Vector6d( ) << 10.0, 10.0, 10.0, 0.01, 0.01, 0.01 ).finished( );
-            std::function< void( const Eigen::Vector6d& ) > setStateFunction =
-                    std::bind( &simulation_setup::Body::setState, currentBody, std::placeholders::_1 );
-            std::function< Eigen::Vector6d( ) > getStateFunction =
-                    std::bind( &simulation_setup::Body::getState, currentBody );
-            std::function< Eigen::Matrix3d( const double ) > getLibrationRotation =
-                    std::bind( &ephemerides::SynchronousRotationalEphemeris::getLibrationRotation, synchronousRotationModel,
-                               std::placeholders::_1 );
-            std::shared_ptr< NumericalRotationMatrixPartialWrtTranslationalState > librationMatrixDerivative =
-                    std::make_shared< NumericalRotationMatrixPartialWrtTranslationalState >(
-                        setStateFunction, getStateFunction, statePerturbations, getLibrationRotation );
-
-            std::dynamic_pointer_cast< SynchronousRotationMatrixPartialWrtTranslationalState >(
-                        rotationMatrixPartial )->setLibrationDerivatives( librationMatrixDerivative );
-
-        }
     }
     return rotationMatrixPartial;
 }
@@ -387,7 +368,7 @@ std::shared_ptr< RotationMatrixPartial > createRotationMatrixPartialsWrtParamete
                     std::dynamic_pointer_cast< PlanetaryRotationModel >( currentBody->getRotationalEphemeris() ));
 
         break;
-    case estimatable_parameters::longitude_libration_amplitude:
+    case estimatable_parameters::scaled_longitude_libration_amplitude:
 
         if( std::dynamic_pointer_cast< ephemerides::SynchronousRotationalEphemeris >(
                     currentBody->getRotationalEphemeris() ) == nullptr ){
@@ -397,7 +378,7 @@ std::shared_ptr< RotationMatrixPartial > createRotationMatrixPartialsWrtParamete
         }
 
         // Create rotation matrix partial object
-        rotationMatrixPartial = std::make_shared< RotationMatrixPartialWrtLongitudeLibrationAmplitude >(
+        rotationMatrixPartial = std::make_shared< RotationMatrixPartialWrtScaledLongitudeLibrationAmplitude >(
                     std::dynamic_pointer_cast< SynchronousRotationalEphemeris >( currentBody->getRotationalEphemeris( ) ) );
 
         break;

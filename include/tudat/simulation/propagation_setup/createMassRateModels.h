@@ -109,6 +109,19 @@ public:
 };
 
 
+inline std::shared_ptr< MassRateModelSettings > customMassRate(
+        const std::function< double( const double ) > massRateFunction )
+{
+    return std::make_shared< CustomMassRateModelSettings >( massRateFunction );
+}
+
+inline std::shared_ptr< MassRateModelSettings > fromThrustMassRate(
+        const bool useAllThrustModels = 1,
+        const std::string& associatedThrustSource = "" )
+{
+    return std::make_shared< FromThrustMassModelSettings >( useAllThrustModels, associatedThrustSource );
+}
+
 typedef std::map< std::string, std::vector< std::shared_ptr< MassRateModelSettings > > > SelectedMassRateModelMap;
 
 

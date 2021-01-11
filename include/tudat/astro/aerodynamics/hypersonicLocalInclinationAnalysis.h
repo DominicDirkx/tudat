@@ -103,7 +103,7 @@ public:
      */
     HypersonicLocalInclinationAnalysis(
             const std::vector< std::vector< double > >& dataPointsOfIndependentVariables,
-            const std::shared_ptr< SurfaceGeometry > inputVehicleSurface,
+            const std::shared_ptr< geometric_shapes::SurfaceGeometry > inputVehicleSurface,
             const std::vector< int >& numberOfLines,
             const std::vector< int >& numberOfPoints,
             const std::vector< bool >& invertOrders,

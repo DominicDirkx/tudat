@@ -19,6 +19,8 @@
 namespace tudat
 {
 
+namespace geometric_shapes
+{
 //! Surface geometry base class.
 /*!
  * Base class for surface geometry representations in terms of two
@@ -38,6 +40,8 @@ protected:
 
 private:
 };
+
+}
 
 } // namespace tudat
 

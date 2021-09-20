@@ -299,7 +299,6 @@ std::shared_ptr< ephemerides::Ephemeris > createBodyEphemeris(
 //                }
 //=======
 //>>>>>>> origin/feature/mga_estimation_refactor_merge
->>>>>>> feature/mga_estimation_refactor_merge
                 // Create corresponding ephemeris object.
                 if( approximateEphemerisSettings->getUseCircularCoplanarApproximation( ) )
                 {

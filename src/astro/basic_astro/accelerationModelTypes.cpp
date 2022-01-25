@@ -26,6 +26,9 @@ std::string getAccelerationModelName( const AvailableAcceleration accelerationTy
     case point_mass_gravity:
         accelerationName = "central gravity ";
         break;
+    case central_gravity_compton:
+        accelerationName = "central gravity compton";
+        break;
     case aerodynamic:
         accelerationName = "aerodynamic ";
         break;
@@ -91,6 +94,7 @@ AvailableAcceleration getAccelerationModelType(
     using namespace tudat::aerodynamics;
     using namespace tudat::electromagnetism;
     using namespace tudat::gravitation;
+    using namespace tudat::relativity;
 
     // Nominal type is undefined
     AvailableAcceleration accelerationType = undefined_acceleration;
@@ -100,6 +104,11 @@ AvailableAcceleration getAccelerationModelType(
                 accelerationModel ) != nullptr )
     {
         accelerationType = point_mass_gravity;
+    }
+    else if( std::dynamic_pointer_cast< ComptonRelativisticAcceleration >(
+            accelerationModel ) != nullptr )
+    {
+        accelerationType = central_gravity_compton;
     }
     else if( std::dynamic_pointer_cast< CannonBallRadiationPressureAcceleration >(
                  accelerationModel ) != nullptr )

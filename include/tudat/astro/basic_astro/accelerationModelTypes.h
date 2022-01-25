@@ -25,6 +25,7 @@
 #include "tudat/astro/propulsion/thrustAccelerationModel.h"
 #include "tudat/astro/propulsion/massRateFromThrust.h"
 #include "tudat/astro/relativity/relativisticAccelerationCorrection.h"
+#include "tudat/astro/relativity/comptonModel.h"
 #include "tudat/astro/basic_astro/empiricalAcceleration.h"
 #include "tudat/astro/propulsion/massRateFromThrust.h"
 #include "tudat/astro/electromagnetism/solarSailAcceleration.h"
@@ -61,7 +62,8 @@ enum AvailableAcceleration
     panelled_radiation_pressure_acceleration,
     momentum_wheel_desaturation_acceleration,
     solar_sail_acceleration,
-    custom_acceleration
+    custom_acceleration,
+    central_gravity_compton
 };
 
 // Function to get a string representing a 'named identification' of an acceleration type

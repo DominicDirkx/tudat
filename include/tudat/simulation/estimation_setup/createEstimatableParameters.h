@@ -13,6 +13,9 @@
 
 #include "tudat/astro/basic_astro/accelerationModel.h"
 
+// Michael
+#include "tudat/astro/orbit_determination/estimatable_parameters/comptonWavelength.h"
+
 #include "tudat/astro/orbit_determination/estimatable_parameters/estimatableParameter.h"
 #include "tudat/astro/orbit_determination/estimatable_parameters/initialTranslationalState.h"
 #include "tudat/astro/orbit_determination/estimatable_parameters/initialRotationalState.h"
@@ -879,6 +882,12 @@ std::shared_ptr< estimatable_parameters::EstimatableParameter< double > > create
         case equivalence_principle_lpi_violation_parameter:
         {
             doubleParameterToEstimate = std::make_shared< EquivalencePrincipleLpiViolationParameter >( );
+            break;
+        }
+        // Michael
+        case compton_wavelength:
+        {
+            doubleParameterToEstimate = std::make_shared< ComptonWavelength >( );
             break;
         }
         case direct_dissipation_tidal_time_lag:

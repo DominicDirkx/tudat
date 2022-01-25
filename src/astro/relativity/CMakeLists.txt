@@ -14,6 +14,7 @@ set(relativity_SOURCES
         "relativisticAccelerationCorrection.cpp"
         "relativisticTimeConversion.cpp"
         "metric.cpp"
+        "comptonModel.cpp"
         )
 
 # Set the header files.
@@ -22,6 +23,7 @@ set(relativity_HEADERS
         "relativisticAccelerationCorrection.h"
         "relativisticTimeConversion.h"
         "metric.h"
+        "comptonModel.h"
         )
 
 TUDAT_ADD_LIBRARY("relativity"

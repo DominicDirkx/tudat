@@ -25,6 +25,7 @@
 #include "tudat/astro/propulsion/thrustAccelerationModel.h"
 #include "tudat/astro/propulsion/massRateFromThrust.h"
 #include "tudat/astro/relativity/relativisticAccelerationCorrection.h"
+#include "tudat/astro/relativity/ComptonModel.h"
 #include "tudat/astro/basic_astro/empiricalAcceleration.h"
 #include "tudat/astro/propulsion/massRateFromThrust.h"
 #include "tudat/astro/electromagnetism/solarSailAcceleration.h"
@@ -46,6 +47,7 @@ enum AvailableAcceleration
 {
     undefined_acceleration,
     point_mass_gravity,
+    central_gravity_compton, // Michael
     aerodynamic,
     cannon_ball_radiation_pressure,
     spherical_harmonic_gravity,

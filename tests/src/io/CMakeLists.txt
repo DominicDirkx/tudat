@@ -112,3 +112,7 @@ TUDAT_ADD_TEST_CASE(AerodynamicCoefficientReader
         tudat_basic_astrodynamics
         tudat_basics
         )
+
+TUDAT_ADD_TEST_CASE(Sp3cFileReader
+        PRIVATE_LINKS ${Tudat_PROPAGATION_LIBRARIES})
+

@@ -31,6 +31,7 @@ set(io_SOURCES
         "aerodynamicCoefficientReader.cpp"
         "tabulatedAtmosphereReader.cpp"
         "util.cpp"
+        "sp3cFileReader.cpp"
         )
 
 # Add header files.
@@ -66,6 +67,7 @@ set(io_HEADERS
         "readHistoryFromFile.h"
         "tabulatedAtmosphereReader.h"
         "util.h"
+        "sp3cFileReader.h"
         )
 
 # Add library.

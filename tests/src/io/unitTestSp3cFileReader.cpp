@@ -44,7 +44,7 @@ int main( )
         inertialPositionHistory[ currentTime ].segment( 0, 3 ) =
                 rotationMatrix * it->second.segment( 0, 3 );
         std::cout<<std::setprecision( 16 );
-        std::cout<<currentTime<<" "<<inertialPositionHistory[ currentTime ].transpose( )<<std::endl;
+//        std::cout<<currentTime<<" "<<inertialPositionHistory[ currentTime ].transpose( )<<std::endl;
     }
 
     std::map< double, Eigen::VectorXd >::iterator iteratorMinus3 = inertialPositionHistory.begin( );
@@ -62,6 +62,8 @@ int main( )
     std::advance( iteratorPlus3, 6 );
 
     double deltaT = 5.0;
+
+    std::map< double, Eigen::VectorXd > inertialStateHistory;
 
     while( iteratorPlus3 != inertialPositionHistory.end( ) )
     {
@@ -89,6 +91,19 @@ int main( )
 //        coefficients[ order6 ][ 2 ] = -3.0 / 20.0;
 //        coefficients[ order6 ][ 3 ] = 3.0 / 4.0;
 
+        Eigen::Vector6d currentCartesianState;
+        currentCartesianState.segment( 0, 3 ) = state;
+        currentCartesianState.segment( 3, 3 ) = sixthOrder;
+
+        inertialStateHistory[ iterator->first ] = currentCartesianState;
+
+//        std::cout<<iterator->first<<std::endl;
+//        std::cout<<secondOrder.transpose( )<<std::endl;
+//        std::cout<<fourthOrder.transpose( )<<std::endl;
+//        std::cout<<sixthOrder.transpose( )<<std::endl;
+//        std::cout<<( sixthOrder - fourthOrder ).transpose( )<<std::endl;
+
+        std::cout<<iterator->first<<" "<<currentCartesianState.transpose( )<<std::endl;
         iteratorMinus3++;
         iteratorMinus2++;
         iteratorMinus1++;
@@ -96,11 +111,8 @@ int main( )
         iteratorPlus1++;
         iteratorPlus2++;
         iteratorPlus3++;
-        std::cout<<iterator->first<<std::endl;
-        std::cout<<secondOrder.transpose( )<<std::endl;
-        std::cout<<fourthOrder.transpose( )<<std::endl;
-        std::cout<<sixthOrder.transpose( )<<std::endl;
-        std::cout<<( sixthOrder - fourthOrder ).transpose( )<<std::endl;
+
+
 
     }
 

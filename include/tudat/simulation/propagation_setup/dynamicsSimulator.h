@@ -684,7 +684,6 @@ public:
                 dependentVariablesFunctions_,
                 statePostProcessingFunction,
                 propagatorSettings_->getOutputSettings( )->getPrintSettings( ) );
-//        std::cout<<"Final "<<propagationResults->getEquationsOfMotionNumericalSolutionRaw( ).rbegin( )->second<<std::endl<<std::endl;
         simulation_setup::setAreBodiesInPropagation( bodies_, false );
     }
 
@@ -1391,7 +1390,68 @@ std::shared_ptr< MultiArcPropagatorSettings< StateScalarType, TimeType > > valid
                 independentIntegratorSettingsList, propagatorSettings, clearNumericalSolutions, setIntegratedResult );
 }
 
+template< typename StateScalarType = double >
+class MultiArcInitialStateProvider
+{
+public:
+    MultiArcInitialStateProvider(
+            const std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >& initialStatesList,
+            const std::vector< std::pair< int, int > >& variationalEquationsSize = std::vector< std::pair< int, int > >( ) ):
+            initialStatesList_( initialStatesList ), variationalEquationsSize_( variationalEquationsSize ), updateInitialStates_( false )
+    {
+        useVariationalEquations_ = variationalEquationsSize_.size( ) == 0 ? false : true;
+    }
 
+    void restartPropagation( )
+    {
+        updateInitialStates_ = false;
+    }
+
+    bool getUpdateInitialStates( )
+    {
+        return updateInitialStates_;
+    }
+
+    Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic > getArcInitialState( const int arcIndex,
+                                                                                         bool& initialStateFromPreviousArc )
+    {
+        Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > arcInitialStateFromList = initialStatesList_.at( arcIndex );
+        if( linear_algebra::doesMatrixHaveNanEntries( arcInitialStateFromList ) )
+        {
+            initialStateFromPreviousArc = true;
+            updateInitialStates_ = true;
+        }
+        else
+        {
+            initialStateFromPreviousArc = false;
+        }
+
+        Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic > initialState;
+        if( useVariationalEquations_ )
+        {
+            int numberOfRows = variationalEquationsSize_.at( arcIndex ).first;
+            int numberOfColumns = variationalEquationsSize_.at( arcIndex ).second + 1;
+            initialState = Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic >::Zero( numberOfRows, numberOfColumns );
+            initialState.block( 0, 0, numberOfRows, numberOfRows ).setIdentity( );
+            initialState.block( 0, numberOfColumns - 1, numberOfRows, 1 ) = arcInitialStateFromList;
+        }
+        else
+        {
+            initialState = arcInitialStateFromList;
+        }
+        return initialState;
+    }
+
+
+private:
+    const std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >& initialStatesList_;
+
+    const std::vector< std::pair< int, int > >& variationalEquationsSize_;
+
+    bool updateInitialStates_;
+
+    bool useVariationalEquations_;
+};
 //! Class for performing full numerical integration of a dynamical system over multiple arcs.
 /*!
  *  Class for performing full numerical integration of a dynamical system over multiple arcs, equations of motion are set up
@@ -1399,46 +1459,40 @@ std::shared_ptr< MultiArcPropagatorSettings< StateScalarType, TimeType > > valid
  *  but can be re-integrated for different initial conditions using the same instance of the class.
  */
 template< typename StateScalarType = double, typename TimeType = double >
-class MultiArcDynamicsSimulator: public DynamicsSimulator< StateScalarType, TimeType >
-{
+class MultiArcDynamicsSimulator: public DynamicsSimulator< StateScalarType, TimeType > {
 public:
 
-    using DynamicsSimulator< StateScalarType, TimeType >::bodies_;
+    typedef MultiArcSimulationResults<SingleArcSimulationResults<StateScalarType, TimeType>, StateScalarType, TimeType> MultiArcResults;
+    using DynamicsSimulator<StateScalarType, TimeType>::bodies_;
 
 
     MultiArcDynamicsSimulator(
-            const simulation_setup::SystemOfBodies& bodies,
-            const std::shared_ptr< MultiArcPropagatorSettings< StateScalarType, TimeType > > propagatorSettings,
-            const bool areEquationsOfMotionToBeIntegrated = true ):
-        DynamicsSimulator< StateScalarType, TimeType >(
-            bodies, propagatorSettings  ),
-        multiArcPropagatorSettings_( propagatorSettings )
-    {
-        if( multiArcPropagatorSettings_ == nullptr )
-        {
+            const simulation_setup::SystemOfBodies &bodies,
+            const std::shared_ptr<MultiArcPropagatorSettings<StateScalarType, TimeType> > propagatorSettings,
+            const bool areEquationsOfMotionToBeIntegrated = true ) :
+            DynamicsSimulator<StateScalarType, TimeType>(
+                    bodies, propagatorSettings ),
+            multiArcPropagatorSettings_( propagatorSettings ) {
+        if ( multiArcPropagatorSettings_ == nullptr ) {
             throw std::runtime_error( "Error when creating multi-arc dynamics simulator, input is not multi arc" );
-        }
-        else
-        {
-            std::vector< std::shared_ptr< SingleArcPropagatorSettings< StateScalarType, TimeType > > > singleArcSettings =
+        } else {
+            std::vector<std::shared_ptr<SingleArcPropagatorSettings<StateScalarType, TimeType> > > singleArcSettings =
                     multiArcPropagatorSettings_->getSingleArcSettings( );
 
             // Create dynamics simulators
-            std::vector< std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType > > > singleArcResults;
-            for( unsigned int i = 0; i < singleArcSettings.size( ); i++ )
-            {
+            std::vector<std::shared_ptr<SingleArcSimulationResults<StateScalarType, TimeType> > > singleArcResults;
+            for ( unsigned int i = 0; i < singleArcSettings.size( ); i++ ) {
                 singleArcDynamicsSimulators_.push_back(
-                            std::make_shared< SingleArcDynamicsSimulator< StateScalarType, TimeType > >(
-                                bodies, singleArcSettings.at( i ), false ) );
-                singleArcResults.push_back( singleArcDynamicsSimulators_.at( i )->getSingleArcPropagationResults( ) );
+                        std::make_shared<SingleArcDynamicsSimulator<StateScalarType, TimeType> >(
+                                bodies, singleArcSettings.at( i ), false ));
+                singleArcResults.push_back( singleArcDynamicsSimulators_.at( i )->getSingleArcPropagationResults( ));
                 singleArcDynamicsSimulators_.at( i )->createAndSetIntegratedStateProcessors( );
             }
-            propagationResults_ = std::make_shared< MultiArcSimulationResults< StateScalarType, TimeType > >( singleArcResults );
+            propagationResults_ = std::make_shared<MultiArcResults>( singleArcResults );
 
             // Integrate equations of motion if required.
-            if( areEquationsOfMotionToBeIntegrated )
-            {
-                integrateEquationsOfMotion( multiArcPropagatorSettings_->getInitialStates( ) );
+            if ( areEquationsOfMotionToBeIntegrated ) {
+                integrateEquationsOfMotion( multiArcPropagatorSettings_->getInitialStates( ));
             }
         }
     }
@@ -1459,17 +1513,17 @@ public:
      *  ephemerides (default true).
      */
     MultiArcDynamicsSimulator(
-            const simulation_setup::SystemOfBodies& bodies,
-            const std::shared_ptr< numerical_integrators::IntegratorSettings< TimeType > > integratorSettings,
-            const std::shared_ptr< PropagatorSettings< StateScalarType > > propagatorSettings,
-            const std::vector< double > arcStartTimes,
+            const simulation_setup::SystemOfBodies &bodies,
+            const std::shared_ptr<numerical_integrators::IntegratorSettings<TimeType> > integratorSettings,
+            const std::shared_ptr<PropagatorSettings<StateScalarType> > propagatorSettings,
+            const std::vector<double> arcStartTimes,
             const bool areEquationsOfMotionToBeIntegrated = true,
             const bool clearNumericalSolutions = true,
-            const bool setIntegratedResult = true ):
-        MultiArcDynamicsSimulator( bodies, validateDeprecatedMultiArcSettings(
-                                        integratorSettings, propagatorSettings, arcStartTimes,
-                                        clearNumericalSolutions, setIntegratedResult ),
-                                    areEquationsOfMotionToBeIntegrated ){ }
+            const bool setIntegratedResult = true ) :
+            MultiArcDynamicsSimulator( bodies, validateDeprecatedMultiArcSettings(
+                                               integratorSettings, propagatorSettings, arcStartTimes,
+                                               clearNumericalSolutions, setIntegratedResult ),
+                                       areEquationsOfMotionToBeIntegrated ) { }
 
 
     //! Constructor of multi-arc simulator for different integration settings per arc.
@@ -1486,42 +1540,32 @@ public:
          *  ephemerides (default true).
          */
     MultiArcDynamicsSimulator(
-            const simulation_setup::SystemOfBodies& bodies,
-            const std::vector< std::shared_ptr< numerical_integrators::IntegratorSettings< TimeType > > > integratorSettings,
-            const std::shared_ptr< PropagatorSettings< StateScalarType > > propagatorSettings,
+            const simulation_setup::SystemOfBodies &bodies,
+            const std::vector<std::shared_ptr<numerical_integrators::IntegratorSettings<TimeType> > > integratorSettings,
+            const std::shared_ptr<PropagatorSettings<StateScalarType> > propagatorSettings,
             const bool areEquationsOfMotionToBeIntegrated = true,
             const bool clearNumericalSolutions = true,
-                  const bool setIntegratedResult = true ):
-        MultiArcDynamicsSimulator( bodies, validateDeprecatedMultiArcSettings(
-                                        integratorSettings, propagatorSettings,
-                                        clearNumericalSolutions, setIntegratedResult ),
-                                    areEquationsOfMotionToBeIntegrated ){ }
+            const bool setIntegratedResult = true ) :
+            MultiArcDynamicsSimulator( bodies, validateDeprecatedMultiArcSettings(
+                                               integratorSettings, propagatorSettings,
+                                               clearNumericalSolutions, setIntegratedResult ),
+                                       areEquationsOfMotionToBeIntegrated ) { }
+
     //! Destructor
     ~MultiArcDynamicsSimulator( ) { }
 
-
-    Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > getArcInitialState(
+    Eigen::Matrix<StateScalarType, Eigen::Dynamic, Eigen::Dynamic> getArcInitialState(
             const int arcIndex,
-            const std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >& initialStatesList,
-            bool& updateInitialStates )
-    {
-        Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > currentArcInitialState;
-
-        // Get arc initial state. If initial state is NaN, this signals that the initial state is to be taken from previous
-        // arc
-        if( ( arcIndex == 0 ) || ( !linear_algebra::doesMatrixHaveNanEntries( initialStatesList.at( arcIndex ) ) ) )
-        {
-            currentArcInitialState = initialStatesList.at( arcIndex );
-        }
-        else
-        {
-            currentArcInitialState = getArcInitialStateFromPreviousArcResult(
-                    propagationResults_->getSingleArcResults( ).at( arcIndex - 1 )->getEquationsOfMotionNumericalSolution( ),
-                    singleArcDynamicsSimulators_.at( arcIndex )->getInitialPropagationTime( ) );
-
-            // If arc initial state is taken from previous arc, this indicates that the initial states in propagator settings
-            // need to be updated.
-            updateInitialStates = true;
+            const std::shared_ptr<MultiArcInitialStateProvider<StateScalarType> > stateProvider ) {
+        bool initialStateFromPreviousArc = false;
+        Eigen::Matrix<StateScalarType, Eigen::Dynamic, Eigen::Dynamic> currentArcInitialState =
+                stateProvider->getArcInitialState( arcIndex, initialStateFromPreviousArc );
+        if ( initialStateFromPreviousArc ) {
+            currentArcInitialState.block( 0, currentArcInitialState.cols( ) - 1, currentArcInitialState.rows( ),
+                                          1 ) = getArcInitialStateFromPreviousArcResult(
+                    propagationResults_->getSingleArcResults( ).at(
+                            arcIndex - 1 )->getEquationsOfMotionNumericalSolution( ),
+                    singleArcDynamicsSimulators_.at( arcIndex )->getInitialPropagationTime( ));
         }
         return currentArcInitialState;
     }
@@ -1536,21 +1580,20 @@ public:
      *  order into a single Eigen Vector.
      */
     void integrateEquationsOfMotion(
-            const Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic >& concatenatedInitialStates )
-    {
-        std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > splitInitialState;
+            const Eigen::Matrix<StateScalarType, Eigen::Dynamic, Eigen::Dynamic> &concatenatedInitialStates ) {
+        std::vector<Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1> > splitInitialState;
 
         int currentIndex = 0;
-        for( unsigned int i = 0; i < singleArcDynamicsSimulators_.size( ); i++ )
-        {
-            int currentSize = singleArcDynamicsSimulators_.at( i )->getPropagatorSettings( )->getConventionalStateSize( );
-            splitInitialState.push_back( concatenatedInitialStates.block( currentIndex, 0, currentSize, 1 ) );
+        for ( unsigned int i = 0; i < singleArcDynamicsSimulators_.size( ); i++ ) {
+            int currentSize = singleArcDynamicsSimulators_.at(
+                    i )->getPropagatorSettings( )->getConventionalStateSize( );
+            splitInitialState.push_back( concatenatedInitialStates.block( currentIndex, 0, currentSize, 1 ));
             currentIndex += currentSize;
         }
 
-        if( currentIndex != concatenatedInitialStates.rows( ) )
-        {
-            throw std::runtime_error( "Error when doing multi-arc integration, input state vector size is incompatible with settings" );
+        if ( currentIndex != concatenatedInitialStates.rows( )) {
+            throw std::runtime_error(
+                    "Error when doing multi-arc integration, input state vector size is incompatible with settings" );
         }
 
         integrateEquationsOfMotion( splitInitialState );
@@ -1566,27 +1609,72 @@ public:
      *  std vector.
      */
     void integrateEquationsOfMotion(
-            const std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >& initialStatesList )
+            const std::vector<Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1> > &initialStatesList ) {
+        integrateEquationsOfMotion < MultiArcResults, 1 > ( propagationResults_,
+                std::make_shared<MultiArcInitialStateProvider<StateScalarType> >( initialStatesList ));
+    }
+
+    template< typename SimulationResults >
+    void checkPropagationResultsObjectConsistency(
+            const std::shared_ptr<SimulationResults> propagationResults )
     {
+
+    }
+
+    template< >
+    void checkPropagationResultsObjectConsistency(
+            const std::shared_ptr< MultiArcSimulationResults< SingleArcVariationalSimulationResults< StateScalarType, TimeType > > > propagationResults )
+    {
+        for( unsigned int i = 0; i < propagationResults_->getSingleArcResults( ).size( ); i++ )
+        {
+            if( propagationResults_->getSingleArcResults( ) != propagationResults->getSingleArcResults( )->getSingleArcDynamicsResults( ) )
+            {
+                throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with variational input; results objects are incosistent" );
+            }
+        }
+    }
+
+    template< >
+    void checkPropagationResultsObjectConsistency(
+            const std::shared_ptr< MultiArcSimulationResults< SingleArcSimulationResults< StateScalarType, TimeType > > > propagationResults )
+    {
+        if( propagationResults_ != propagationResults )
+        {
+            for( unsigned int i = 0; i < propagationResults_->getSingleArcResults( ).size( ); i++ )
+            {
+                if( propagationResults_->getSingleArcResults( ) != propagationResults->getSingleArcResults( ) )
+                {
+                    throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with dynamics-only input; results objects are incosistent" );
+                }
+            }
+        }
+    }
+
+    template< typename SimulationResults, int NumberOfColumns >
+    void integrateEquationsOfMotion(
+            const std::shared_ptr< SimulationResults > propagationResults,
+            const std::shared_ptr< MultiArcInitialStateProvider< StateScalarType > > initialStateProvider )
+    {
+        this->checkPropagationResultsObjectConsistency< SimulationResults >( propagationResults );
 
         Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > currentArcInitialState;
         std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > arcInitialStateList;
-        bool updateInitialStates = false;
 
-        propagationResults_->restartPropagation( );
+        initialStateProvider->restartPropagation( );
+        propagationResults->restartPropagation( );
         printPrePropagationMessages( );
 
         // Propagate dynamics for each arc
         for( unsigned int i = 0; i < singleArcDynamicsSimulators_.size( ); i++ )
         {
-            currentArcInitialState = getArcInitialState( i, initialStatesList, updateInitialStates );
+            currentArcInitialState = getArcInitialState( i, initialStateProvider );
             arcInitialStateList.push_back( currentArcInitialState );
             singleArcDynamicsSimulators_.at( i )->integrateEquationsOfMotion( currentArcInitialState );
         }
 
         printPostPropagationMessages( );
-        propagationResults_->setPropagationIsPerformed( );
-        if( updateInitialStates )
+        propagationResults->setPropagationIsPerformed( );
+        if( initialStateProvider->getUpdateInitialStates( ) )
         {
             multiArcPropagatorSettings_->resetInitialStatesList(
                         arcInitialStateList );
@@ -1716,7 +1804,7 @@ public:
         return propagationResults_;
     }
 
-    std::shared_ptr< MultiArcSimulationResults< StateScalarType, TimeType > > getMultiArcPropagationResults( )
+    std::shared_ptr< MultiArcResults > getMultiArcPropagationResults( )
     {
         return propagationResults_;
     }
@@ -1824,7 +1912,7 @@ protected:
     //! Propagator settings used by this objec
     std::shared_ptr< MultiArcPropagatorSettings< StateScalarType, TimeType > > multiArcPropagatorSettings_;
 
-    std::shared_ptr< MultiArcSimulationResults< StateScalarType, TimeType > > propagationResults_;
+    std::shared_ptr< MultiArcResults > propagationResults_;
 
 };
 
@@ -1916,6 +2004,8 @@ public:
     //! Using statemebts
     using DynamicsSimulator< StateScalarType, TimeType >::bodies_;
 
+    typedef HybridArcSimulationResults< SingleArcSimulationResults< StateScalarType, TimeType >, StateScalarType, TimeType > HybridArcResults;
+
     HybridArcDynamicsSimulator(
             const simulation_setup::SystemOfBodies& bodies,
             const std::shared_ptr< HybridArcPropagatorSettings< StateScalarType, TimeType > > hybridPropagatorSettings,
@@ -1941,7 +2031,7 @@ public:
             multiArcDynamicsSimulator_ = std::make_shared< MultiArcDynamicsSimulator< StateScalarType, TimeType > >(
                         bodies, hybridPropagatorSettings_->getMultiArcPropagatorSettings( ),
                         false );
-            propagationResults_ = std::make_shared< HybridArcSimulationResults< StateScalarType, TimeType > >(
+            propagationResults_ = std::make_shared< HybridArcResults >(
                     singleArcDynamicsSimulator_->getSingleArcPropagationResults( ),
                     multiArcDynamicsSimulator_->getMultiArcPropagationResults( ) );
         }
@@ -2125,7 +2215,7 @@ public:
         return propagationResults_;
     }
 
-    std::shared_ptr< HybridArcSimulationResults< StateScalarType, TimeType > > getHybridArcPropagationResults( )
+    std::shared_ptr< HybridArcResults > getHybridArcPropagationResults( )
     {
         return propagationResults_;
     }
@@ -2146,7 +2236,7 @@ protected:
     //! Size of multi-arc concatenated initial state vector
     int multiArcDynamicsSize_;
 
-    std::shared_ptr< HybridArcSimulationResults< StateScalarType, TimeType > > propagationResults_;
+    std::shared_ptr< HybridArcResults > propagationResults_;
 };
 
 

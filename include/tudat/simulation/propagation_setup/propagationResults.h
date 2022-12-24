@@ -30,10 +30,10 @@ namespace tudat
         template<typename StateScalarType, typename TimeType>
         class SingleArcDynamicsSimulator;
 
-        template<typename StateScalarType, typename TimeType, int NumberOfStateColumns >
+        template<typename SingleArcResults, typename StateScalarType, typename TimeType >
         class MultiArcSimulationResults;
 
-        template<typename StateScalarType = double, typename TimeType = double, int NumberOfStateColumns = 1 >
+        template<typename StateScalarType = double, typename TimeType = double >
         class SingleArcSimulationResults : public SimulationResults<StateScalarType, TimeType>
         {
         public:
@@ -66,7 +66,7 @@ namespace tudat
             }
 
             void reset(
-                    const std::map <TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, NumberOfStateColumns >>& equationsOfMotionNumericalSolutionRaw,
+                    const std::map <TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >>& equationsOfMotionNumericalSolutionRaw,
                     const std::map <TimeType, Eigen::VectorXd>& dependentVariableHistory,
                     const std::map<TimeType, double>& cumulativeComputationTimeHistory,
                     const std::map<TimeType, unsigned int>& cumulativeNumberOfFunctionEvaluations,
@@ -103,7 +103,7 @@ namespace tudat
                 return equationsOfMotionNumericalSolution_;
             }
 
-            std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, NumberOfStateColumns>> &
+            std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1>> &
             getEquationsOfMotionNumericalSolutionRaw() {
                 return equationsOfMotionNumericalSolutionRaw_;
             }
@@ -163,7 +163,7 @@ namespace tudat
              *  values are concatenated vectors of integrated body states (order defined by propagatorSettings_).
              *  NOTE: this map is empty if clearNumericalSolutions_ is set to true.
              */
-            std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, NumberOfStateColumns > > equationsOfMotionNumericalSolution_;
+            std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1 > > equationsOfMotionNumericalSolution_;
 
             //! Map of state history of numerically integrated bodies.
             /*!
@@ -172,7 +172,7 @@ namespace tudat
             * states (order defined by propagatorSettings_).
             *  NOTE: this map is empty if clearNumericalSolutions_ is set to true.
             */
-            std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, NumberOfStateColumns>> equationsOfMotionNumericalSolutionRaw_;
+            std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1>> equationsOfMotionNumericalSolutionRaw_;
 
             //! Map of dependent variable history that was saved during numerical propagation.
             std::map <TimeType, Eigen::VectorXd> dependentVariableHistory_;
@@ -202,7 +202,7 @@ namespace tudat
 
             friend class SingleArcDynamicsSimulator<StateScalarType, TimeType>;
 
-            friend class MultiArcSimulationResults<StateScalarType, TimeType, NumberOfStateColumns >;
+//            friend class MultiArcSimulationResults<StateScalarType, TimeType, NumberOfStateColumns >;
 
 
         };
@@ -277,6 +277,11 @@ namespace tudat
                 return sensitivitySolution_;
             }
 
+            const std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType > > getSingleArcDynamicsResults( )
+            {
+                return singleArcDynamicsResults_;
+            }
+
         protected:
             const std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType > > singleArcDynamicsResults_;
 
@@ -289,12 +294,12 @@ namespace tudat
             std::map < TimeType, Eigen::MatrixXd > sensitivitySolution_;
         };
 
-        template<typename StateScalarType = double, typename TimeType = double, int NumberOfStateColumns = 1 >
+        template< typename SingleArcResults, typename StateScalarType = double, typename TimeType = double >
         class MultiArcSimulationResults : public SimulationResults<StateScalarType, TimeType> {
 
         public:
             MultiArcSimulationResults(
-                    const std::vector< std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType, NumberOfStateColumns > > > singleArcResults ):
+                    const std::vector< std::shared_ptr< SingleArcResults > > singleArcResults ):
                     singleArcResults_( singleArcResults ), propagationIsPerformed_( false ), solutionIsCleared_( false ){ }
 
             ~MultiArcSimulationResults() {}
@@ -353,7 +358,7 @@ namespace tudat
                 }
             }
 
-            std::vector< std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType, NumberOfStateColumns > > > getSingleArcResults( )
+            std::vector< std::shared_ptr< SingleArcResults > > getSingleArcResults( )
             {
                 return singleArcResults_;
             }
@@ -461,7 +466,7 @@ namespace tudat
             }
 
         private:
-            const std::vector< std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType, NumberOfStateColumns > > > singleArcResults_;
+            const std::vector< std::shared_ptr< SingleArcResults > > singleArcResults_;
 
             bool propagationIsPerformed_;
 
@@ -472,29 +477,14 @@ namespace tudat
 
         };
 
-//        template<typename StateScalarType = double, typename TimeType >
-//        std::shared_ptr< MultiArcSimulationResults<StateScalarType, TimeType, Eigen::Dynamic > > createVariationalSimulationResults(
-//                const std::shared_ptr< MultiArcSimulationResults<StateScalarType, TimeType, 1 > > simulationResults )
-//        {
-//            std::vector< std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType, 1 > > > singleArcResults =
-//                    simulationResults->getSingleArcResults( );
-//            std::vector< std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType, Eigen::Dynamic > > > singleArcVariationalResults;
-//            for( unsigned int i = 0; i < singleArcResults.size( ); i++ )
-//            {
-//                singleArcVariationalResults.push_back( createVariationalSimulationResults( singleArcResults.at( i ) ) );
-//            }
-//
-//            return std::make_shared< MultiArcSimulationResults<StateScalarType, TimeType, Eigen::Dynamic > >(
-//                    singleArcVariationalResults );
-//        }
 
-        template<typename StateScalarType = double, typename TimeType = double, int NumberOfStateColumns = 1 >
+        template< typename SingleArcResults, typename StateScalarType = double, typename TimeType = double >
         class HybridArcSimulationResults : public SimulationResults<StateScalarType, TimeType>
         {
         public:
             HybridArcSimulationResults(
-                    const std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType, NumberOfStateColumns > > singleArcResults,
-                    const std::shared_ptr< MultiArcSimulationResults< StateScalarType, TimeType, NumberOfStateColumns > > multiArcResults ):
+                    const std::shared_ptr< SingleArcResults > singleArcResults,
+                    const std::shared_ptr< MultiArcSimulationResults< SingleArcResults, StateScalarType, TimeType > > multiArcResults ):
                     singleArcResults_( singleArcResults ), multiArcResults_( multiArcResults ){ }
 
             ~HybridArcSimulationResults() {}
@@ -571,9 +561,9 @@ namespace tudat
             }
             
         protected:
-            std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType, NumberOfStateColumns > > singleArcResults_;
+            std::shared_ptr< SingleArcResults > singleArcResults_;
 
-            std::shared_ptr< MultiArcSimulationResults< StateScalarType, TimeType, NumberOfStateColumns > > multiArcResults_;
+            std::shared_ptr< MultiArcSimulationResults< SingleArcResults, StateScalarType, TimeType > > multiArcResults_;
         };
 
     }

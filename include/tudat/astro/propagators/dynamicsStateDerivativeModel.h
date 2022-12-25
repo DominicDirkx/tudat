@@ -145,6 +145,7 @@ public:
      */
     StateType computeStateDerivative( const TimeType time, const StateType& state )
     {
+
         if( !( time == time ) )
         {
             throw std::invalid_argument( "Error when computing system state derivative. Input time is NaN" );
@@ -152,6 +153,7 @@ public:
 
         if( state.hasNaN( ) )
         {
+            std::cout<<"State with NaN "<<std::endl<<state<<std::endl;
             throw std::invalid_argument( "Error when computing system state derivative. State vector contains NaN" );
         }
 
@@ -159,7 +161,6 @@ public:
         {
             throw std::invalid_argument( "Error when computing system state derivative. State vector contains Inf" );
         }
-//        std::cout << "Computing state derivative: " <<time<<" "<<state.transpose( ) << std::endl;
 
         // Initialize state derivative
         if( stateDerivative_.rows( ) != state.rows( ) || stateDerivative_.cols( ) != state.cols( )  )
@@ -455,6 +456,7 @@ public:
         evaluateDynamicsEquations_ = evaluateDynamicsEquations;
         evaluateVariationalEquations_ = evaluateVariationalEquations;
 
+
         if( evaluateVariationalEquations_ )
         {
             dynamicsStartColumn_ = variationalEquations_->getNumberOfParameterValues( );
@@ -463,6 +465,7 @@ public:
         {
             dynamicsStartColumn_ = 0;
         }
+
     }
 
     //! Function to update the settings of the state derivative models with new initial states

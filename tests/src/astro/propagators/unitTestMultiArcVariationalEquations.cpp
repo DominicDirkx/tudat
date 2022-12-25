@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE( testEarthMoonMultiArcVariationalEquationCalculation )
             maximumPropagatorType = 1;
         }
 
-        for( unsigned int patchArcs = 0; patchArcs < 2; patchArcs++ )
+        for( unsigned int patchArcs = 0; patchArcs < 1; patchArcs++ )
         {
             // Test for all requested propagator types.
             for( unsigned int k = 0; k < maximumPropagatorType; k++ )

@@ -1623,7 +1623,7 @@ public:
      */
     std::vector< std::vector< std::map< double, Eigen::MatrixXd > > > getNumericalVariationalEquationsSolution( )
     {
-        return variationalEquationsSolution_;
+        throw std::runtime_error( "Multi-arc variational euqation soluton retrieval not yet implemented" );
     }
 
     //! Function to return list of start times of each arc. NOTE: This list is updated after every propagation.
@@ -1707,66 +1707,68 @@ private:
      */
     void resetVariationalEquationsInterpolators( )
     {
-        using namespace interpolators;
+        throw std::runtime_error( "Multi-arc variational euqation interpolator resetting not yet implemented" );
 
-        // Allocate interpolator vectors
-        std::vector< std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::MatrixXd > > >
-                stateTransitionMatrixInterpolators;
-        std::vector< std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::MatrixXd > > >
-                sensitivityMatrixInterpolators;
-        stateTransitionMatrixInterpolators.resize( variationalEquationsSolution_.size( ) );
-        sensitivityMatrixInterpolators.resize( variationalEquationsSolution_.size( ) );
-
-        // Create interpolators.
-        arcEndTimes_.resize( variationalEquationsSolution_.size( ) );
-        for( unsigned int i = 0; i < variationalEquationsSolution_.size( ); i++ )
-        {
-            if( dynamicsSimulator_->getSingleArcDynamicsSimulators( ).at( i )->getIntegratorSettings( )->initialTimeStep_ > 0.0 )
-            {
-                arcEndTimes_[ i ] = variationalEquationsSolution_[ i ][ 0 ].rbegin( )->first;
-            }
-            else
-            {
-                arcEndTimes_[ i ] = variationalEquationsSolution_[ i ][ 0 ].begin( )->first;
-            }
-
-            try
-            {
-                createStateTransitionAndSensitivityMatrixInterpolator(
-                            stateTransitionMatrixInterpolators[ i ],
-                            sensitivityMatrixInterpolators[ i ],
-                            variationalEquationsSolution_[ i ],
-                            this->clearNumericalSolution_ );
-            }
-            catch( const std::exception& caughtException )
-            {
-                std::cerr << "Error occured when post-processing multi-arc variational equation integration results, and creating interpolators in arc" + std::to_string( i ) + ", caught error is: " << std::endl << std::endl;
-                std::cerr << caughtException.what( ) << std::endl << std::endl;
-                std::cerr << "The problem may be that there is an insufficient number of data points (epochs) at which propagation results are produced for one or more arcs. Integrated results are given at" +
-                             std::to_string( variationalEquationsSolution_[ i ].at( 0 ).size( ) ) + " epochs"<< std::endl;
-            }
-
-
-        }
-
-        // Create stare transition matrix interface if needed, reset otherwise.
-        if( stateTransitionInterface_ == nullptr )
-        {
-            stateTransitionInterface_ = std::make_shared< MultiArcCombinedStateTransitionAndSensitivityMatrixInterface< StateScalarType > >(
-                        stateTransitionMatrixInterpolators, sensitivityMatrixInterpolators,
-                        dynamicsSimulator_->getArcStartTimes( ),
-                        arcEndTimes_,
-                        parametersToEstimate_,
-                        propagatorSettings_->getSingleArcSettings( ).at( 0 )->getConventionalStateSize( ),
-                        parametersToEstimate_->getParameterSetSize( ), getArcWiseStatePartialAdditionIndices( ) );
-        }
-        else
-        {
-            std::dynamic_pointer_cast< MultiArcCombinedStateTransitionAndSensitivityMatrixInterface< StateScalarType > >(
-                        stateTransitionInterface_ )->updateMatrixInterpolators(
-                        stateTransitionMatrixInterpolators, sensitivityMatrixInterpolators,
-                        dynamicsSimulator_->getArcStartTimes( ), arcEndTimes_, getArcWiseStatePartialAdditionIndices( ) );
-        }
+//        using namespace interpolators;
+//
+//        // Allocate interpolator vectors
+//        std::vector< std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::MatrixXd > > >
+//                stateTransitionMatrixInterpolators;
+//        std::vector< std::shared_ptr< interpolators::OneDimensionalInterpolator< double, Eigen::MatrixXd > > >
+//                sensitivityMatrixInterpolators;
+//        stateTransitionMatrixInterpolators.resize( variationalEquationsSolution_.size( ) );
+//        sensitivityMatrixInterpolators.resize( variationalEquationsSolution_.size( ) );
+//
+//        // Create interpolators.
+//        arcEndTimes_.resize( variationalEquationsSolution_.size( ) );
+//        for( unsigned int i = 0; i < variationalEquationsSolution_.size( ); i++ )
+//        {
+//            if( dynamicsSimulator_->getSingleArcDynamicsSimulators( ).at( i )->getIntegratorSettings( )->initialTimeStep_ > 0.0 )
+//            {
+//                arcEndTimes_[ i ] = variationalEquationsSolution_[ i ][ 0 ].rbegin( )->first;
+//            }
+//            else
+//            {
+//                arcEndTimes_[ i ] = variationalEquationsSolution_[ i ][ 0 ].begin( )->first;
+//            }
+//
+//            try
+//            {
+//                createStateTransitionAndSensitivityMatrixInterpolator(
+//                            stateTransitionMatrixInterpolators[ i ],
+//                            sensitivityMatrixInterpolators[ i ],
+//                            variationalEquationsSolution_[ i ],
+//                            this->clearNumericalSolution_ );
+//            }
+//            catch( const std::exception& caughtException )
+//            {
+//                std::cerr << "Error occured when post-processing multi-arc variational equation integration results, and creating interpolators in arc" + std::to_string( i ) + ", caught error is: " << std::endl << std::endl;
+//                std::cerr << caughtException.what( ) << std::endl << std::endl;
+//                std::cerr << "The problem may be that there is an insufficient number of data points (epochs) at which propagation results are produced for one or more arcs. Integrated results are given at" +
+//                             std::to_string( variationalEquationsSolution_[ i ].at( 0 ).size( ) ) + " epochs"<< std::endl;
+//            }
+//
+//
+//        }
+//
+//        // Create stare transition matrix interface if needed, reset otherwise.
+//        if( stateTransitionInterface_ == nullptr )
+//        {
+//            stateTransitionInterface_ = std::make_shared< MultiArcCombinedStateTransitionAndSensitivityMatrixInterface< StateScalarType > >(
+//                        stateTransitionMatrixInterpolators, sensitivityMatrixInterpolators,
+//                        dynamicsSimulator_->getArcStartTimes( ),
+//                        arcEndTimes_,
+//                        parametersToEstimate_,
+//                        propagatorSettings_->getSingleArcSettings( ).at( 0 )->getConventionalStateSize( ),
+//                        parametersToEstimate_->getParameterSetSize( ), getArcWiseStatePartialAdditionIndices( ) );
+//        }
+//        else
+//        {
+//            std::dynamic_pointer_cast< MultiArcCombinedStateTransitionAndSensitivityMatrixInterface< StateScalarType > >(
+//                        stateTransitionInterface_ )->updateMatrixInterpolators(
+//                        stateTransitionMatrixInterpolators, sensitivityMatrixInterpolators,
+//                        dynamicsSimulator_->getArcStartTimes( ), arcEndTimes_, getArcWiseStatePartialAdditionIndices( ) );
+//        }
     }
 
     std::vector< std::vector< std::pair< int, int > > > getArcWiseStatePartialAdditionIndices( )

@@ -1452,6 +1452,54 @@ private:
 
     bool useVariationalEquations_;
 };
+
+template< typename StateScalarType, typename TimeType, typename SimulationResults >
+void checkPropagationResultsObjectConsistency(
+        const std::shared_ptr< MultiArcSimulationResults<SingleArcSimulationResults<StateScalarType, TimeType>, StateScalarType, TimeType> > originalPropagationResults,
+        const std::shared_ptr<SimulationResults> comparePropagationResults )
+{
+
+}
+
+template< typename StateScalarType, typename TimeType >
+void checkPropagationResultsObjectConsistency(
+        const std::shared_ptr< MultiArcSimulationResults< SingleArcSimulationResults<StateScalarType, TimeType>, StateScalarType, TimeType> > originalPropagationResults,
+        const std::shared_ptr< MultiArcSimulationResults< SingleArcVariationalSimulationResults< StateScalarType, TimeType >, StateScalarType, TimeType > > comparePropagationResults )
+{
+    if( originalPropagationResults->getSingleArcResults( ).size( ) != comparePropagationResults->getSingleArcResults( ).size( ) )
+    {
+        throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with variational input; results objects number of single arcs is inconsistent" );
+    }
+
+    for( unsigned int i = 0; i < originalPropagationResults->getSingleArcResults( ).size( ); i++ )
+    {
+        if( originalPropagationResults->getSingleArcResults( ) != comparePropagationResults->getSingleArcResults( )->getSingleArcDynamicsResults( ) )
+        {
+            throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with variational input; results objects are incosistent" );
+        }
+    }
+}
+template< typename StateScalarType, typename TimeType >
+void checkPropagationResultsObjectConsistency(
+        const std::shared_ptr< MultiArcSimulationResults< SingleArcSimulationResults<StateScalarType, TimeType>, StateScalarType, TimeType> > originalPropagationResults,
+        const std::shared_ptr< MultiArcSimulationResults< SingleArcSimulationResults< StateScalarType, TimeType > > > comparePropagationResults )
+{
+    if( originalPropagationResults != comparePropagationResults )
+    {
+        if( originalPropagationResults->getSingleArcResults( ).size( ) != comparePropagationResults->getSingleArcResults( ).size( ) )
+        {
+            throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with dynamics-only input; results objects number of single arcs is inconsistent" );
+        }
+        for( unsigned int i = 0; i < originalPropagationResults->getSingleArcResults( ).size( ); i++ )
+        {
+            if( originalPropagationResults->getSingleArcResults( ) != comparePropagationResults->getSingleArcResults( ) )
+            {
+                throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with dynamics-only input; results objects are incosistent" );
+            }
+        }
+    }
+}
+
 //! Class for performing full numerical integration of a dynamical system over multiple arcs.
 /*!
  *  Class for performing full numerical integration of a dynamical system over multiple arcs, equations of motion are set up
@@ -1472,10 +1520,15 @@ public:
             const bool areEquationsOfMotionToBeIntegrated = true ) :
             DynamicsSimulator<StateScalarType, TimeType>(
                     bodies, propagatorSettings ),
-            multiArcPropagatorSettings_( propagatorSettings ) {
-        if ( multiArcPropagatorSettings_ == nullptr ) {
+            multiArcPropagatorSettings_( propagatorSettings )
+    {
+        if ( multiArcPropagatorSettings_ == nullptr )
+        {
             throw std::runtime_error( "Error when creating multi-arc dynamics simulator, input is not multi arc" );
-        } else {
+        }
+        else
+        {
+
             std::vector<std::shared_ptr<SingleArcPropagatorSettings<StateScalarType, TimeType> > > singleArcSettings =
                     multiArcPropagatorSettings_->getSingleArcSettings( );
 
@@ -1614,48 +1667,15 @@ public:
                 std::make_shared<MultiArcInitialStateProvider<StateScalarType> >( initialStatesList ));
     }
 
-    template< typename SimulationResults >
-    void checkPropagationResultsObjectConsistency(
-            const std::shared_ptr<SimulationResults> propagationResults )
-    {
-
-    }
-
-    template< >
-    void checkPropagationResultsObjectConsistency(
-            const std::shared_ptr< MultiArcSimulationResults< SingleArcVariationalSimulationResults< StateScalarType, TimeType > > > propagationResults )
-    {
-        for( unsigned int i = 0; i < propagationResults_->getSingleArcResults( ).size( ); i++ )
-        {
-            if( propagationResults_->getSingleArcResults( ) != propagationResults->getSingleArcResults( )->getSingleArcDynamicsResults( ) )
-            {
-                throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with variational input; results objects are incosistent" );
-            }
-        }
-    }
-
-    template< >
-    void checkPropagationResultsObjectConsistency(
-            const std::shared_ptr< MultiArcSimulationResults< SingleArcSimulationResults< StateScalarType, TimeType > > > propagationResults )
-    {
-        if( propagationResults_ != propagationResults )
-        {
-            for( unsigned int i = 0; i < propagationResults_->getSingleArcResults( ).size( ); i++ )
-            {
-                if( propagationResults_->getSingleArcResults( ) != propagationResults->getSingleArcResults( ) )
-                {
-                    throw std::runtime_error( "Error when checking consistency of multi-arc dynamics results with dynamics-only input; results objects are incosistent" );
-                }
-            }
-        }
-    }
 
     template< typename SimulationResults, int NumberOfColumns >
     void integrateEquationsOfMotion(
             const std::shared_ptr< SimulationResults > propagationResults,
             const std::shared_ptr< MultiArcInitialStateProvider< StateScalarType > > initialStateProvider )
     {
-        this->checkPropagationResultsObjectConsistency< SimulationResults >( propagationResults );
+        checkPropagationResultsObjectConsistency< StateScalarType, TimeType, SimulationResults >(
+                propagationResults_,
+                propagationResults );
 
         Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > currentArcInitialState;
         std::vector< Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > > arcInitialStateList;

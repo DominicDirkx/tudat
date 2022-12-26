@@ -2366,8 +2366,8 @@ BOOST_AUTO_TEST_CASE( testMomentumWheelDesaturationThrust )
     auto stateHistory = dynamicsSimulator.getDynamicsSimulator( )->getEquationsOfMotionNumericalSolution( );
     auto dependentVariableResult = dynamicsSimulator.getDynamicsSimulator( )->getDependentVariableHistory( );
 
-    auto stateTransitionHistory = dynamicsSimulator.getNumericalVariationalEquationsSolution( )[ 0 ];
-    auto sensitivityHistory = dynamicsSimulator.getNumericalVariationalEquationsSolution( )[ 1 ];
+    auto stateTransitionHistory = dynamicsSimulator.getStateTransitionMatrixSolution( );
+    auto sensitivityHistory = dynamicsSimulator.getSensitivityMatrixSolution( );
 
     // Compute thrust start times from maneuvers mid-times.
     std::vector< double > thrustStartTimes;

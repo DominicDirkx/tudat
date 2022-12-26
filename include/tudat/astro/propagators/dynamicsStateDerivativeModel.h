@@ -473,7 +473,7 @@ public:
      * Function to update the settings of the state derivative models with new initial states. This function is
      * called when using, for instance and Encke propagator for the translational dynamics, and the reference orbits
      * are modified.
-     * \param initialBodyStates New initial state for the full propagated dynamics.
+     * \param initialBodyStates New initial state for the full propagated dynamics, in propagated coordinates
      */
     void updateStateDerivativeModelSettings(
             const Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > initialBodyStates )
@@ -497,7 +497,7 @@ public:
                     case cowell:
                         break;
                     case encke:
-                        throw std::runtime_error( "Error, reference orbit not reset in Encke propagator" );
+//                        throw std::runtime_error( "Error, reference orbit not reset in Encke propagator" );
                         break;
                     case gauss_keplerian:
                         break;

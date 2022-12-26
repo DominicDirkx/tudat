@@ -33,6 +33,13 @@ namespace tudat
         template <template<class, class> class SingleArcResults, class StateScalarType, class TimeType>
         class MultiArcSimulationResults;
 
+        //! Object that holds the numerical results of the propagation of a single-arc propagation of dynamics
+        /*
+         *  Object that holds the numerical results of the propagation of a single-arc propagation of dynamics,
+         *  this object contains the raw (as propagated) results, as well as the processed results (e.g. Cartesian
+         *  elements for translational state), in addition to number of function evaluations, cumulative propagation
+         *  time etc., if requested by user
+         */
         template<typename StateScalarType = double, typename TimeType = double >
         class SingleArcSimulationResults : public SimulationResults<StateScalarType, TimeType>
         {
@@ -57,6 +64,7 @@ namespace tudat
                             std::make_shared<PropagationTerminationDetails>(propagation_never_run)) {
             }
 
+            //! Function that resets the state of this object, typically to signal that a new propagation is to be performed.
             void reset() {
                 equationsOfMotionNumericalSolution_.clear();
                 equationsOfMotionNumericalSolutionRaw_.clear();
@@ -68,6 +76,7 @@ namespace tudat
                 propagationTerminationReason_ = std::make_shared<PropagationTerminationDetails>(propagation_never_run);
             }
 
+            //! Function that sets new numerical results of a propagation, after the propagation of the dynamics
             void reset(
                     const std::map <TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >>& equationsOfMotionNumericalSolutionRaw,
                     const std::map <TimeType, Eigen::VectorXd>& dependentVariableHistory,
@@ -108,6 +117,12 @@ namespace tudat
             {
                 cumulativeNumberOfFunctionEvaluations_ = cumulativeNumberOfFunctionEvaluations;
                 propagationIsPerformed_ = true;
+            }
+
+            void setEquationsOfMotionNumericalSolution(
+                    const std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1>> & equationsOfMotionNumericalSolution )
+            {
+                equationsOfMotionNumericalSolution_ = equationsOfMotionNumericalSolution;
             }
 
             std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1>> &
@@ -368,7 +383,7 @@ namespace tudat
             {
                 for( unsigned int i = 0; i < numericalMultiArcSolution.size( ); i++ )
                 {
-                    singleArcResults_.at( i )->equationsOfMotionNumericalSolution_ = numericalMultiArcSolution.at( i );
+                    singleArcResults_.at( i )->setEquationsOfMotionNumericalSolution( numericalMultiArcSolution.at( i ) );
                 }
                 propagationIsPerformed_ = true;
 

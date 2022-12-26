@@ -797,15 +797,6 @@ BOOST_AUTO_TEST_CASE( testRadialAndVelocityThrustAcceleration )
             for( std::map< double, Eigen::Matrix< double, Eigen::Dynamic, 1 > >::const_iterator outputIterator =
                  numericalSolution.begin( ); outputIterator != numericalSolution.end( ); outputIterator++ )
             {
-                Eigen::Vector3d vectorDifference =
-                        ( -1.0 * thrustMagnitude1 / vehicleMass * outputIterator->second.segment( 3, 3 ).normalized( ) ) -
-                        ( dependentVariableSolution.at( outputIterator->first ).normalized( ) );
-
-//                for( int j = 0; j < 3; j++ )
-//                {
-//                    BOOST_CHECK_SMALL(
-//                                std::fabs( vectorDifference( j ) ) / dependentVariableSolution.at( outputIterator->first ).norm( ), 1.0E-14 );
-//                }
 
                 // Check if the thrust acceleration is of the correct magnitude, and in the same direction as the velocity.
                 TUDAT_CHECK_MATRIX_CLOSE_FRACTION(

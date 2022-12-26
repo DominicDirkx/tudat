@@ -786,11 +786,7 @@ public:
         // Retrieve number of cumulative function evaluations
         propagationResults->finalizePropagation( dynamicsStateDerivative_->getCumulativeNumberOfFunctionEvaluations( ) );
         printPostPropagationMessages( );
-
-        if( outputSettings_->getSetIntegratedResult( ) )
-        {
-            processNumericalEquationsOfMotionSolution( );
-        }
+        processNumericalEquationsOfMotionSolution( );
     }
 
     //! Function to return the map of state history of numerically integrated bodies (base class interface).
@@ -825,28 +821,6 @@ public:
         return std::vector< std::map< TimeType, double > >( { getCumulativeComputationTimeHistory( ) } );
     }
 
-//    //! Function to reset the environment from an externally generated state history.
-//    /*!
-//     * Function to reset the environment from an externally generated state history, the order of the entries in the
-//     * state vectors are proscribed by propagatorSettings
-//     * \param equationsOfMotionNumericalSolution Externally generated state history.
-//     * \param processSolution True if the new solution is to be immediately processed (default true).
-//     * \param dependentVariableHistory Externally generated dependent variable history.
-//     */
-//    void manuallySetAndProcessRawNumericalEquationsOfMotionSolution(
-//            const std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >&
-//            equationsOfMotionNumericalSolution,
-//            const std::map< TimeType, Eigen::VectorXd >& dependentVariableHistory,
-//            const bool processSolution = true )
-//    {
-//        propagationResults_->equationsOfMotionNumericalSolution_ = equationsOfMotionNumericalSolution;
-//        if( processSolution )
-//        {
-//            processNumericalEquationsOfMotionSolution( );
-//        }
-//
-//        propagationResults_->dependentVariableHistory_ = dependentVariableHistory;
-//    }
 
     //! Function to get the settings for the numerical integrator.
     /*!
@@ -989,29 +963,37 @@ public:
      */
     void processNumericalEquationsOfMotionSolution( )
     {
-//        std::cout << "RESET SOLUTION" << "\n\n";
-        try
+        if( outputSettings_->getSetIntegratedResult( ) )
         {
-            // Create and set interpolators for ephemerides
-            resetIntegratedStates( propagationResults_->equationsOfMotionNumericalSolution_, integratedStateProcessors_ );
-        }
-        catch( const std::exception& caughtException )
-        {
-            std::cerr << "Error occured when post-processing single-arc integration results, and seting integrated states in environment, caught error is: " << std::endl << std::endl;
-            std::cerr << caughtException.what( ) << std::endl << std::endl;
-            std::cerr << "The problem may be that there is an insufficient number of data points (epochs) at which propagation results are produced. Integrated results are given at" +
-                         std::to_string( propagationResults_->equationsOfMotionNumericalSolution_.size( ) ) + " epochs"<< std::endl;
-        }
+            try {
+                // Create and set interpolators for ephemerides
+                resetIntegratedStates( propagationResults_->equationsOfMotionNumericalSolution_,
+                                       integratedStateProcessors_ );
+            }
+            catch ( const std::exception &caughtException ) {
+                std::cerr
+                        << "Error occured when post-processing single-arc integration results, and seting integrated states in environment, caught error is: "
+                        << std::endl << std::endl;
+                std::cerr << caughtException.what( ) << std::endl << std::endl;
+                std::cerr <<
+                          "The problem may be that there is an insufficient number of data points (epochs) at which propagation results are produced. Integrated results are given at" +
+                          std::to_string( propagationResults_->equationsOfMotionNumericalSolution_.size( )) + " epochs"
+                          << std::endl;
+            }
 
-        // Clear numerical solution if so required.
-        if( propagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( ) )
+            // Clear numerical solution if so required.
+            if ( propagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( ))
+            {
+                propagationResults_->clearSolutionMaps( );
+            }
+
+            for ( auto bodyIterator: bodies_.getMap( )) {
+                bodyIterator.second->updateConstantEphemerisDependentMemberQuantities( );
+            }
+        }
+        else if ( propagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( ))
         {
             propagationResults_->clearSolutionMaps( );
-        }
-
-        for( auto bodyIterator : bodies_.getMap( )  )
-        {
-            bodyIterator.second->updateConstantEphemerisDependentMemberQuantities( );
         }
     }
 
@@ -1793,35 +1775,9 @@ public:
                         newInitialStates );
         }
 
-        if( multiArcPropagatorSettings_->getOutputSettings( )->getSetIntegratedResult( ) )
-        {
-            processNumericalEquationsOfMotionSolution( );
-        }
-        else if( multiArcPropagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( ) )
-        {
-            propagationResults_->clearSolutionMaps( );
-        }
+        processNumericalEquationsOfMotionSolution( );
     }
 
-    //! Function to reset the environment using an externally provided list of (numerically integrated) states
-    /*!
-     *  Function to reset the environment using an externally provided list of (numerically integrated) states, for instance
-     *  provided by a variational equations solver.
-     *  \param equationsOfMotionNumericalSolution Vector of state histories
-     *  (externally provided equationsOfMotionNumericalSolution_)
-     *  \param dependentVariableHistory Vector of dependent variable histories
-     *  (externally provided dependentVariableHistory_)
-     *  \param processSolution True if the new solution is to be immediately processed (default true).
-     */
-    void manuallySetAndProcessRawNumericalEquationsOfMotionSolution(
-            const bool processSolution = true )
-    {
-        // Reset environment with new states.
-        if( processSolution )
-        {
-            processNumericalEquationsOfMotionSolution( );
-        }
-    }
 
     //! Function to get the list of DynamicsStateDerivativeModel objects used for each arc
     /*!
@@ -1857,42 +1813,50 @@ public:
     void processNumericalEquationsOfMotionSolution( )
     {
 
-        try
+        if( multiArcPropagatorSettings_->getOutputSettings( )->getSetIntegratedResult( ) )
         {
-            std::map< IntegratedStateType, std::vector< std::shared_ptr<
-                    SingleArcIntegratedStateProcessor< TimeType, StateScalarType > > > > singleArcIntegratedStatesProcessors;
-
-            for ( unsigned int i = 0 ; i < singleArcDynamicsSimulators_.size( ) ; i++ )
+            try
             {
-                std::map< IntegratedStateType, std::shared_ptr<
-                        SingleArcIntegratedStateProcessor< TimeType, StateScalarType > > > currentArcStateProcessors =
-                        singleArcDynamicsSimulators_.at( i )->getIntegratedStateProcessors( );
+                std::map<IntegratedStateType, std::vector<std::shared_ptr<
+                        SingleArcIntegratedStateProcessor<TimeType, StateScalarType> > > > singleArcIntegratedStatesProcessors;
 
-                for ( auto itr : currentArcStateProcessors )
-                {
-                    singleArcIntegratedStatesProcessors[ itr.first ].push_back( itr.second );
+                for ( unsigned int i = 0; i < singleArcDynamicsSimulators_.size( ); i++ ) {
+                    std::map<IntegratedStateType, std::shared_ptr<
+                            SingleArcIntegratedStateProcessor<TimeType, StateScalarType> > > currentArcStateProcessors =
+                            singleArcDynamicsSimulators_.at( i )->getIntegratedStateProcessors( );
+
+                    for ( auto itr: currentArcStateProcessors ) {
+                        singleArcIntegratedStatesProcessors[ itr.first ].push_back( itr.second );
+                    }
+                }
+
+                std::map<IntegratedStateType,
+                        std::shared_ptr<MultiArcIntegratedStateProcessor<TimeType, StateScalarType> > > multiArcStateProcessors
+                        = createMultiArcIntegratedStateProcessors( bodies_, propagationResults_->getArcStartTimes( ),
+                                                                   singleArcIntegratedStatesProcessors );
+                for ( auto itr: multiArcStateProcessors ) {
+                    itr.second->processIntegratedMultiArcStates(
+                            propagationResults_->getConcatenatedEquationsOfMotionResults(
+                                    multiArcPropagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( )),
+                            propagationResults_->getArcStartTimes( ));
                 }
             }
-
-            std::map< IntegratedStateType,
-                    std::shared_ptr< MultiArcIntegratedStateProcessor< TimeType, StateScalarType > > > multiArcStateProcessors
-                    = createMultiArcIntegratedStateProcessors( bodies_, propagationResults_->getArcStartTimes( ), singleArcIntegratedStatesProcessors );
-            for ( auto itr : multiArcStateProcessors )
-            {
-                itr.second->processIntegratedMultiArcStates(
-                        propagationResults_->getConcatenatedEquationsOfMotionResults( multiArcPropagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( ) ),
-                        propagationResults_->getArcStartTimes( ) );
+            catch ( const std::exception &caughtException ) {
+                std::cerr
+                        << "Error occured when post-processing mulyi-arc integration results, and seting integrated states in environment, caught error is: "
+                        << std::endl << std::endl;
+                std::cerr << caughtException.what( ) << std::endl << std::endl;
+                std::cerr
+                        << "The problem may be that there is an insufficient number of data points (epochs) at which propagation results are produced for one or more arcs"
+                        << std::endl;
+                if ( multiArcPropagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( )) {
+                    propagationResults_->clearSolutionMaps( );
+                }
             }
         }
-        catch( const std::exception& caughtException )
+        else if( multiArcPropagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( ) )
         {
-            std::cerr << "Error occured when post-processing mulyi-arc integration results, and seting integrated states in environment, caught error is: " << std::endl << std::endl;
-            std::cerr << caughtException.what( ) << std::endl << std::endl;
-            std::cerr << "The problem may be that there is an insufficient number of data points (epochs) at which propagation results are produced for one or more arcs"<< std::endl;
-            if( multiArcPropagatorSettings_->getOutputSettings( )->getClearNumericalSolutions( ) )
-            {
-                propagationResults_->clearSolutionMaps( );
-            }
+            propagationResults_->clearSolutionMaps( );
         }
     }
 

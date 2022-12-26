@@ -201,20 +201,11 @@ public:
     virtual void setClearNumericalSolutions( const bool clearNumericalSolutions )
     {
         this->clearNumericalSolutions_ = clearNumericalSolutions;
-        for( unsigned int i = 0; i < singleArcSettings_.size( ); i++ )
-        {
-            singleArcSettings_.at( i )->setClearNumericalSolutions( clearNumericalSolutions );
-        }
     }
 
     virtual void setIntegratedResult( const bool setIntegratedResult )
     {
         this->setIntegratedResult_ = setIntegratedResult;
-        for( unsigned int i = 0; i < singleArcSettings_.size( ); i++ )
-        {
-            // Results should never be set during a single arc of the multi-arc
-            singleArcSettings_.at( i )->setIntegratedResult( false );
-        }
     }
 
     void resetSingleArcSettings( const bool printWarning = false )
@@ -226,7 +217,7 @@ public:
 
         for( unsigned int i = 0; i < singleArcSettings_.size( ); i++ )
         {
-            singleArcSettings_.at( i )->setClearNumericalSolutions( clearNumericalSolutions_ );
+            singleArcSettings_.at( i )->setClearNumericalSolutions( false );
             singleArcSettings_.at( i )->setIntegratedResult( false );
             singleArcSettings_.at( i )->setAsMultiArc( i, printCurrentArcIndex_ );
 

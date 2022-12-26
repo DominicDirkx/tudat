@@ -1513,56 +1513,6 @@ public:
    }
 protected:
 
-//    //! Create initial matrix of numerical soluation to variational + dynamical equations.
-//    /*!
-//     *  Create initial matrix of numerical soluation to variational + dynamical equations. The structure of the matrix is
-//     *  [Phi;S;y], with Phi the state transition matrix, S the sensitivity matrix y the state vector.
-//     *  \param initialStateEstimate vector of initial state (position/velocity) of bodies to be integrated numerically.
-//     *  order determined by order of bodiesToIntegrate_.
-//     *  \return Initial matrix of numerical soluation to variation + state equations.
-//     */
-//    MatrixType createInitialConditions( const VectorType initialStateEstimate, const int currentArcIndex )
-//    {
-//        if( arcWiseStateTransitionMatrixSize_[ currentArcIndex ] != initialStateEstimate.rows( ) )
-//        {
-//            throw std::runtime_error( "Error when getting initial condition for variational equations, sizes are incompatible." );
-//        }
-//
-//        // Initialize initial conditions to zeros.
-//        MatrixType varSystemInitialState = MatrixType( arcWiseStateTransitionMatrixSize_[ currentArcIndex ],
-//                                                       arcWiseParameterVectorSize_[ currentArcIndex ] + 1 ).setZero( );
-//
-//        // Set initial state transition matrix to identity
-//        varSystemInitialState.block( 0, 0, arcWiseStateTransitionMatrixSize_[ currentArcIndex ],
-//                                     arcWiseStateTransitionMatrixSize_[ currentArcIndex ] ).setIdentity( );
-//
-//        // Set initial body states to current estimate of initial body states.
-//        varSystemInitialState.block( 0, arcWiseParameterVectorSize_[ currentArcIndex ],
-//                                     arcWiseStateTransitionMatrixSize_[ currentArcIndex ], 1 ) = initialStateEstimate;
-//
-//        return varSystemInitialState;
-//    }
-//
-//    //! Create initial matrix of numerical soluation to variational equations
-//    /*!
-//     *  Create initial matrix of numerical soluation to variational equations, with structure [Phi;S]. Initial state
-//     *  transition matrix Phi is identity matrix. Initial sensitivity matrix S is all zeros.
-//     *  \return Initial matrix solution to variational equations.
-//     */
-//    Eigen::MatrixXd createInitialVariationalEquationsSolution( const int currentArcIndex )
-//    {
-//        // Initialize initial conditions to zeros.
-//        Eigen::MatrixXd varSystemInitialState = Eigen::MatrixXd::Zero(
-//                arcWiseStateTransitionMatrixSize_[ currentArcIndex ], arcWiseParameterVectorSize_[ currentArcIndex ] );
-//
-//        // Set initial state transition matrix to identity
-//        varSystemInitialState.block( 0, 0, arcWiseStateTransitionMatrixSize_[ currentArcIndex ],
-//                                     arcWiseStateTransitionMatrixSize_[ currentArcIndex ] ).setIdentity( );
-//
-//        return varSystemInitialState;
-//    }
-
-
 private:
 
     //! Reset solutions of variational equations.
@@ -1928,10 +1878,7 @@ public:
         originalMultiArcSolver_->getDynamicsSimulator( )->getMultiArcPropagationResults( )->restartPropagation();
         // Reset original multi-arc bodies' dynamics
         originalMultiArcSolver_->getDynamicsSimulator( )->getMultiArcPropagationResults( )->manuallySetPropagationResults( numericalMultiArcSolution );
-        if( originalPopagatorSettings_->getOutputSettings( )->getSetIntegratedResult( ) )
-        {
-            originalMultiArcSolver_->getDynamicsSimulator( )->processNumericalEquationsOfMotionSolution( );
-        }
+        originalMultiArcSolver_->getDynamicsSimulator( )->processNumericalEquationsOfMotionSolution( );
 
         // Create state transition matrix if not yet created.
         if( stateTransitionInterface_ == nullptr )
@@ -1991,12 +1938,7 @@ public:
 
         // Reset original multi-arc bodies' dynamics
         originalMultiArcSolver_->getDynamicsSimulator( )->getMultiArcPropagationResults( )->manuallySetPropagationResults( numericalMultiArcSolution );
-        if( originalPopagatorSettings_->getOutputSettings( )->getSetIntegratedResult( ) )
-        {
-            originalMultiArcSolver_->getDynamicsSimulator( )->processNumericalEquationsOfMotionSolution( );
-        }
-
-
+        originalMultiArcSolver_->getDynamicsSimulator( )->processNumericalEquationsOfMotionSolution( );
     }
 
     //! Function to reset parameter estimate and re-integrate equations of motion and, if desired, variational equations.

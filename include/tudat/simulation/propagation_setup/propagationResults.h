@@ -20,9 +20,11 @@ namespace tudat
         class SimulationResults
         {
         public:
-            SimulationResults() {}
+            SimulationResults( ) 
+            {}
 
-            virtual ~SimulationResults() {}
+            virtual ~SimulationResults( ) 
+            {}
 
         };
 
@@ -60,19 +62,18 @@ namespace tudat
                     rawSolutionConversionFunction_( rawSolutionConversionFunction ),
                     propagationIsPerformed_(false),
                     solutionIsCleared_( false ),
+                    onlyProcessedSolutionSet_( false ),
                     propagationTerminationReason_(
                             std::make_shared<PropagationTerminationDetails>(propagation_never_run)) {
             }
 
             //! Function that resets the state of this object, typically to signal that a new propagation is to be performed.
-            void reset() {
-                equationsOfMotionNumericalSolution_.clear();
-                equationsOfMotionNumericalSolutionRaw_.clear();
-                dependentVariableHistory_.clear();
-                cumulativeComputationTimeHistory_.clear();
-                cumulativeNumberOfFunctionEvaluations_.clear();
+            void reset( ) 
+            {
+                clearSolutionMaps( );
                 propagationIsPerformed_ = false;
                 solutionIsCleared_ = false;
+                onlyProcessedSolutionSet_ = false;
                 propagationTerminationReason_ = std::make_shared<PropagationTerminationDetails>(propagation_never_run);
             }
 
@@ -93,7 +94,9 @@ namespace tudat
                 propagationTerminationReason_ = propagationTerminationReason;
             }
 
-
+            //! Function to clear all maps with numerical results, but *not* signal that a new propagation will start,
+            //! this is typically done to save memory usage (and is called using the clearNumericalSolution setting
+            //! of the PropagatorProcessingSettings
             void clearSolutionMaps( )
             {
                 equationsOfMotionNumericalSolution_.clear();
@@ -104,6 +107,7 @@ namespace tudat
                 solutionIsCleared_ = true;
             }
 
+            //! Get initial and final propagation time from raw results
             std::pair< TimeType, TimeType > getArcInitialAndFinalTime( )
             {
                 if( equationsOfMotionNumericalSolutionRaw_.size( ) == 0 )
@@ -113,55 +117,93 @@ namespace tudat
                 return std::make_pair( equationsOfMotionNumericalSolutionRaw_.begin( )->first, equationsOfMotionNumericalSolutionRaw_.rbegin( )->first );
             }
 
+            //! Function to signal that propagation is finished, and add number of function evaluations
             void finalizePropagation( const std::map<TimeType, unsigned int> cumulativeNumberOfFunctionEvaluations )
             {
                 cumulativeNumberOfFunctionEvaluations_ = cumulativeNumberOfFunctionEvaluations;
                 propagationIsPerformed_ = true;
             }
 
+            //! Manually set processed numerical solution, to be used when this object *is not* used in the
+            //! propagation loop, but *is* used to store the numerical results
             void setEquationsOfMotionNumericalSolution(
                     const std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1>> & equationsOfMotionNumericalSolution )
             {
+                onlyProcessedSolutionSet_ = true;
                 equationsOfMotionNumericalSolution_ = equationsOfMotionNumericalSolution;
             }
 
+            //! Function to check if output map that is requested is available
+            void checkAvailabilityOfSolution( const std::string& dataToRetrieve, const bool checkEomOnly = true )
+            {
+                if( !propagationIsPerformed_ )
+                {
+                    throw std::runtime_error( "Error when retrieving " + dataToRetrieve + ", propagation is not yet performed." );
+                }
+                else if( solutionIsCleared_ )
+                {
+                    throw std::runtime_error( "Error when retrieving " + dataToRetrieve + ", propagation has been performed, but results have been cleared." );
+                }
+                else if( checkEomOnly && onlyProcessedSolutionSet_ )
+                {
+                    throw std::runtime_error( "Error when retrieving " + dataToRetrieve + ", propagation has been performed using other object; current object only holds equations of motion solution." );
+                }
+            }
+
             std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1>> &
-            getEquationsOfMotionNumericalSolution() {
+            getEquationsOfMotionNumericalSolution( )
+            {
+                if( !onlyProcessedSolutionSet_ )
+                {
+                    checkAvailabilityOfSolution( "equations of motion numerical solution", false );
+                }
                 return equationsOfMotionNumericalSolution_;
             }
 
             std::map <TimeType, Eigen::Matrix<StateScalarType, Eigen::Dynamic, 1>> &
-            getEquationsOfMotionNumericalSolutionRaw() {
+            getEquationsOfMotionNumericalSolutionRaw( )
+            {
+                checkAvailabilityOfSolution( "equations of motion unprocessed numerical solution" );
                 return equationsOfMotionNumericalSolutionRaw_;
             }
 
-            std::map <TimeType, Eigen::VectorXd> &getDependentVariableHistory() {
+            std::map <TimeType, Eigen::VectorXd> &getDependentVariableHistory( ) 
+            {
+                checkAvailabilityOfSolution( "dependent variable history" );
                 return dependentVariableHistory_;
             }
 
-            std::map<TimeType, double> &getCumulativeComputationTimeHistory() {
+            std::map<TimeType, double> &getCumulativeComputationTimeHistory( ) 
+            {
+                checkAvailabilityOfSolution( "cumulative computation time history" );
                 return cumulativeComputationTimeHistory_;
             }
 
-            std::map<TimeType, unsigned int> &getCumulativeNumberOfFunctionEvaluations() {
+            std::map<TimeType, unsigned int> &getCumulativeNumberOfFunctionEvaluations( ) 
+            {
+                checkAvailabilityOfSolution( "cumulative number of function evaluations" );
                 return cumulativeNumberOfFunctionEvaluations_;
             }
 
-            std::shared_ptr <PropagationTerminationDetails> getPropagationTerminationReason() {
+            std::shared_ptr <PropagationTerminationDetails> getPropagationTerminationReason( ) 
+            {
                 return propagationTerminationReason_;
             }
 
-            bool integrationCompletedSuccessfully() const {
+            bool integrationCompletedSuccessfully( ) const
+            {
                 return (propagationTerminationReason_->getPropagationTerminationReason() ==
                         termination_condition_reached);
             }
 
 
-            std::map <std::pair<int, int>, std::string> getDependentVariableId() {
+            std::map <std::pair<int, int>, std::string> getDependentVariableId( ) 
+            {
                 return dependentVariableIds_;
             }
 
-            std::map <std::pair<int, int>, std::string> getStateIds() {
+            std::map <std::pair<int, int>, std::string> getStateIds( ) 
+            {
                 return stateIds_;
             }
 
@@ -217,12 +259,15 @@ namespace tudat
 
             std::shared_ptr <SingleArcPropagatorProcessingSettings> outputSettings_;
 
+            //! Function to convert the propagated solution to conventional solution (see DynamicsStateDerivativeModel::convertToOutputSolution)
             const std::function< void ( std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >&,
                                         const std::map< TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 > >& ) > rawSolutionConversionFunction_;
 
             bool propagationIsPerformed_;
 
             bool solutionIsCleared_;
+            
+            bool onlyProcessedSolutionSet_;
 
             //! Event that triggered the termination of the propagation
             std::shared_ptr <PropagationTerminationDetails> propagationTerminationReason_;
@@ -250,9 +295,9 @@ namespace tudat
                     stateTransitionMatrixSize_( stateTransitionMatrixSize ),
                     sensitivityMatrixSize_( sensitivityMatrixSize ) { }
 
-            void reset() {
-                stateTransitionSolution_.clear( );
-                sensitivitySolution_.clear( );
+            void reset( ) 
+            {
+                clearSolutionMaps( );
                 singleArcDynamicsResults_->reset( );
             }
 
@@ -272,7 +317,8 @@ namespace tudat
                         cumulativeNumberOfFunctionEvaluations,
                         propagationTerminationReason );
             }
-            
+
+            //! Function to split the full numerical solution into the solution for state transition matrix, sensitivity matrix, and unprocessed dynamics solution
             void splitSolution(
                     const std::map <TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, Eigen::Dynamic >>& fullSolution,
                     std::map <TimeType, Eigen::Matrix< StateScalarType, Eigen::Dynamic, 1 >>& equationsOfMotionNumericalSolutionRaw )
@@ -307,7 +353,7 @@ namespace tudat
                 return sensitivitySolution_;
             }
 
-            const std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType > > getSingleResults( )
+            const std::shared_ptr< SingleArcSimulationResults< StateScalarType, TimeType > > getDynamicsResults( )
             {
                 return singleArcDynamicsResults_;
             }
@@ -333,6 +379,12 @@ namespace tudat
             std::map < double, Eigen::MatrixXd > sensitivitySolution_;
         };
 
+
+
+        //! Class that holds numerical results for multi-arc simulations. This class may
+        //! hold results for dynamics-only or variational+dynamics results. For the former,
+        //! the SingleArcResults template argument is SingleArcSimulationResults, for the latter it is
+        //! SingleArcVariationalSimulationResults
         template <template<class, class> class SingleArcResults, class StateScalarType, class TimeType>
         class MultiArcSimulationResults : public SimulationResults<StateScalarType, TimeType> {
         public:
@@ -343,7 +395,8 @@ namespace tudat
                     const std::vector< std::shared_ptr< SingleArcResults< StateScalarType, TimeType > > > singleArcResults ):
                     singleArcResults_( singleArcResults ), propagationIsPerformed_( false ), solutionIsCleared_( false ){ }
 
-            ~MultiArcSimulationResults() {}
+            ~MultiArcSimulationResults( ) 
+            {}
 
             bool getPropagationIsPerformed( )
             {
@@ -523,7 +576,8 @@ namespace tudat
                     const std::shared_ptr< MultiArcSimulationResults< SingleArcResults, StateScalarType, TimeType > > multiArcResults ):
                     singleArcResults_( singleArcResults ), multiArcResults_( multiArcResults ){ }
 
-            ~HybridArcSimulationResults() {}
+            ~HybridArcSimulationResults( ) 
+            {}
 
             bool integrationCompletedSuccessfully() const
             {

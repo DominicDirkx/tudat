@@ -472,14 +472,14 @@ void propagateToExactTerminationCondition(
 template< typename SimulationResults, typename StateType = Eigen::MatrixXd, typename TimeType = double, typename TimeStepType = TimeType  >
 void integrateEquationsFromIntegrator(
         const std::shared_ptr< numerical_integrators::NumericalIntegrator< TimeType, StateType, StateType, TimeStepType > > integrator,
-        const TimeStepType initialTimeStep,
         const std::shared_ptr< PropagationTerminationCondition > propagationTerminationCondition,
         const std::shared_ptr< SimulationResults > simulationResults,
         const std::function< Eigen::VectorXd( ) > dependentVariableFunction = std::function< Eigen::VectorXd( ) >( ),
         const std::function< void( StateType& ) > statePostProcessingFunction = std::function< void( StateType& ) >( ),
-        const int saveFrequency = TUDAT_NAN,
         const std::shared_ptr< PropagationPrintSettings > printSettings = std::make_shared< PropagationPrintSettings >( ) )
 {
+    int saveFrequency = 1;
+
     std::map< TimeType, StateType > solutionHistory;
     std::map< TimeType, Eigen::VectorXd > dependentVariableHistory;
     std::map< TimeType, double > cumulativeComputationTimeHistory;
@@ -514,7 +514,7 @@ void integrateEquationsFromIntegrator(
     cumulativeComputationTimeHistory[ currentTime ] = currentCPUTime;
 
     // Set initial time step and total integration time.
-    TimeStepType timeStep = initialTimeStep;
+    TimeStepType timeStep = integrator->getNextStepSize( );
     TimeType previousTime = currentTime;
     TimeType previousPrintTime = TUDAT_NAN;
 
@@ -812,11 +812,11 @@ void integrateEquationsFromIntegrator(
         }
 
         integrateEquationsFromIntegrator< SimulationResults, StateType, TimeType, typename scalar_type< TimeType >::value_type >(
-                    integrator, integratorSettings->initialTimeStep_, propagationTerminationCondition,
+                    integrator,
+                    propagationTerminationCondition,
                     simulationResults,
                     dependentVariableFunction,
                     statePostProcessingFunction,
-                    integratorSettings->saveFrequency_,
                     printSettings );
     }
 

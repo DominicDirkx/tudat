@@ -479,9 +479,6 @@ void integrateEquationsFromIntegrator(
         const std::function< void( StateType& ) > statePostProcessingFunction = std::function< void( StateType& ) >( ),
         const int saveFrequency = TUDAT_NAN,
         const std::shared_ptr< PropagationPrintSettings > printSettings = std::make_shared< PropagationPrintSettings >( ) )
-//        const TimeType statePrintInterval = TUDAT_NAN,
-//        const std::chrono::steady_clock::time_point initialClockTime = std::chrono::steady_clock::now( ),
-//        const bool printInitialAndFinalCondition = false )
 {
     std::map< TimeType, StateType > solutionHistory;
     std::map< TimeType, Eigen::VectorXd > dependentVariableHistory;

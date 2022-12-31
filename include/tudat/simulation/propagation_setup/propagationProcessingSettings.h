@@ -85,19 +85,57 @@ public:
     SingleArcPropagatorProcessingSettings(
             const bool clearNumericalSolutions = false,
             const bool setIntegratedResult = false,
-            const double resultSaveInterval = TUDAT_NAN,
+            const int resultsSaveFrequencyInSteps = 1,
+            const double resultsSaveFrequencyInSeconds = TUDAT_NAN,
             const std::shared_ptr< PropagationPrintSettings > printSettings =
             std::make_shared< PropagationPrintSettings >( ) ):
-        PropagatorProcessingSettings( clearNumericalSolutions, setIntegratedResult ),
-        printSettings_( printSettings ),
+            PropagatorProcessingSettings( clearNumericalSolutions, setIntegratedResult ),
+            resultsSaveFrequencyInSteps_( resultsSaveFrequencyInSteps ),
+            resultsSaveFrequencyInSeconds_( resultsSaveFrequencyInSeconds ),
+            printSettings_( printSettings ),
         isPartOfMultiArc_( false ), arcIndex_( -1 ){ }
-
     virtual ~SingleArcPropagatorProcessingSettings( ){ }
 
     std::shared_ptr< PropagationPrintSettings > getPrintSettings( )
     {
         return printSettings_;
     }
+
+    void getResultsSaveFrequencyInSteps( const int resultsSaveFrequencyInSteps )
+    {
+        resultsSaveFrequencyInSteps_ = resultsSaveFrequencyInSteps;
+    }
+
+    void getResultsSaveFrequencyInSeconds( const double resultsSaveFrequencyInSeconds )
+    {
+        resultsSaveFrequencyInSeconds_ = resultsSaveFrequencyInSeconds;
+    }
+
+    int getResultsSaveFrequencyInSteps( )
+    {
+        return resultsSaveFrequencyInSteps_;
+    }
+
+    double getResultsSaveFrequencyInSeconds( )
+    {
+        return resultsSaveFrequencyInSeconds_;
+    }
+
+    bool saveCurrentStep(
+            const int stepsSinceLastSave, const double timeSinceLastSave )
+    {
+        bool saveCurrentStep = false;
+        if( stepsSinceLastSave >=  resultsSaveFrequencyInSteps_ )
+        {
+            saveCurrentStep = true;
+        }
+        else if( timeSinceLastSave >= resultsSaveFrequencyInSeconds_ )
+        {
+            saveCurrentStep = true;
+        }
+        return saveCurrentStep;
+    }
+
 
 
     bool printAnyOutput( )
@@ -132,19 +170,14 @@ public:
         }
     }
 
-    double getResultSaveInterval( )
-    {
-        return resultSaveInterval_;
-    }
-
-
-protected:
-
-    const std::shared_ptr< PropagationPrintSettings > printSettings_;
 
 private:
 
-    double resultSaveInterval_;
+    int resultsSaveFrequencyInSteps_;
+
+    double resultsSaveFrequencyInSeconds_;
+
+    const std::shared_ptr< PropagationPrintSettings > printSettings_;
 
     void setAsMultiArc( const unsigned int arcIndex, const bool printArcIndex )
     {

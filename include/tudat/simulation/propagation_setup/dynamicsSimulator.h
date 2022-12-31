@@ -1144,7 +1144,7 @@ private:
                 propagationResults,
                 dependentVariablesFunctions_,
                 statePostProcessingFunction,
-                propagatorSettings_->getOutputSettings( )->getPrintSettings( ) );
+                propagatorSettings_->getOutputSettings( ) );
         simulation_setup::setAreBodiesInPropagation( bodies_, false );
     }
 

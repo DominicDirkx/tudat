@@ -18,6 +18,7 @@
 
 #include "tudat/astro/ground_stations/groundStationState.h"
 #include "tudat/astro/ground_stations/pointingAnglesCalculator.h"
+#include "tudat/astro/ground_stations/transmittingFrequencies.h"
 
 namespace tudat
 {
@@ -40,8 +41,13 @@ public:
      */
     GroundStation( const std::shared_ptr< GroundStationState > stationState,
                    const std::shared_ptr< PointingAnglesCalculator > pointingAnglesCalculator,
-                   const std::string& stationId ):
-        nominalStationState_( stationState ),  pointingAnglesCalculator_( pointingAnglesCalculator ), stationId_( stationId ){ }
+                   const std::string& stationId,
+                   const std::shared_ptr< StationFrequencyInterpolator > transmittingFrequencyCalculator = nullptr):
+        nominalStationState_( stationState ),
+        pointingAnglesCalculator_( pointingAnglesCalculator ),
+        stationId_( stationId ),
+        transmittingFrequencyCalculator_( transmittingFrequencyCalculator )
+    { }
 
 
     //! Function that returns (at reference epoch) the state of the ground station
@@ -89,6 +95,100 @@ public:
         return pointingAnglesCalculator_;
     }
 
+    //! Function to return the object used to compute the ground station's transmitting frequency at a given time
+    std::shared_ptr< StationFrequencyInterpolator > getTransmittingFrequencyCalculator( )
+    {
+        if ( transmittingFrequencyCalculator_ == nullptr )
+        {
+            throw std::runtime_error("Error when retrieving the frequency calculator for ground station " + stationId_ +
+            ": no frequency calculator has been defined");
+        }
+
+        return transmittingFrequencyCalculator_;
+    }
+
+    //! Function to set the object used to compute the ground station's transmitting frequency at a given time
+    void setTransmittingFrequencyCalculator( std::shared_ptr< StationFrequencyInterpolator >
+            transmittingFrequencyCalculator )
+    {
+        transmittingFrequencyCalculator_ = transmittingFrequencyCalculator;
+    }
+
+    void setTemperatureFunction( const std::function< double ( const double time ) >& temperatureFunction )
+    {
+        temperatureFunction_ = temperatureFunction;
+    }
+
+    std::function< double ( const double time ) > getTemperatureFunction( )
+    {
+        if( temperatureFunction_ == nullptr )
+        {
+            throw std::runtime_error( "Error when getting temperature function from ground station " + stationId_ +
+                                      ": function is not defined." );
+        }
+        return temperatureFunction_;
+    }
+
+    void setPressureFunction( const std::function< double ( const double time ) >& pressureFunction )
+    {
+        pressureFunction_ = pressureFunction;
+    }
+
+    std::function< double ( const double time ) > getPressureFunction( )
+    {
+        if( pressureFunction_ == nullptr )
+        {
+            throw std::runtime_error( "Error when getting pressure function from ground station " + stationId_ +
+                                      ": function is not defined." );
+        }
+        return pressureFunction_;
+    }
+
+    void setWaterVaporPartialPressureFunction( const std::function< double ( const double time ) >& waterVaporPartialPressureFunction )
+    {
+        waterVaporPartialPressureFunction_ = waterVaporPartialPressureFunction;
+    }
+
+    std::function< double ( const double time ) > getWaterVaporPartialPressureFunction( )
+    {
+        if( waterVaporPartialPressureFunction_ == nullptr )
+        {
+            throw std::runtime_error( "Error when getting water vapor partial pressure function from ground station " + stationId_ +
+                                      ": function is not defined." );
+        }
+        return waterVaporPartialPressureFunction_;
+    }
+
+    void setRelativeHumidityFunction( const std::function< double ( const double time ) >& relativeHumidityFunction )
+    {
+        relativeHumidityFunction_ = relativeHumidityFunction;
+    }
+
+    std::function< double ( const double time ) > getRelativeHumidityFunction( )
+    {
+        if( relativeHumidityFunction_ == nullptr )
+        {
+            throw std::runtime_error( "Error when getting relative humidity function from ground station " + stationId_ +
+                                      ": function is not defined." );
+        }
+        return relativeHumidityFunction_;
+    }
+
+    void setDewPointFunction( const std::function< double ( const double time ) >& dewPointFunction )
+    {
+        dewPointFunction_ = dewPointFunction;
+    }
+
+    std::function< double ( const double time ) > getDewPointFunction( )
+    {
+        if( dewPointFunction_ == nullptr )
+        {
+            throw std::runtime_error( "Error when getting dew point function from ground station " + stationId_ +
+                                      ": function is not defined." );
+        }
+        return dewPointFunction_;
+    }
+
 private:
 
     //! Object to define and compute the state of the ground station.
@@ -99,6 +199,24 @@ private:
 
     //! Name of the ground station
     std::string stationId_;
+
+    //! Object used to defined and compute the ground station's transmitting frequency.
+    std::shared_ptr< StationFrequencyInterpolator > transmittingFrequencyCalculator_;
+
+    //! Function returning the temperature [K] as a function of time.
+    std::function< double ( const double time ) > temperatureFunction_;
+
+    //! Function returning the pressure [Pa] as a function of time.
+    std::function< double ( const double time ) > pressureFunction_;
+
+    //! Function returning the water vapor partial pressure [Pa] as a function of time.
+    std::function< double ( const double time ) > waterVaporPartialPressureFunction_;
+
+    //! Function returning the relative humidity [-] (defined in [0,1]) as a function of time.
+    std::function< double ( const double time ) > relativeHumidityFunction_;
+
+    //! Function returning the dew point [K] as a function of time.
+    std::function< double ( const double time ) > dewPointFunction_;
 };
 
 } // namespace ground_stations

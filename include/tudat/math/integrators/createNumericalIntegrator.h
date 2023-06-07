@@ -885,6 +885,8 @@ inline std::shared_ptr< IntegratorSettings< IndependentVariableType > > bulirsch
                 minimumFactorDecreaseForNextStepSize );
 }
 
+
+
 template< typename IndependentVariableType = double >
 inline std::shared_ptr< IntegratorSettings< IndependentVariableType > > adamsBashforthMoultonSettingsDeprecated(
         const IndependentVariableType initialTime,

@@ -87,6 +87,8 @@ public:
         constantCorrection_( constantCorrection )
     { }
 
+    ~ConstantReferenceCorrection( ){ }
+
     double computeReferenceCorrection( const double time ) override
     {
         isTimeValid( time );
@@ -117,6 +119,8 @@ public:
         coefficients_( coefficients )
     { }
 
+    ~PowerSeriesReferenceCorrection( ){ }
+
     double computeReferenceCorrection( const double time ) override;
 
     std::vector< double > getCoefficients( )
@@ -138,6 +142,8 @@ public:
     FourierSeriesReferenceCorrection( const double startTime,
                                       const double endTime,
                                       const std::vector< double > coefficients );
+
+    ~FourierSeriesReferenceCorrection( ){ }
 
     double computeReferenceCorrection( const double time ) override;
 
@@ -179,6 +185,7 @@ public:
             endTimes_.push_back( correctionVector_.at( i )->getEndTime( ) );
         }
     }
+
 
     void pushReferenceCorrectionCalculator( std::shared_ptr< TabulatedMediaReferenceCorrection > correctionCalculator )
     {

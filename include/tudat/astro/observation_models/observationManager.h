@@ -270,16 +270,11 @@ public:
 
         }
 
-//<<<<<<< HEAD
-////        std::cout << "end computeObservationsWithPartials" << "\n\n";
-//
-//        return std::make_pair(
-//                utilities::createConcatenatedEigenMatrixFromMapValues< TimeType, ObservationScalarType, ObservationSize, 1 >( observations ),
-//                utilities::createConcatenatedEigenMatrixFromMapValues< TimeType, ObservationScalarType, ObservationSize, Eigen::Dynamic >( observationMatrices ) );
-//=======
-        return std::make_pair( utilities::createConcatenatedEigenMatrixFromMapValues( observations ),
-                               utilities::createConcatenatedEigenMatrixFromMapValues( observationMatrices ) );
-//>>>>>>> miguel-origin/feature/odf_file_reader
+//        std::cout << "end computeObservationsWithPartials" << "\n\n";
+
+        return std::make_pair(
+                utilities::createConcatenatedEigenMatrixFromMapValues< TimeType, ObservationScalarType, ObservationSize, 1 >( observations ),
+                utilities::createConcatenatedEigenMatrixFromMapValues< TimeType, double, ObservationSize, Eigen::Dynamic >( observationMatrices ) );
     }
 
     //! Function to return the full list of observation partial objects

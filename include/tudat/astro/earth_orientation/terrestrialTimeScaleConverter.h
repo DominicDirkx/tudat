@@ -16,6 +16,7 @@
 
 #include "tudat/math/interpolators/oneDimensionalInterpolator.h"
 #include "tudat/basics/timeType.h"
+#include "tudat/astro/basic_astro/dateTime.h"
 #include "tudat/astro/earth_orientation/shortPeriodEarthOrientationCorrectionCalculator.h"
 #include "tudat/astro/earth_orientation/eopReader.h"
 #include "tudat/basics/utilities.h"
@@ -200,21 +201,31 @@ public:
             const std::vector< TimeType >& inputTimeValues,
             const std::vector< Eigen::Vector3d >& earthFixedPositions )
     {
-        if ( inputTimeValues.size( ) != earthFixedPositions.size( ) )
+        if ( inputTimeValues.size( ) != earthFixedPositions.size( ))
         {
             throw std::runtime_error(
                 "Error time values between scales: number of inputted time values and number of Earth-fixed positions are not consistent." );
         }
 
-        std::vector < TimeType > convertedTimes;
+        std::vector<TimeType> convertedTimes;
 
-        for ( unsigned int i = 0; i < inputTimeValues.size(); ++i )
+        for ( unsigned int i = 0; i < inputTimeValues.size( ); ++i )
         {
             convertedTimes.push_back(
-                    getCurrentTime( inputScale, outputScale, inputTimeValues.at( i ), earthFixedPositions.at( i ) ) );
+                getCurrentTime( inputScale, outputScale, inputTimeValues.at( i ), earthFixedPositions.at( i )));
         }
 
         return convertedTimes;
+    }
+
+    template< typename TimeType >
+    TimeType getCurrentTimeDifference(
+        const basic_astrodynamics::TimeScales inputScale, const basic_astrodynamics::TimeScales outputScale,
+        const TimeType& inputTimeValue, const Eigen::Vector3d& earthFixedPosition = Eigen::Vector3d::Zero( ) )
+    {
+        Time convertedTime = getCurrentTime< Time >( inputScale, outputScale,
+            Time( inputTimeValue ), earthFixedPosition );
+        return static_cast< TimeType >( convertedTime - inputTimeValue );
     }
 
     //! Function to reset all current times at given precision to NaN.
@@ -432,8 +443,35 @@ private:
  * \param eopReader Object that reads an Earth Orientation Parameters file.
  * \return Default Earth time scales conversion object
  */
-std::shared_ptr< TerrestrialTimeScaleConverter >  createDefaultTimeConverter( const std::shared_ptr< EOPReader > eopReader =
+std::shared_ptr< TerrestrialTimeScaleConverter > createDefaultTimeConverter( const std::shared_ptr< EOPReader > eopReader =
         std::make_shared< EOPReader >( ) );
+
+static const std::shared_ptr< TerrestrialTimeScaleConverter > defaultTimeConverter = createDefaultTimeConverter( );
+
+template< typename TimeType >
+TimeType convertTimeScale(
+    const TimeType& inputTime,
+    const basic_astrodynamics::TimeScales inputScale, const basic_astrodynamics::TimeScales outputScale,
+    const std::shared_ptr< TerrestrialTimeScaleConverter > timeConverter = defaultTimeConverter,
+    const Eigen::Vector3d& earthFixedPosition = Eigen::Vector3d::Zero( ) )
+{
+    Time time = Time( inputTime );
+    return static_cast< TimeType >( timeConverter->getCurrentTime(
+        inputScale, outputScale, time, earthFixedPosition ) );
+}
+
+
+template< typename TimeType >
+TimeType convertToTimeScale(
+    const basic_astrodynamics::DateTime inputDateTime,
+    const basic_astrodynamics::TimeScales inputScale, const basic_astrodynamics::TimeScales outputScale,
+    const std::shared_ptr< TerrestrialTimeScaleConverter > timeConverter = defaultTimeConverter,
+    const Eigen::Vector3d& earthFixedPosition = Eigen::Vector3d::Zero( ) )
+{
+    Time time = inputDateTime.epoch< Time >( );
+    return static_cast< TimeType >( timeConverter->getCurrentTime(
+        inputScale, outputScale, time, earthFixedPosition ) );
+}
 
 }
 

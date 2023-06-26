@@ -59,7 +59,7 @@ void runSimulation(
 //        "/Users/pipas/Documents/mgs-spice/mar063.bsp",
 //        "/Users/pipas/Documents/mgs-spice/mgs_ext22_ipng_mgs95j.bsp" } );
     spice_interface::loadStandardSpiceKernels( );
-    spice_interface::loadSpiceKernelInTudat( "/Users/pipas/Documents/mgs-spice/mgs_ext22_ipng_mgs95j.bsp" );
+    spice_interface::loadSpiceKernelInTudat( "/home/dominic/Tudat/data-test/mgs-spice2/mgs_ext22_ipng_mgs95j.bsp" );
 
     // Define bodies to use.
     std::vector< std::string > bodiesToCreate = { "Earth", "Sun", "Mercury", "Venus", "Mars", "Jupiter" };
@@ -195,7 +195,7 @@ void runSimulation(
 
     // Read and process ODF file data
     std::shared_ptr< OdfRawFileContents > rawOdfFileContents =
-            std::make_shared< OdfRawFileContents >( "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/odf/5332333a.odf" );
+            std::make_shared< OdfRawFileContents >( "/home/dominic/Tudat/data-test/mgs-m-rss-1-ext-v1/mors_2190/odf/5332333a.odf" );
 //            std::make_shared< OdfRawFileContents >( "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/odf/5327332a.odf" );
 
     std::vector< std::shared_ptr< input_output::OdfRawFileContents > > rawOdfDataVector = { rawOdfFileContents };
@@ -215,13 +215,13 @@ void runSimulation(
     std::vector< std::shared_ptr< observation_models::ObservationModelSettings > > observationModelSettingsList;
 
     std::shared_ptr< input_output::CspRawFile > troposphericCspFile = std::make_shared< input_output::CspRawFile >(
-            "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/tro/5305337a.tro"
+            "/home/dominic/Tudat/data-test/mgs-m-rss-1-ext-v1/mors_2190/tro/5305337a.tro"
             );
     std::shared_ptr< input_output::CspRawFile > ionosphericCspFile1 = std::make_shared< input_output::CspRawFile >(
-            "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/ion/5305335g.ion"
+            "/home/dominic/Tudat/data-test/mgs-m-rss-1-ext-v1/mors_2190/ion/5305335g.ion"
             );
     std::shared_ptr< input_output::CspRawFile > ionosphericCspFile2 = std::make_shared< input_output::CspRawFile >(
-            "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/ion/5335001a.ion"
+            "/home/dominic/Tudat/data-test/mgs-m-rss-1-ext-v1/mors_2190/ion/5335001a.ion"
             );
 
     std::map< int, std::string > spacecraftNamePerSpacecraftId;
@@ -254,9 +254,9 @@ void runSimulation(
         input_output::setDsnWeatherDataInGroundStations(
             bodies,
             std::vector< std::string >
-                    { "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/wea/50013321.wea",
-                      "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/wea/50013324.wea",
-                      "/Users/pipas/Documents/mgs-m-rss-1-ext-v1/mors_2190/wea/50013326.wea" } );
+                    { "/home/dominic/Tudat/data-test/mgs-m-rss-1-ext-v1/mors_2190/wea/50013321.wea",
+                      "/home/dominic/Tudat/data-test/mgs-m-rss-1-ext-v1/mors_2190/wea/50013324.wea",
+                      "/home/dominic/Tudat/data-test/mgs-m-rss-1-ext-v1/mors_2190/wea/50013326.wea" } );
 
         lightTimeCorrectionSettings.push_back( std::make_shared< SaastamoinenTroposphericCorrectionSettings >( ) );
     }

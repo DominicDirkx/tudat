@@ -163,7 +163,7 @@ TimeScalarType convertSecondsSinceEpochToJulianDay(
 }
 
 inline int julianDayNumberFromDate(
-    int year, int month, int day )
+    const int year, const int month, const int day )
 {
     int a, m, y, leap_days;
     a = (14 - month) / 12;

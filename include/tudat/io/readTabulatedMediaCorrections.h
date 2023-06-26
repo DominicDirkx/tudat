@@ -14,7 +14,8 @@
 #ifndef TUDAT_READTABULATEDMEDIACORRECTIONS_H
 #define TUDAT_READTABULATEDMEDIACORRECTIONS_H
 
-#include "tudat/astro/observation_models/corrections/tabulatedMediaCorrection.h"
+#include <memory>
+
 #include "tudat/astro/observation_models/observableTypes.h"
 
 namespace tudat
@@ -23,8 +24,7 @@ namespace tudat
 namespace input_output
 {
 
-// TODO: code to parse CSP commands is a bit shitty... would be nice if it wasn't
-
+// Base class defining a Control Statement Processor (CSP) command
 class CspCommand
 {
 public:
@@ -38,42 +38,74 @@ private:
 
 };
 
+// Representation of a CSP command with information about atmospheric corrections, according to TRK-2-23
 class AtmosphericCorrectionCspCommand: public CspCommand
 {
 public:
 
+    /*!
+     * Constructor. Parses a CSP command, saving its information.
+     * @param cspCommand Vector with CSP command elements and respective values.
+     */
     AtmosphericCorrectionCspCommand( std::vector< std::string >& cspCommand );
 
+    /*!
+     * Constructor.
+     */
     AtmosphericCorrectionCspCommand( ):
         sourceSpecifier_( "" ),
         sourceId_( 0 )
     { }
 
+    // CSP identifier of the model. Can take the values DRY NUPART (dry part of troposphere), WET NUPART (wet part of troposphere)
+    // or CHPART (ionosphere).
     std::string modelIdentifier_;
 
+    // CSP identifier of the data types to which the command applies.
     std::string dataTypesIdentifier_;
 
+    // CSP identifier of the type of model used to compute the correction.
     std::string computationSpecifier_;
+    // Coefficients of the model.
     std::vector< double > computationCoefficients_;
 
+    // Identification of the DSN station or complex
     std::string groundStationsId_;
 
+    // Identification of the source type: SCID for spacecraft or QUASAR for quasar. Only applicable for ionosphere correctins
     std::string sourceSpecifier_;
+    // Id of the source
     int sourceId_;
 
+    // Start time of command validity
     double startTime_;
+    // End time of command validity
     double endTime_;
 
+    /*!
+     * Converts the provided time into seconds since J2000. Doesn't convert the UTC time to TDB as the difference between
+     * the two is negligible for computing the atmospheric corrections.
+     *
+     * @param yearMonthDay Data in the format YYMMDD, UTC
+     * @param hoursMinutesSeconds Time in the format HH:MM:SSSSS, UTC
+     * @return Time (seconds) since J2000
+     */
     double convertTime( std::string yearMonthDay, std::string hoursMinutesSeconds );
 
 private:
 
 };
 
+// Control Statement Processor (CSP) file.
 class CspRawFile
 {
 public:
 
+    /*!
+     * Constructor. Reads file and parses the CSP commands it contains.
+     *
+     * @param cspFile File name.
+     */
     CspRawFile( const std::string& cspFile ):
         fileName_( cspFile )
     {
@@ -84,23 +116,35 @@ public:
         parseCspCommands( cspCommandsVector );
     }
 
-    CspRawFile( std::vector< std::string > cspCommandsVector ):
+    /*!
+     * Constructor. Parses the provided CSP commands.
+     *
+     * @param cspCommandsVector Vector of CSP commands.
+     */
+    CspRawFile( const std::vector< std::string >& cspCommandsVector ):
         fileName_( "" )
     {
         // Parse commands
         parseCspCommands( cspCommandsVector );
     }
 
-    CspRawFile( std::vector< std::shared_ptr< CspCommand > > cspCommands ):
+    /*!
+     * Constructor. Saves the provided CSP commands.
+     *
+     * @param cspCommands Vector of parsed CSP commands.
+     */
+    CspRawFile( const std::vector< std::shared_ptr< CspCommand > >& cspCommands ):
         fileName_( "" ),
         cspCommands_( cspCommands )
     { }
 
+    // Returns the name of the file.
     std::string getFileName( )
     {
         return fileName_;
     }
 
+    // Returns the parsed CSP commands that were contained in the file.
     std::vector< std::shared_ptr< CspCommand > > getCspCommands( )
     {
         return cspCommands_;
@@ -108,58 +152,80 @@ public:
 
 private:
 
-    std::vector< std::string > readCspCommandsFile( std::string file );
+    /*!
+     * Reads CSP commands file, placing each command into a string.
+     *
+     * @param file File name.
+     * @return Vector of CSP commands.
+     */
+    std::vector< std::string > readCspCommandsFile( const std::string& file );
 
+    /*!
+     * Parses a vector of CSP commands and saves them.
+     *
+     * @param cspCommandsVector Vector of CSP commands.
+     */
     void parseCspCommands( const std::vector< std::string >& cspCommandsVector );
 
+    // Name of the file
     std::string fileName_;
 
+    // Vector of CSP commands
     std::vector< std::shared_ptr< CspCommand > > cspCommands_;
 };
 
-std::shared_ptr< observation_models::TabulatedMediaReferenceCorrection > createReferenceCorrection(
-        double startTime,
-        double endTime,
-        std::vector< double > coefficients,
-        std::string computationSpecifier );
+/*!
+ * Returns the names of the ground stations associated with a given CSP ground station identifier. The identifier may
+ * correspond to a single ground station or to a complex.
+ *
+ * @param groundStationIdentifier CSP ground station identifier.
+ * @return Vector with the names of the ground stations.
+ */
+std::vector< std::string > getGroundStationsNames( const std::string& groundStationIdentifier );
 
-std::vector< std::string > getGroundStationsNames( std::string groundStationIdentifier );
+/*!
+ * Returns the vector of base observable types associated with each CSP observable identifier. Each CSP observable identifier
+ * can correspond to one or more tudat observable types.
+ *
+ * @param observableTypeIdentifier CSP observable identifier.
+ * @return Vector of observable types.
+ */
+std::vector< observation_models::ObservableType > getBaseObservableTypes( const std::string& observableTypeIdentifier );
 
-std::vector< observation_models::ObservableType > getBaseObservableTypes( std::string observableTypeIdentifier );
-
+/*!
+ * Checks which file starts first. Used to sort CSP files. Returns true if rawCspData1 starts first, false otherwise.
+ *
+ * @param rawCspData1 CSP file.
+ * @param rawCspData2 CSP file.
+ * @return
+ */
 bool compareAtmosphericCspFileStartDate( std::shared_ptr< CspRawFile > rawCspData1,
                                          std::shared_ptr< CspRawFile > rawCspData2 );
 
+/*!
+ * Returns the name of the data source.
+ * If the source ID is defined in one of the provided maps, the function returns the name in the map.
+ * If the source is a spacecraft and its ID isn't in the spacecraftNamePerSpacecraftId map, an error is thrown.
+ * If the source is a quasar and its ID isn't in the quasarNamePerQuasarId map, an error is thrown.
+ *
+ * @param sourceSpecifier CSP source specifier (SCID or QUASAR)
+ * @param sourceId Source ID.
+ * @param spacecraftNamePerSpacecraftId Map with the name associated with each spacecraft ID
+ * @param quasarNamePerQuasarId Map with the name associated with each quasar ID
+ * @return Name of the source
+ */
 std::string getSourceName(
-        std::string& sourceSpecifier,
-        int sourceId,
-        const std::map< int, std::string >& spacecraftNamePerSpacecraftId,
-        const std::map< int, std::string >& quasarNamePerQuasarId );
-
-observation_models::AtmosphericCorrectionPerStationAndSpacecraftType createTroposphericCorrection(
-        std::vector< std::shared_ptr< CspRawFile > > rawCspFiles,
-        const std::string& modelIdentifier,
+        const std::string& sourceSpecifier,
+        const int sourceId,
         const std::map< int, std::string >& spacecraftNamePerSpacecraftId = std::map< int, std::string >( ),
         const std::map< int, std::string >& quasarNamePerQuasarId = std::map< int, std::string >( ) );
 
-observation_models::AtmosphericCorrectionPerStationAndSpacecraftType createTroposphericDryCorrectionAdjustment(
-        const std::vector< std::shared_ptr< CspRawFile > >& rawCspFiles );
-
-observation_models::AtmosphericCorrectionPerStationAndSpacecraftType createTroposphericWetCorrectionAdjustment(
-        const std::vector< std::shared_ptr< CspRawFile > >& rawCspFiles );
-
-observation_models::AtmosphericCorrectionPerStationAndSpacecraftType createIonosphericCorrection(
-        const std::vector< std::shared_ptr< CspRawFile > >& rawCspFiles,
-        const std::map< int, std::string >& spacecraftNamePerSpacecraftId = std::map< int, std::string >( ),
-        const std::map< int, std::string >& quasarNamePerQuasarId = std::map< int, std::string >( ) );
-
-// CSP commands corresponding to the DSN default tropospheric seasonal model.
-// Estefan and Sovers (1994), Fig. 3b
+/*!
+ * Returns a CSP commands file corresponding to the DSN default tropospheric seasonal model, according to Estefan and
+ * Sovers (1994), Fig. 3b.
+ * @return
+ */
 std::shared_ptr< CspRawFile > getDsnDefaultTroposphericSeasonalModelCspFile( );
-
-observation_models::AtmosphericCorrectionPerStationAndSpacecraftType createDefaultTroposphericDryCorrection( );
-
-observation_models::AtmosphericCorrectionPerStationAndSpacecraftType createDefaultTroposphericWetCorrection( );
 
 } // namespace input_output
 

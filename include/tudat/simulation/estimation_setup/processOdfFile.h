@@ -281,6 +281,27 @@ private:
 
     // Flag indicating whether to print warnings
     bool verbose_;
+
+    // TODO: friend class used in unit test. Remove after processing of ODF data type 11 (1-way Doppler) is implemented
+    friend class ProcessedOdfFileContentsPrivateFunctionTest;
+};
+
+// TODO: friend class used in unit test. Remove after processing of ODF data type 11 (1-way Doppler) is implemented
+class ProcessedOdfFileContentsPrivateFunctionTest
+{
+public:
+
+    static double computeObservationTimesTdbFromJ2000(
+            std::shared_ptr< ProcessedOdfFileContents > processedOdfFileContents,
+            const std::string groundStation,
+            const double observationTimeUtcFromEME1950 )
+    {
+        return processedOdfFileContents->computeObservationTimesTdbFromJ2000(
+                groundStation, { observationTimeUtcFromEME1950 } ).front( );
+    }
+
+private:
+
 };
 
 observation_models::LinkEnds getLinkEndsFromOdfBlock (
@@ -391,7 +412,7 @@ void separateSingleLinkOdfData(
 }
 
 // Add transmitting stations to ground stations
-inline void setGroundStationsTransmittingFrequencies(
+inline void setTransmittingFrequenciesInGroundStations(
         std::shared_ptr< ProcessedOdfFileContents > processedOdfFileContents,
         std::shared_ptr< simulation_setup::Body > bodyWithGroundStations )
 {
@@ -501,6 +522,24 @@ std::vector< std::shared_ptr< simulation_setup::ObservationSimulationSettings< T
     }
 
     return observationSimulationSettings;
+}
+
+template< typename ObservationScalarType = double, typename TimeType = double >
+void changeObservableTypesOfObservationSimulationSettings(
+        std::vector< std::shared_ptr< simulation_setup::ObservationSimulationSettings< TimeType > > >& observationSimulationSettings,
+        const std::map< ObservableType, ObservableType >& replacementObservableTypes =
+                { { dsn_n_way_averaged_doppler, n_way_differenced_range },
+                  { dsn_one_way_averaged_doppler, one_way_differenced_range } } )
+{
+    for ( unsigned int i = 0; i < observationSimulationSettings.size( ); ++i )
+    {
+        ObservableType currentObservableType = observationSimulationSettings.at( i )->getObservableType( );
+
+        if ( replacementObservableTypes.count( currentObservableType ) )
+        {
+            observationSimulationSettings.at( i )->setObservableType( replacementObservableTypes.at( currentObservableType ) );
+        }
+    }
 }
 
 void setOdfInformationInBodies(

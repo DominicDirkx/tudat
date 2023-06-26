@@ -29,7 +29,8 @@ enum LightTimeCorrectionType
     tabulated_tropospheric,
     saastamoinen_tropospheric,
     tabulated_ionospheric,
-    jakowski_vtec_ionospheric
+    jakowski_vtec_ionospheric,
+    inverse_power_series_solar_corona
 };
 
 bool requiresMultiLegIterations( const LightTimeCorrectionType& lightTimeCorrectionType );

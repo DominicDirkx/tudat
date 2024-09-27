@@ -151,6 +151,7 @@ public:
                     "Error when defining DSN N-way averaged Doppler observation model: model allows exactly 3 link ends, " +
                     std::to_string( numberOfLinkEnds_ ) + "were selected.");
         }
+
     }
 
     //! Destructor
@@ -222,8 +223,18 @@ public:
         }
         FrequencyBands uplinkBand = frequencyBands.at( 0 );
         FrequencyBands downlinkBand = frequencyBands.at( 1 );
-        TimeType receptionStartTime = time - integrationTime / 2.0;
-        TimeType receptionEndTime = time + integrationTime / 2.0;
+
+        Eigen::Vector3d receivingStationPosition = ( Eigen::Vector3d( ) <<-2414066.959, 4907869.392, 3270605.378 ).finished( );
+
+        TimeType utcTime = terrestrialTimeScaleConverter_->getCurrentTime< TimeType >(
+            basic_astrodynamics::tdb_scale, basic_astrodynamics::utc_scale, time, receivingStationPosition );
+        TimeType receptionUtcStartTime = utcTime - integrationTime / 2.0;
+        TimeType receptionUtcEndTime = utcTime + integrationTime / 2.0;
+
+        TimeType receptionStartTime = terrestrialTimeScaleConverter_->getCurrentTime< TimeType >(
+            basic_astrodynamics::utc_scale, basic_astrodynamics::tdb_scale, receptionUtcStartTime, receivingStationPosition );
+        TimeType receptionEndTime = terrestrialTimeScaleConverter_->getCurrentTime< TimeType >(
+            basic_astrodynamics::utc_scale, basic_astrodynamics::tdb_scale, receptionUtcEndTime, receivingStationPosition );
 
         TimeType startLightTime = arcStartObservationModel_->computeIdealObservationsWithLinkEndData(
                 receptionStartTime, linkEndAssociatedWithTime, arcStartLinkEndTimes, arcStartLinkEndStates,
@@ -236,10 +247,16 @@ public:
         TimeType transmissionStartTime = receptionStartTime - startLightTime;
         TimeType transmissionEndTime = receptionEndTime - endLightTime;
 
-        ObservationScalarType transmitterFrequencyIntegral =
-                transmittingFrequencyCalculator_->template getTemplatedFrequencyIntegral< ObservationScalarType, TimeType >(
-                        transmissionStartTime, transmissionEndTime );
+        TimeType transmissionUtcStartTime = terrestrialTimeScaleConverter_->getCurrentTime< TimeType >(
+            basic_astrodynamics::tdb_scale, basic_astrodynamics::utc_scale, transmissionStartTime, receivingStationPosition );
+        TimeType transmissionUtcEndTime = terrestrialTimeScaleConverter_->getCurrentTime< TimeType >(
+            basic_astrodynamics::tdb_scale, basic_astrodynamics::utc_scale, transmissionEndTime, receivingStationPosition );
 
+        ObservationScalarType transmitterFrequencyIntegral =
+            7166430851.999502 * ( transmissionUtcEndTime - transmissionUtcStartTime );
+//                transmittingFrequencyCalculator_->template getTemplatedFrequencyIntegral< ObservationScalarType, TimeType >(
+//                    transmissionUtcStartTime, transmissionUtcEndTime );
+//
         // Moyer (2000), eq. 13-54
         Eigen::Matrix< ObservationScalarType, 1, 1 > observation = ( Eigen::Matrix< ObservationScalarType, 1, 1 >( ) <<
                 turnaroundRatio_( referenceUplinkBand, downlinkBand ) * referenceFrequency +
@@ -291,6 +308,8 @@ private:
 
     // Function returning the turnaround ratio for given uplink and downlink bands
     std::function< double ( FrequencyBands uplinkBand, FrequencyBands downlinkBand ) > turnaroundRatio_;
+
+    std::shared_ptr< earth_orientation::TerrestrialTimeScaleConverter > terrestrialTimeScaleConverter_ = earth_orientation::createDefaultTimeConverter( );
 };
 
 

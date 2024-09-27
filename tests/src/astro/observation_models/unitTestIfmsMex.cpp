@@ -262,11 +262,11 @@ int main( )
             createResidualCollection( observedObservationCollection, computedObservationCollection );
 
 
-        input_output::writeMatrixToFile( observedObservationCollection->getObservationVector( ), "ifms_doppler_" + std::to_string( i ) + ".dat", 16 );
-        input_output::writeMatrixToFile( residualObservationCollection->getObservationVector( ), "ifms_residuals_" + std::to_string( i ) + ".dat", 16 );
+        input_output::writeMatrixToFile( observedObservationCollection->getObservationVector( ), "ifms_doppler_utc_" + std::to_string( i ) + ".dat", 16 );
+        input_output::writeMatrixToFile( residualObservationCollection->getObservationVector( ), "ifms_residuals_utc_" + std::to_string( i ) + ".dat", 16 );
         input_output::writeMatrixToFile(
             utilities::convertStlVectorToEigenVector(
-                utilities::staticCastVector< double, Time >( residualObservationCollection->getConcatenatedTimeVector() ) ), "ifms_times_" + std::to_string( i ) + ".dat", 16 );
+                utilities::staticCastVector< double, Time >( residualObservationCollection->getConcatenatedTimeVector() ) ), "ifms_times_utc_" + std::to_string( i ) + ".dat", 16 );
     }
 
     //    /****************************************************************************************
